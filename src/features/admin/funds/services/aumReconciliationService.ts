@@ -30,14 +30,12 @@ export async function checkAUMReconciliation(
   tolerancePct: number = 0.01,
   asOfDate?: string
 ): Promise<AUMReconciliationResult> {
-  // Build params - omit p_as_of_date to use DB default (CURRENT_DATE)
-  // when not explicitly provided, avoiding string-to-date cast issues
   const params = {
     p_fund_id: fundId,
     p_tolerance_pct: tolerancePct,
-    ...(asOfDate ? { p_as_of_date: asOfDate } : {}),
+    p_as_of_date: asOfDate || new Date().toISOString().split("T")[0],
   };
-  const { data, error } = await rpc.call("check_aum_reconciliation", params as { p_fund_id: string; p_tolerance_pct?: number; p_as_of_date?: string });
+  const { data, error } = await rpc.call("check_aum_reconciliation", params);
 
   if (error) throw error;
   return data as unknown as AUMReconciliationResult;

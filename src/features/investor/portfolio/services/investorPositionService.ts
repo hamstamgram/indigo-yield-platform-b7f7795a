@@ -366,7 +366,8 @@ export async function getAllInvestorsExpertSummary(): Promise<ExpertInvestor[]> 
     .limit(2000);
 
   const posByInvestor = new Map<string, ExpertPosition[]>();
-  (positions || []).forEach((p) => {
+  const typedPositions = (positions || []) as unknown as RawPositionRow[];
+  typedPositions.forEach((p) => {
     if (!posByInvestor.has(p.investor_id)) posByInvestor.set(p.investor_id, []);
     posByInvestor.get(p.investor_id)!.push(mapPositionToExpert(p));
   });
@@ -416,12 +417,13 @@ export async function getInvestorExpertView(investorId: string): Promise<ExpertI
     .eq("investor_id", investorId)
     .limit(100);
 
+  const typedPositions = (positions || []) as unknown as RawPositionRow[];
   return {
     id: profile.id,
     email: profile.email,
     first_name: profile.first_name,
     last_name: profile.last_name,
-    positions: (positions || []).map(mapPositionToExpert),
+    positions: typedPositions.map(mapPositionToExpert),
   };
 }
 

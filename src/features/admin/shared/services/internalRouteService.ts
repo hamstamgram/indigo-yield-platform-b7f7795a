@@ -51,7 +51,7 @@ export async function fetchInvestorPositionsForRoute(
     .gt("current_value", 0);
 
   if (error) throw error;
-  return data || [];
+  return (data as unknown as InvestorPositionForRoute[]) || [];
 }
 
 /**

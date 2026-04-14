@@ -205,7 +205,7 @@ export async function getFundInvestorCompositionWithYield(fundId: string): Promi
 > {
   const { data, error } = await callRPC("get_fund_composition", {
     p_fund_id: fundId,
-    p_date: new Date().toISOString().split('T')[0],
+    p_date: new Date().toISOString().split("T")[0],
   });
 
   if (error) {
@@ -269,7 +269,7 @@ export async function getInvestorPositionsWithFunds(investorId: string): Promise
 
   if (error) throw new Error(`Failed to fetch positions: ${error.message}`);
 
-  return ((data || []) as PositionWithFundJoin[])
+  return ((data || []) as unknown as PositionWithFundJoin[])
     .filter((p) => p.funds?.status === "active")
     .map((p) => ({
       fund_id: p.fund_id,

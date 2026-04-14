@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.1"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -39,444 +34,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _fee_schedule_backup: {
-        Row: {
-          created_at: string | null
-          effective_date: string | null
-          end_date: string | null
-          fee_pct: number | null
-          fund_id: string | null
-          id: string | null
-          investor_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          effective_date?: string | null
-          end_date?: string | null
-          fee_pct?: number | null
-          fund_id?: string | null
-          id?: string | null
-          investor_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          effective_date?: string | null
-          end_date?: string | null
-          fee_pct?: number | null
-          fund_id?: string | null
-          id?: string | null
-          investor_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      _fund_aum_backup: {
-        Row: {
-          as_of_date: string | null
-          aum_date: string | null
-          created_at: string | null
-          created_by: string | null
-          fund_id: string | null
-          id: string | null
-          is_month_end: boolean | null
-          is_voided: boolean | null
-          nav_per_share: number | null
-          purpose: Database["public"]["Enums"]["aum_purpose"] | null
-          source: string | null
-          temporal_lock_bypass: boolean | null
-          total_aum: number | null
-          total_shares: number | null
-          updated_at: string | null
-          updated_by: string | null
-          void_reason: string | null
-          voided_at: string | null
-          voided_by: string | null
-          voided_by_profile_id: string | null
-        }
-        Insert: {
-          as_of_date?: string | null
-          aum_date?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          fund_id?: string | null
-          id?: string | null
-          is_month_end?: boolean | null
-          is_voided?: boolean | null
-          nav_per_share?: number | null
-          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
-          source?: string | null
-          temporal_lock_bypass?: boolean | null
-          total_aum?: number | null
-          total_shares?: number | null
-          updated_at?: string | null
-          updated_by?: string | null
-          void_reason?: string | null
-          voided_at?: string | null
-          voided_by?: string | null
-          voided_by_profile_id?: string | null
-        }
-        Update: {
-          as_of_date?: string | null
-          aum_date?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          fund_id?: string | null
-          id?: string | null
-          is_month_end?: boolean | null
-          is_voided?: boolean | null
-          nav_per_share?: number | null
-          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
-          source?: string | null
-          temporal_lock_bypass?: boolean | null
-          total_aum?: number | null
-          total_shares?: number | null
-          updated_at?: string | null
-          updated_by?: string | null
-          void_reason?: string | null
-          voided_at?: string | null
-          voided_by?: string | null
-          voided_by_profile_id?: string | null
-        }
-        Relationships: []
-      }
-      _funds_backup: {
-        Row: {
-          asset: string | null
-          code: string | null
-          cooling_off_hours: number | null
-          created_at: string | null
-          fund_class: string | null
-          high_water_mark: number | null
-          id: string | null
-          inception_date: string | null
-          large_withdrawal_threshold: number | null
-          lock_period_days: number | null
-          logo_url: string | null
-          max_daily_yield_pct: number | null
-          mgmt_fee_bps: number | null
-          min_investment: number | null
-          min_withdrawal_amount: number | null
-          name: string | null
-          perf_fee_bps: number | null
-          status: Database["public"]["Enums"]["fund_status"] | null
-          strategy: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          asset?: string | null
-          code?: string | null
-          cooling_off_hours?: number | null
-          created_at?: string | null
-          fund_class?: string | null
-          high_water_mark?: number | null
-          id?: string | null
-          inception_date?: string | null
-          large_withdrawal_threshold?: number | null
-          lock_period_days?: number | null
-          logo_url?: string | null
-          max_daily_yield_pct?: number | null
-          mgmt_fee_bps?: number | null
-          min_investment?: number | null
-          min_withdrawal_amount?: number | null
-          name?: string | null
-          perf_fee_bps?: number | null
-          status?: Database["public"]["Enums"]["fund_status"] | null
-          strategy?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          asset?: string | null
-          code?: string | null
-          cooling_off_hours?: number | null
-          created_at?: string | null
-          fund_class?: string | null
-          high_water_mark?: number | null
-          id?: string | null
-          inception_date?: string | null
-          large_withdrawal_threshold?: number | null
-          lock_period_days?: number | null
-          logo_url?: string | null
-          max_daily_yield_pct?: number | null
-          mgmt_fee_bps?: number | null
-          min_investment?: number | null
-          min_withdrawal_amount?: number | null
-          name?: string | null
-          perf_fee_bps?: number | null
-          status?: Database["public"]["Enums"]["fund_status"] | null
-          strategy?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      _ib_schedule_backup: {
-        Row: {
-          created_at: string | null
-          effective_date: string | null
-          end_date: string | null
-          fund_id: string | null
-          ib_percentage: number | null
-          id: string | null
-          investor_id: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          effective_date?: string | null
-          end_date?: string | null
-          fund_id?: string | null
-          ib_percentage?: number | null
-          id?: string | null
-          investor_id?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          effective_date?: string | null
-          end_date?: string | null
-          fund_id?: string | null
-          ib_percentage?: number | null
-          id?: string | null
-          investor_id?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      _positions_backup: {
-        Row: {
-          aum_percentage: number | null
-          cost_basis: number | null
-          cumulative_yield_earned: number | null
-          current_value: number | null
-          fund_class: string | null
-          fund_id: string | null
-          high_water_mark: number | null
-          investor_id: string | null
-          is_active: boolean | null
-          last_transaction_date: string | null
-          last_yield_crystallization_date: string | null
-          lock_until_date: string | null
-          mgmt_fees_paid: number | null
-          perf_fees_paid: number | null
-          realized_pnl: number | null
-          shares: number | null
-          unrealized_pnl: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          aum_percentage?: number | null
-          cost_basis?: number | null
-          cumulative_yield_earned?: number | null
-          current_value?: number | null
-          fund_class?: string | null
-          fund_id?: string | null
-          high_water_mark?: number | null
-          investor_id?: string | null
-          is_active?: boolean | null
-          last_transaction_date?: string | null
-          last_yield_crystallization_date?: string | null
-          lock_until_date?: string | null
-          mgmt_fees_paid?: number | null
-          perf_fees_paid?: number | null
-          realized_pnl?: number | null
-          shares?: number | null
-          unrealized_pnl?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          aum_percentage?: number | null
-          cost_basis?: number | null
-          cumulative_yield_earned?: number | null
-          current_value?: number | null
-          fund_class?: string | null
-          fund_id?: string | null
-          high_water_mark?: number | null
-          investor_id?: string | null
-          is_active?: boolean | null
-          last_transaction_date?: string | null
-          last_yield_crystallization_date?: string | null
-          lock_until_date?: string | null
-          mgmt_fees_paid?: number | null
-          perf_fees_paid?: number | null
-          realized_pnl?: number | null
-          shares?: number | null
-          unrealized_pnl?: number | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      _profiles_backup: {
-        Row: {
-          account_type: Database["public"]["Enums"]["account_type"] | null
-          created_at: string | null
-          email: string | null
-          first_name: string | null
-          ib_parent_id: string | null
-          ib_percentage: number | null
-          id: string | null
-          is_admin: boolean | null
-          last_name: string | null
-          status: string | null
-        }
-        Insert: {
-          account_type?: Database["public"]["Enums"]["account_type"] | null
-          created_at?: string | null
-          email?: string | null
-          first_name?: string | null
-          ib_parent_id?: string | null
-          ib_percentage?: number | null
-          id?: string | null
-          is_admin?: boolean | null
-          last_name?: string | null
-          status?: string | null
-        }
-        Update: {
-          account_type?: Database["public"]["Enums"]["account_type"] | null
-          created_at?: string | null
-          email?: string | null
-          first_name?: string | null
-          ib_parent_id?: string | null
-          ib_percentage?: number | null
-          id?: string | null
-          is_admin?: boolean | null
-          last_name?: string | null
-          status?: string | null
-        }
-        Relationships: []
-      }
-      _transactions_backup: {
-        Row: {
-          amount: number | null
-          approved_at: string | null
-          approved_by: string | null
-          asset: string | null
-          balance_after: number | null
-          balance_before: number | null
-          correction_id: string | null
-          created_at: string | null
-          created_by: string | null
-          distribution_id: string | null
-          fund_class: string | null
-          fund_id: string | null
-          id: string | null
-          investor_id: string | null
-          is_system_generated: boolean | null
-          is_voided: boolean | null
-          meta: Json | null
-          notes: string | null
-          purpose: Database["public"]["Enums"]["aum_purpose"] | null
-          reference_id: string | null
-          source: Database["public"]["Enums"]["tx_source"] | null
-          transfer_id: string | null
-          tx_date: string | null
-          tx_hash: string | null
-          tx_subtype: string | null
-          type: Database["public"]["Enums"]["tx_type"] | null
-          value_date: string | null
-          visibility_scope:
-            | Database["public"]["Enums"]["visibility_scope"]
-            | null
-          void_reason: string | null
-          voided_at: string | null
-          voided_by: string | null
-          voided_by_profile_id: string | null
-        }
-        Insert: {
-          amount?: number | null
-          approved_at?: string | null
-          approved_by?: string | null
-          asset?: string | null
-          balance_after?: number | null
-          balance_before?: number | null
-          correction_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          distribution_id?: string | null
-          fund_class?: string | null
-          fund_id?: string | null
-          id?: string | null
-          investor_id?: string | null
-          is_system_generated?: boolean | null
-          is_voided?: boolean | null
-          meta?: Json | null
-          notes?: string | null
-          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
-          reference_id?: string | null
-          source?: Database["public"]["Enums"]["tx_source"] | null
-          transfer_id?: string | null
-          tx_date?: string | null
-          tx_hash?: string | null
-          tx_subtype?: string | null
-          type?: Database["public"]["Enums"]["tx_type"] | null
-          value_date?: string | null
-          visibility_scope?:
-            | Database["public"]["Enums"]["visibility_scope"]
-            | null
-          void_reason?: string | null
-          voided_at?: string | null
-          voided_by?: string | null
-          voided_by_profile_id?: string | null
-        }
-        Update: {
-          amount?: number | null
-          approved_at?: string | null
-          approved_by?: string | null
-          asset?: string | null
-          balance_after?: number | null
-          balance_before?: number | null
-          correction_id?: string | null
-          created_at?: string | null
-          created_by?: string | null
-          distribution_id?: string | null
-          fund_class?: string | null
-          fund_id?: string | null
-          id?: string | null
-          investor_id?: string | null
-          is_system_generated?: boolean | null
-          is_voided?: boolean | null
-          meta?: Json | null
-          notes?: string | null
-          purpose?: Database["public"]["Enums"]["aum_purpose"] | null
-          reference_id?: string | null
-          source?: Database["public"]["Enums"]["tx_source"] | null
-          transfer_id?: string | null
-          tx_date?: string | null
-          tx_hash?: string | null
-          tx_subtype?: string | null
-          type?: Database["public"]["Enums"]["tx_type"] | null
-          value_date?: string | null
-          visibility_scope?:
-            | Database["public"]["Enums"]["visibility_scope"]
-            | null
-          void_reason?: string | null
-          voided_at?: string | null
-          voided_by?: string | null
-          voided_by_profile_id?: string | null
-        }
-        Relationships: []
-      }
-      _user_roles_backup: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          role: Database["public"]["Enums"]["app_role"] | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string | null
-          role?: Database["public"]["Enums"]["app_role"] | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string | null
-          role?: Database["public"]["Enums"]["app_role"] | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       admin_alerts: {
         Row: {
           acknowledged_at: string | null
@@ -987,62 +544,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_fee_allocations_distribution_id_v3"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "v_yield_conservation_violations"
-            referencedColumns: ["distribution_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_distribution_id_v3"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "yield_distribution_conservation_check"
-            referencedColumns: ["distribution_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_distribution_id_v3"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "yield_distributions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_fund_id_v3"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_fund_id_v3"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_fund_id_v3"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_fund_id_v3"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_fund_id_v3"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_fee_allocations_fund_v2"
             columns: ["fund_id"]
             isOneToOne: false
@@ -1076,13 +577,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_liquidity_risk"
             referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_investor_id_v3"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "fk_fee_allocations_investor_v2"
@@ -1103,13 +597,13 @@ export type Database = {
       fund_aum_events: {
         Row: {
           closing_aum: number
-          created_at: string | null
+          created_at: string
           created_by: string | null
           event_date: string
           event_ts: string
           fund_id: string
           id: string
-          is_voided: boolean | null
+          is_voided: boolean
           opening_aum: number
           post_flow_aum: number | null
           pre_flow_aum: number | null
@@ -1119,35 +613,37 @@ export type Database = {
           void_reason: string | null
           voided_at: string | null
           voided_by: string | null
+          voided_by_profile_id: string | null
         }
         Insert: {
-          closing_aum?: number
-          created_at?: string | null
+          closing_aum: number
+          created_at?: string
           created_by?: string | null
           event_date: string
-          event_ts?: string
+          event_ts: string
           fund_id: string
           id?: string
-          is_voided?: boolean | null
-          opening_aum?: number
+          is_voided?: boolean
+          opening_aum: number
           post_flow_aum?: number | null
           pre_flow_aum?: number | null
           purpose: Database["public"]["Enums"]["aum_purpose"]
           trigger_reference?: string | null
-          trigger_type?: string
+          trigger_type: string
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
         Update: {
           closing_aum?: number
-          created_at?: string | null
+          created_at?: string
           created_by?: string | null
           event_date?: string
           event_ts?: string
           fund_id?: string
           id?: string
-          is_voided?: boolean | null
+          is_voided?: boolean
           opening_aum?: number
           post_flow_aum?: number | null
           pre_flow_aum?: number | null
@@ -1157,53 +653,12 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "fund_aum_events_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fund_aum_events_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fund_aum_events_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fund_aum_events_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fund_aum_events_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fund_aum_events_fund_id_fkey"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fund_aum_events_voided_by_fkey"
-            columns: ["voided_by"]
+            foreignKeyName: "fk_fund_aum_events_voided_by_profile"
+            columns: ["voided_by_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1338,73 +793,72 @@ export type Database = {
       }
       fund_yield_snapshots: {
         Row: {
-          closing_aum: number
+          closing_aum: number | null
           created_at: string | null
           created_by: string | null
           days_in_period: number | null
-          fees_amount: number | null
           fund_id: string
           gross_yield_amount: number | null
           gross_yield_pct: number | null
-          ib_commission_amount: number | null
           id: string
-          investor_count: number | null
+          is_voided: boolean | null
           net_yield_amount: number | null
-          opening_aum: number
+          opening_aum: number | null
           period_end: string | null
           period_start: string | null
           snapshot_date: string
           trigger_reference: string | null
-          trigger_type: string
+          trigger_type: string | null
+          updated_at: string | null
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
         }
         Insert: {
-          closing_aum: number
+          closing_aum?: number | null
           created_at?: string | null
           created_by?: string | null
           days_in_period?: number | null
-          fees_amount?: number | null
           fund_id: string
           gross_yield_amount?: number | null
           gross_yield_pct?: number | null
-          ib_commission_amount?: number | null
           id?: string
-          investor_count?: number | null
+          is_voided?: boolean | null
           net_yield_amount?: number | null
-          opening_aum: number
+          opening_aum?: number | null
           period_end?: string | null
           period_start?: string | null
           snapshot_date: string
           trigger_reference?: string | null
-          trigger_type: string
+          trigger_type?: string | null
+          updated_at?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Update: {
-          closing_aum?: number
+          closing_aum?: number | null
           created_at?: string | null
           created_by?: string | null
           days_in_period?: number | null
-          fees_amount?: number | null
           fund_id?: string
           gross_yield_amount?: number | null
           gross_yield_pct?: number | null
-          ib_commission_amount?: number | null
           id?: string
-          investor_count?: number | null
+          is_voided?: boolean | null
           net_yield_amount?: number | null
-          opening_aum?: number
+          opening_aum?: number | null
           period_end?: string | null
           period_start?: string | null
           snapshot_date?: string
           trigger_reference?: string | null
-          trigger_type?: string
+          trigger_type?: string | null
+          updated_at?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "fund_yield_snapshots_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "fund_yield_snapshots_fund_id_fkey"
             columns: ["fund_id"]
@@ -2039,42 +1493,42 @@ export type Database = {
       investor_daily_balance: {
         Row: {
           balance_date: string
+          closing_balance: number | null
           created_at: string | null
-          deposits: number | null
-          end_of_day_balance: number
-          fees_debited: number | null
+          fees_deducted: number | null
           fund_id: string
+          ib_commission: number | null
           id: string
           investor_id: string
-          start_of_day_balance: number
-          withdrawals: number | null
-          yield_credited: number | null
+          net_flow: number | null
+          opening_balance: number | null
+          yield_earned: number | null
         }
         Insert: {
           balance_date: string
+          closing_balance?: number | null
           created_at?: string | null
-          deposits?: number | null
-          end_of_day_balance?: number
-          fees_debited?: number | null
+          fees_deducted?: number | null
           fund_id: string
+          ib_commission?: number | null
           id?: string
           investor_id: string
-          start_of_day_balance?: number
-          withdrawals?: number | null
-          yield_credited?: number | null
+          net_flow?: number | null
+          opening_balance?: number | null
+          yield_earned?: number | null
         }
         Update: {
           balance_date?: string
+          closing_balance?: number | null
           created_at?: string | null
-          deposits?: number | null
-          end_of_day_balance?: number
-          fees_debited?: number | null
+          fees_deducted?: number | null
           fund_id?: string
+          ib_commission?: number | null
           id?: string
           investor_id?: string
-          start_of_day_balance?: number
-          withdrawals?: number | null
-          yield_credited?: number | null
+          net_flow?: number | null
+          opening_balance?: number | null
+          yield_earned?: number | null
         }
         Relationships: [
           {
@@ -2437,7 +1891,6 @@ export type Database = {
           investor_id: string
           is_active: boolean | null
           last_transaction_date: string | null
-          last_yield_crystallization_date: string | null
           lock_until_date: string | null
           mgmt_fees_paid: number | null
           perf_fees_paid: number | null
@@ -2457,7 +1910,6 @@ export type Database = {
           investor_id: string
           is_active?: boolean | null
           last_transaction_date?: string | null
-          last_yield_crystallization_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
           perf_fees_paid?: number | null
@@ -2477,7 +1929,6 @@ export type Database = {
           investor_id?: string
           is_active?: boolean | null
           last_transaction_date?: string | null
-          last_yield_crystallization_date?: string | null
           lock_until_date?: string | null
           mgmt_fees_paid?: number | null
           perf_fees_paid?: number | null
@@ -2523,49 +1974,7 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_investor_positions_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_investor_id"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -2980,7 +2389,15 @@ export type Database = {
           status?: string | null
           used_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "platform_invites_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -3823,49 +3240,7 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_transactions_v2_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_investor_id"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -4656,35 +4031,130 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
+            foreignKeyName: "fk_investor_positions_investor"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mv_admin_repair_usage: {
+        Row: {
+          action: string | null
+          actor_user: string | null
+          dry_run: string | null
+          entity: string | null
+          executed_at: string | null
+        }
+        Insert: {
+          action?: string | null
+          actor_user?: string | null
+          dry_run?: never
+          entity?: string | null
+          executed_at?: never
+        }
+        Update: {
+          action?: string | null
+          actor_user?: string | null
+          dry_run?: never
+          entity?: string | null
+          executed_at?: never
+        }
+        Relationships: []
+      }
+      mv_aum_position_drift: {
+        Row: {
+          aum_date: string | null
+          drift_amount: number | null
+          drift_severity: string | null
+          fund_code: string | null
+          fund_id: string | null
+          fund_name: string | null
+          positions_sum: number | null
+          recorded_aum: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
             referencedRelation: "aum_position_reconciliation"
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
             referencedRelation: "fund_aum_mismatch"
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
             referencedRelation: "funds"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
             columns: ["fund_id"]
             isOneToOne: false
             referencedRelation: "v_fund_aum_position_health"
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
+            foreignKeyName: "fund_daily_aum_fund_id_fkey"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_liquidity_risk"
+            referencedColumns: ["fund_id"]
+          },
+        ]
+      }
+      mv_position_ledger_drift: {
+        Row: {
+          drift_amount: number | null
+          drift_severity: string | null
+          fund_code: string | null
+          fund_id: string | null
+          fund_name: string | null
+          investor_email: string | null
+          investor_id: string | null
+          ledger_balance: number | null
+          position_value: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "aum_position_reconciliation"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "fund_aum_mismatch"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "funds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
+            columns: ["fund_id"]
+            isOneToOne: false
+            referencedRelation: "v_fund_aum_position_health"
+            referencedColumns: ["fund_id"]
+          },
+          {
+            foreignKeyName: "fk_investor_positions_fund"
             columns: ["fund_id"]
             isOneToOne: false
             referencedRelation: "v_liquidity_risk"
@@ -4692,13 +4162,6 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_investor_positions_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_investor_id"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -4751,49 +4214,7 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_investor_positions_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_investor_id"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -4855,49 +4276,7 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_investor_positions_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_investor_id"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -4933,34 +4312,6 @@ export type Database = {
             columns: ["distribution_id"]
             isOneToOne: false
             referencedRelation: "yield_distributions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_distribution_id_v3"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "v_yield_conservation_violations"
-            referencedColumns: ["distribution_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_distribution_id_v3"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "yield_distribution_conservation_check"
-            referencedColumns: ["distribution_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_distribution_id_v3"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "yield_distributions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_investor_id_v3"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -5072,62 +4423,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_fee_allocations_distribution_id_v3"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "v_yield_conservation_violations"
-            referencedColumns: ["distribution_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_distribution_id_v3"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "yield_distribution_conservation_check"
-            referencedColumns: ["distribution_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_distribution_id_v3"
-            columns: ["distribution_id"]
-            isOneToOne: false
-            referencedRelation: "yield_distributions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_fund_id_v3"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_fund_id_v3"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_fund_id_v3"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_fund_id_v3"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_fund_id_v3"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_fee_allocations_fund_v2"
             columns: ["fund_id"]
             isOneToOne: false
@@ -5161,13 +4456,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_liquidity_risk"
             referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_fee_allocations_investor_id_v3"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "fk_fee_allocations_investor_v2"
@@ -5242,11 +4530,31 @@ export type Database = {
       }
       v_ledger_position_mismatches: {
         Row: {
+          cost_basis: number | null
+          current_value: number | null
+          discrepancy: number | null
           fund_id: string | null
           investor_id: string | null
           ledger_value: number | null
-          mismatch: number | null
-          position_value: number | null
+          shares: number | null
+        }
+        Insert: {
+          cost_basis?: number | null
+          current_value?: number | null
+          discrepancy?: never
+          fund_id?: string | null
+          investor_id?: string | null
+          ledger_value?: never
+          shares?: number | null
+        }
+        Update: {
+          cost_basis?: number | null
+          current_value?: number | null
+          discrepancy?: never
+          fund_id?: string | null
+          investor_id?: string | null
+          ledger_value?: never
+          shares?: number | null
         }
         Relationships: [
           {
@@ -5285,49 +4593,7 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_investor_positions_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_investor_id"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -5382,49 +4648,7 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_investor_positions_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_investor_id"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -5549,49 +4773,7 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_investor_positions_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_investor_id"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -5664,49 +4846,7 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_transactions_v2_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_investor_id"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -5772,49 +4912,7 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_investor_positions_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_investor_positions_investor_id"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -5907,49 +5005,7 @@ export type Database = {
             referencedColumns: ["fund_id"]
           },
           {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "aum_position_reconciliation"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "fund_aum_mismatch"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "funds"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_fund_aum_position_health"
-            referencedColumns: ["fund_id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_fund_id"
-            columns: ["fund_id"]
-            isOneToOne: false
-            referencedRelation: "v_liquidity_risk"
-            referencedColumns: ["fund_id"]
-          },
-          {
             foreignKeyName: "fk_transactions_v2_investor"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_transactions_v2_investor_id"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -6192,9 +5248,23 @@ export type Database = {
       apply_investor_transaction:
         | {
             Args: {
-              p_admin_id: string
+              p_admin_id?: string
               p_amount: number
               p_distribution_id?: string
+              p_fund_id: string
+              p_investor_id: string
+              p_notes?: string
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+              p_reference_id: string
+              p_tx_date: string
+              p_tx_type: Database["public"]["Enums"]["tx_type"]
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_admin_id: string
+              p_amount: number
               p_fund_id: string
               p_investor_id: string
               p_notes?: string
@@ -6221,18 +5291,6 @@ export type Database = {
             }
             Returns: Json
           }
-      apply_segmented_yield_distribution_v5: {
-        Args: {
-          p_admin_id?: string
-          p_distribution_date?: string
-          p_fund_id: string
-          p_opening_aum?: number
-          p_period_end: string
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-          p_recorded_aum: number
-        }
-        Returns: Json
-      }
       apply_transaction_with_crystallization: {
         Args: {
           p_admin_id?: string
@@ -6242,7 +5300,7 @@ export type Database = {
           p_investor_id: string
           p_new_total_aum?: number
           p_notes?: string
-          p_purpose?: string
+          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
           p_reference_id: string
           p_tx_date: string
           p_tx_type: string
@@ -6407,27 +5465,18 @@ export type Database = {
           variance: number
         }[]
       }
-      check_aum_reconciliation:
-        | {
-            Args: {
-              p_as_of_date: string
-              p_fund_id: string
-              p_tolerance_pct?: number
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_as_of_date?: string
-              p_fund_id: string
-              p_tolerance?: number
-            }
-            Returns: Json
-          }
+      check_aum_reconciliation: {
+        Args: {
+          p_as_of_date: string
+          p_fund_id: string
+          p_tolerance_pct?: number
+        }
+        Returns: Json
+      }
       check_duplicate_ib_allocations: { Args: never; Returns: number }
       check_duplicate_transaction_refs: { Args: never; Returns: number }
       check_historical_lock: {
-        Args: { p_date: string; p_fund_id: string; p_is_update?: boolean }
+        Args: { p_date: string; p_fund_id: string }
         Returns: boolean
       }
       check_is_admin: { Args: { user_id: string }; Returns: boolean }
@@ -6620,6 +5669,15 @@ export type Database = {
         Returns: number
       }
       get_delivery_stats: { Args: { p_period_id: string }; Returns: Json }
+      get_drift_summary: {
+        Args: never
+        Returns: {
+          aum_drift_count: number
+          position_drift_count: number
+          repair_call_count: number
+          status: string
+        }[]
+      }
       get_dust_tolerance_for_fund: {
         Args: { p_fund_id: string }
         Returns: number
@@ -6729,7 +5787,7 @@ export type Database = {
         }[]
       }
       get_ib_parent_candidates: {
-        Args: { p_exclude_id?: string }
+        Args: { p_exclude_id: string }
         Returns: {
           email_masked: string
           first_name: string
@@ -6922,6 +5980,8 @@ export type Database = {
       is_admin:
         | { Args: never; Returns: boolean }
         | { Args: { p_user_id: string }; Returns: boolean }
+      is_admin_for_jwt: { Args: never; Returns: boolean }
+      is_admin_safe: { Args: never; Returns: boolean }
       is_canonical_rpc: { Args: never; Returns: boolean }
       is_crystallization_current: {
         Args: {
@@ -7092,7 +6152,6 @@ export type Database = {
           net_amount: number
         }[]
       }
-      purge_old_audit_logs: { Args: { retention_days?: number }; Returns: Json }
       qa_admin_id: { Args: never; Returns: string }
       qa_fees_account_id: { Args: never; Returns: string }
       qa_fund_id: { Args: { p_asset: string }; Returns: string }
@@ -7145,15 +6204,17 @@ export type Database = {
         Returns: Json
       }
       recalculate_all_aum: { Args: never; Returns: Json }
-      recalculate_fund_aum_for_date: {
-        Args: {
-          p_actor_id?: string
-          p_date: string
-          p_fund_id: string
-          p_purpose?: Database["public"]["Enums"]["aum_purpose"]
-        }
-        Returns: Json
-      }
+      recalculate_fund_aum_for_date:
+        | {
+            Args: {
+              p_actor_id?: string
+              p_date: string
+              p_fund_id: string
+              p_purpose?: Database["public"]["Enums"]["aum_purpose"]
+            }
+            Returns: Json
+          }
+        | { Args: { p_fund_id: string; p_target_date: string }; Returns: Json }
       recompute_investor_position: {
         Args: { p_fund_id: string; p_investor_id: string }
         Returns: undefined
@@ -7225,10 +6286,7 @@ export type Database = {
         Args: { p_minutes?: number; p_period_id: string }
         Returns: Json
       }
-      require_admin: {
-        Args: { p_admin_id?: string; p_operation?: string }
-        Returns: undefined
-      }
+      require_admin: { Args: { p_operation?: string }; Returns: undefined }
       require_super_admin:
         | { Args: never; Returns: string }
         | {
@@ -7272,12 +6330,6 @@ export type Database = {
       }
       run_integrity_pack: { Args: never; Returns: Json }
       run_invariant_checks: { Args: never; Returns: Json }
-      set_account_type_for_ib:
-        | { Args: { p_user_id: string }; Returns: undefined }
-        | {
-            Args: { p_account_type: string; p_user_id: string }
-            Returns: undefined
-          }
       set_canonical_rpc: { Args: { enabled?: boolean }; Returns: undefined }
       set_fund_daily_aum: {
         Args: {
@@ -7533,11 +6585,7 @@ export type Database = {
         Returns: number
       }
       void_transaction: {
-        Args: {
-          p_admin_id: string
-          p_reason?: string
-          p_transaction_id: string
-        }
+        Args: { p_admin_id: string; p_reason: string; p_transaction_id: string }
         Returns: Json
       }
       void_transactions_bulk: {
@@ -7830,6 +6878,101 @@ export type Database = {
         }
         Relationships: []
       }
+      iceberg_namespaces: {
+        Row: {
+          bucket_name: string
+          catalog_id: string
+          created_at: string
+          id: string
+          metadata: Json
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          bucket_name: string
+          catalog_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          bucket_name?: string
+          catalog_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iceberg_namespaces_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "buckets_analytics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      iceberg_tables: {
+        Row: {
+          bucket_name: string
+          catalog_id: string
+          created_at: string
+          id: string
+          location: string
+          name: string
+          namespace_id: string
+          remote_table_id: string | null
+          shard_id: string | null
+          shard_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          bucket_name: string
+          catalog_id: string
+          created_at?: string
+          id?: string
+          location: string
+          name: string
+          namespace_id: string
+          remote_table_id?: string | null
+          shard_id?: string | null
+          shard_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bucket_name?: string
+          catalog_id?: string
+          created_at?: string
+          id?: string
+          location?: string
+          name?: string
+          namespace_id?: string
+          remote_table_id?: string | null
+          shard_id?: string | null
+          shard_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iceberg_tables_catalog_id_fkey"
+            columns: ["catalog_id"]
+            isOneToOne: false
+            referencedRelation: "buckets_analytics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "iceberg_tables_namespace_id_fkey"
+            columns: ["namespace_id"]
+            isOneToOne: false
+            referencedRelation: "iceberg_namespaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       migrations: {
         Row: {
           executed_at: string | null
@@ -8066,10 +7209,6 @@ export type Database = {
         Args: { bucketid: string; metadata: Json; name: string; owner: string }
         Returns: undefined
       }
-      delete_leaf_prefixes: {
-        Args: { bucket_ids: string[]; names: string[] }
-        Returns: undefined
-      }
       extension: { Args: { name: string }; Returns: string }
       filename: { Args: { name: string }; Returns: string }
       foldername: { Args: { name: string }; Returns: string[] }
@@ -8077,9 +7216,6 @@ export type Database = {
         Args: { p_delimiter: string; p_key: string; p_prefix: string }
         Returns: string
       }
-      get_level: { Args: { name: string }; Returns: number }
-      get_prefix: { Args: { name: string }; Returns: string }
-      get_prefixes: { Args: { name: string }; Returns: string[] }
       get_size_by_bucket: {
         Args: never
         Returns: {
@@ -8157,26 +7293,6 @@ export type Database = {
           created_at: string
           id: string
           key: string
-          last_accessed_at: string
-          metadata: Json
-          name: string
-          updated_at: string
-        }[]
-      }
-      search_legacy_v1: {
-        Args: {
-          bucketname: string
-          levels?: number
-          limits?: number
-          offsets?: number
-          prefix: string
-          search?: string
-          sortcolumn?: string
-          sortorder?: string
-        }
-        Returns: {
-          created_at: string
-          id: string
           last_accessed_at: string
           metadata: Json
           name: string
@@ -8492,7 +7608,6 @@ export const Constants = {
         "completed",
         "rejected",
         "cancelled",
-        "voided",
       ],
       yield_distribution_status: [
         "draft",
@@ -8510,3 +7625,4 @@ export const Constants = {
     },
   },
 } as const
+

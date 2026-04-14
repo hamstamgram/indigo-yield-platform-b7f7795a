@@ -48,7 +48,7 @@ export function useInvestorOverview(investorId: string) {
         funds: { name: string; asset: string; status: string } | null;
       }
 
-      const activePositions = ((positions as PositionWithFund[]) || []).filter(
+      const activePositions = ((positions as unknown as PositionWithFund[]) || []).filter(
         (p) => p.funds?.status === "active" && p.current_value > 0
       );
 
