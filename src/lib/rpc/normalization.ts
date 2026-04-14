@@ -90,7 +90,6 @@ export function normalizeError(error: unknown, functionName: string): RPCError {
  * }
  */
 export function assertUnreachable(value: never, context: string): never {
-  console.warn(`[ENUM_FALLTHROUGH] Unknown value in ${context}: ${value}`);
   logWarn("enum.unknown_value", {
     field: context,
     receivedValue: String(value),
