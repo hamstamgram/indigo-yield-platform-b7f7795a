@@ -1,7 +1,7 @@
 -- Batch 1a: Remove QA helper functions
 -- These functions are no longer called in the application and are not referenced in business logic
 
-DROP TRIGGER IF EXISTS public.trg_block_test_profiles ON public.profiles;
+DROP TRIGGER IF EXISTS trg_block_test_profiles ON profiles;
 
 DROP FUNCTION IF EXISTS public.qa_seed_world(p_run_tag text);
 DROP FUNCTION IF EXISTS public.qa_admin_id();
