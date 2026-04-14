@@ -1,11 +1,13 @@
 # Phases 2-4: Post-Merge & Hardening Roadmap
 
-**Status:** Phase 4A-4C DEPLOYED & LIVE  
+**Status:** Phase 4A-4C STABLE & LIVE  
 **Phase 1 Complete:** 2026-04-13 (backend cleanup audit)  
 **Phase 2 Start:** 2026-04-14 (post-merge stabilization)  
 **Phase 3 Start:** 2026-04-21 (Position Sync Phase 2)  
-**Phase 4A-4C Deployed:** 2026-04-14 (void/unvoid isolation, locking, yield/reporting hardening)  
-**Phase 4A-4C Watch Window:** 2026-04-14 14:30—16:30 UTC
+**Phase 4A-4C Deployed:** 2026-04-14 14:32 UTC ✅  
+**Phase 4A-4C Watch Window:** 2026-04-14 14:30—16:30 UTC ✅  
+**Phase 4A-4C Stability:** CONFIRMED 2026-04-14 16:32 UTC ✅  
+**Next Decision Point:** 2026-04-28 (Phase 4 monitoring checkpoint + Phase 3 go/no-go)
 
 ---
 
