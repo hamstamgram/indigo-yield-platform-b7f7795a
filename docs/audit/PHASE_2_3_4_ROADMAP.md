@@ -36,7 +36,7 @@ Phase 4: Financial Hardening Backlog (2026-05-05+)
 ├─ 4A: Void/unvoid architecture hardening ✅ DEPLOYED 2026-04-14
 ├─ 4B: Yield domain hardening ✅ DEPLOYED 2026-04-14
 ├─ 4C: Reporting/states hardening ✅ DEPLOYED 2026-04-14
-└─ 4D: Migration baseline strategy (deferred 2+ weeks)
+└─ 4D: Migration baseline strategy ✅ PLANNED 2026-04-14 (execution: 2026-05-26+)
 ```
 
 ---
