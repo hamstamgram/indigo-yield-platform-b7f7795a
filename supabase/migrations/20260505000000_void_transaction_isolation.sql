@@ -82,8 +82,7 @@ BEGIN
 
   -- Step 5: Cascade void to fee_allocations
   UPDATE public.fee_allocations
-  SET is_voided = TRUE, voided_at = NOW(), voided_by = p_admin_id, voided_by_profile_id = p_admin_id,
-      updated_at = NOW()
+  SET is_voided = TRUE, voided_at = NOW(), voided_by = p_admin_id, voided_by_profile_id = p_admin_id
   WHERE (credit_transaction_id = p_transaction_id OR debit_transaction_id = p_transaction_id)
     AND is_voided = FALSE;
   GET DIAGNOSTICS v_fee_allocations_voided = ROW_COUNT;
