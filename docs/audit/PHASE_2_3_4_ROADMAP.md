@@ -1,10 +1,11 @@
 # Phases 2-4: Post-Merge & Hardening Roadmap
 
-**Status:** Planning  
+**Status:** Phase 4A-4C DEPLOYED & LIVE  
 **Phase 1 Complete:** 2026-04-13 (backend cleanup audit)  
 **Phase 2 Start:** 2026-04-14 (post-merge stabilization)  
 **Phase 3 Start:** 2026-04-21 (Position Sync Phase 2)  
-**Phase 4 Start:** 2026-05-05 (Financial hardening backlog)
+**Phase 4A-4C Deployed:** 2026-04-14 (void/unvoid isolation, locking, yield/reporting hardening)  
+**Phase 4A-4C Watch Window:** 2026-04-14 14:30—16:30 UTC
 
 ---
 
@@ -32,10 +33,10 @@ Phase 3: Position Sync Phase 2 (2026-04-21 to 2026-05-02)
 └─ PS-4: Duplicate recomputation analysis
 
 Phase 4: Financial Hardening Backlog (2026-05-05+)
-├─ 4A: Void/unvoid architecture hardening
-├─ 4B: Yield domain hardening
-├─ 4C: Reporting/states hardening
-└─ 4D: Migration baseline strategy
+├─ 4A: Void/unvoid architecture hardening ✅ DEPLOYED 2026-04-14
+├─ 4B: Yield domain hardening ✅ DEPLOYED 2026-04-14
+├─ 4C: Reporting/states hardening ✅ DEPLOYED 2026-04-14
+└─ 4D: Migration baseline strategy (deferred 2+ weeks)
 ```
 
 ---
