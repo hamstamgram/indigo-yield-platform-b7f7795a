@@ -1,0 +1,48 @@
+INDIGO YIELD PLATFORM - FUND LIFECYCLE VALIDATION REPORT
+====================================================
+Timestamp: 2026-04-14T09:07:09.174Z
+Total Funds Validated: 8
+Passed: 0
+Failed: 8
+
+Fund: BTC Yield Fund (BTC)
+Status: ❌ FAILED
+Discrepancies Found: 1
+  - system.error: Excel=0, Engine=1, Diff=1.000000 (100.0000%) [FAIL]
+
+Fund: ETH TAC Yield Fund (ETH TAC)
+Status: ❌ FAILED
+Discrepancies Found: 1
+  - system.error: Excel=0, Engine=1, Diff=1.000000 (100.0000%) [FAIL]
+
+Fund: BTC Boost Yield Fund (BTC Boost)
+Status: ❌ FAILED
+Discrepancies Found: 1
+  - system.error: Excel=0, Engine=1, Diff=1.000000 (100.0000%) [FAIL]
+
+Fund: BTC TAC Yield Fund (BTC TAC)
+Status: ❌ FAILED
+Discrepancies Found: 1
+  - system.error: Excel=0, Engine=1, Diff=1.000000 (100.0000%) [FAIL]
+
+Fund: ETH Yield Fund (ETH)
+Status: ❌ FAILED
+Discrepancies Found: 1
+  - system.error: Excel=0, Engine=1, Diff=1.000000 (100.0000%) [FAIL]
+
+Fund: USDT Yield Fund (USDT)
+Status: ❌ FAILED
+Discrepancies Found: 1
+  - system.error: Excel=0, Engine=1, Diff=1.000000 (100.0000%) [FAIL]
+
+Fund: SOL Yield Fund (SOL)
+Status: ❌ FAILED
+Discrepancies Found: 1
+  - system.error: Excel=0, Engine=1, Diff=1.000000 (100.0000%) [FAIL]
+
+Fund: Ripple Yield Fund (XRP)
+Status: ❌ FAILED
+Discrepancies Found: 1
+  - system.error: Excel=0, Engine=1, Diff=1.000000 (100.0000%) [FAIL]
+
+OVERALL VERDICT: ❌ VALIDATION FAILED - SEE DISCREPANCIES ABOVE
