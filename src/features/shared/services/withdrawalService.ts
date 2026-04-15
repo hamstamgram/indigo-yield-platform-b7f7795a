@@ -377,6 +377,9 @@ export const withdrawalService = {
         p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
       }
     );
+
+    if (error) {
+      throw new Error(`Failed to cancel withdrawal: ${error.message}`);
     }
 
     log.info("Withdrawal cancelled successfully");
