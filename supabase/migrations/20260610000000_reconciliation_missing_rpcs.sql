@@ -190,3 +190,128 @@ $$;
 ALTER FUNCTION public.void_completed_withdrawal(uuid, text) OWNER TO postgres;
 GRANT EXECUTE ON FUNCTION public.void_completed_withdrawal(uuid, text) TO authenticated;
 REVOKE EXECUTE ON FUNCTION public.void_completed_withdrawal(uuid, text) FROM anon, PUBLIC;
+
+-- ============================================================
+
+-- RPC 3: get_paged_audit_logs
+-- Called from: src/services/shared/auditLogService.ts line 129
+-- Returns paginated audit_log rows with total_count window column.
+CREATE OR REPLACE FUNCTION public.get_paged_audit_logs(
+  p_limit    int,
+  p_offset   int,
+  p_entity   text    DEFAULT NULL,
+  p_action   text    DEFAULT NULL,
+  p_actor_id uuid    DEFAULT NULL
+)
+RETURNS TABLE (
+  id          uuid,
+  actor_user  uuid,
+  action      text,
+  entity      text,
+  entity_id   text,
+  old_values  jsonb,
+  new_values  jsonb,
+  meta        jsonb,
+  created_at  timestamptz,
+  total_count bigint
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+  -- 1. Verify caller is admin
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'UNAUTHORIZED: Admin privileges required';
+  END IF;
+
+  -- 2. Return paginated rows with window total_count
+  RETURN QUERY
+  SELECT
+    al.id,
+    al.actor_user,
+    al.action,
+    al.entity,
+    al.entity_id,
+    al.old_values,
+    al.new_values,
+    al.meta,
+    al.created_at,
+    COUNT(*) OVER()::bigint AS total_count
+  FROM public.audit_log al
+  WHERE
+    (p_entity   IS NULL OR al.entity      = p_entity)
+    AND (p_action   IS NULL OR al.action  = p_action)
+    AND (p_actor_id IS NULL OR al.actor_user = p_actor_id)
+  ORDER BY al.created_at DESC
+  LIMIT  p_limit
+  OFFSET p_offset;
+END;
+$$;
+
+ALTER FUNCTION public.get_paged_audit_logs(int, int, text, text, uuid) OWNER TO postgres;
+GRANT EXECUTE ON FUNCTION public.get_paged_audit_logs(int, int, text, text, uuid) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_paged_audit_logs(int, int, text, text, uuid) FROM anon, PUBLIC;
+
+-- ============================================================
+
+-- RPC 4: get_paged_notifications
+-- Called from: src/services/shared/notificationService.ts line 18
+-- Returns paginated notification rows for the current user with total_count window column.
+CREATE OR REPLACE FUNCTION public.get_paged_notifications(
+  p_page      int,
+  p_page_size int
+)
+RETURNS TABLE (
+  id          uuid,
+  user_id     uuid,
+  title       text,
+  message     text,
+  type        notification_type,
+  priority    notification_priority,
+  is_read     boolean,
+  metadata    jsonb,
+  created_at  timestamptz,
+  total_count bigint
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  v_user_id uuid;
+  v_offset  int;
+BEGIN
+  -- 1. Identify current user
+  v_user_id := auth.uid();
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'UNAUTHORIZED';
+  END IF;
+
+  -- 2. Compute offset from 1-based page number
+  v_offset := (p_page - 1) * p_page_size;
+
+  -- 3. Return paginated rows with window total_count
+  RETURN QUERY
+  SELECT
+    n.id,
+    n.user_id,
+    n.title,
+    n.message,
+    n.type,
+    n.priority,
+    n.is_read,
+    n.metadata,
+    n.created_at,
+    COUNT(*) OVER()::bigint AS total_count
+  FROM public.notifications n
+  WHERE n.user_id = v_user_id
+  ORDER BY n.created_at DESC
+  LIMIT  p_page_size
+  OFFSET v_offset;
+END;
+$$;
+
+ALTER FUNCTION public.get_paged_notifications(int, int) OWNER TO postgres;
+GRANT EXECUTE ON FUNCTION public.get_paged_notifications(int, int) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_paged_notifications(int, int) FROM anon, PUBLIC;
