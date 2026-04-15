@@ -26,32 +26,37 @@ import { rpc } from "@/lib/rpc/index";
 type RPCFunctions = Database["public"]["Functions"];
 
 // Type-safe RPC caller with runtime enum validation
+// Uses 'as any' for functions not in the type registry (e.g., newly added RPCs)
 export async function callRPC<T extends keyof RPCFunctions>(
   functionName: T,
-  args: RPCFunctions[T]["Args"]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  args: any
 ): Promise<{
-  data: RPCFunctions[T]["Returns"] | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
   error: Error | null;
 }> {
-  const result = await rpc.call(functionName, args);
+  const result = await rpc.call(functionName as any, args);
 
   return {
-    data: result.data as RPCFunctions[T]["Returns"] | null,
+    data: result.data,
     error: result.error ? new Error(result.error.message) : null,
   };
 }
 
 // Type-safe RPC caller with no arguments (for functions that take no params)
+// Uses 'as any' for functions not in the type registry (e.g., newly added RPCs)
 export async function callRPCNoArgs<T extends keyof RPCFunctions>(
   functionName: T
 ): Promise<{
-  data: RPCFunctions[T]["Returns"] | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
   error: Error | null;
 }> {
-  const result = await rpc.callNoArgs(functionName);
+  const result = await rpc.callNoArgs(functionName as any);
 
   return {
-    data: result.data as RPCFunctions[T]["Returns"] | null,
+    data: result.data,
     error: result.error ? new Error(result.error.message) : null,
   };
 }

@@ -69,7 +69,17 @@
       "Bash(awk '/public_functions:.*Functions/,/}.*}.*}/' /Users/mama/ai-lab/repo/indigo-yield/src/integrations/supabase/types.ts)",
       "Bash(find /Users/mama/ai-lab/repo/indigo-yield/supabase/migrations -name \"*.sql\" -exec grep -l \"position\\\\|reconcile\\\\|rebuild\\\\|recompute\\\\|repair_all\" {} \\\\;)",
       "Bash(env)",
-      "mcp__plugin_supabase_supabase__apply_migration"
+      "mcp__plugin_supabase_supabase__apply_migration",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__get_logs",
+      "mcp__supabase__apply_migration",
+      "Bash(git -C /Users/mama/ai-lab/repo/indigo-yield log --oneline 1cfb1e05..b8e0c702)",
+      "Bash(git -C /Users/mama/ai-lab/repo/indigo-yield log --oneline -5)",
+      "Bash(git:*)",
+      "Bash(awk:*)",
+      "Bash(sed -n '6720,6600p' /Users/mama/ai-lab/repo/indigo-yield/src/integrations/supabase/types.ts)",
+      "Bash(sed -n '6720,6760p' /Users/mama/ai-lab/repo/indigo-yield/src/integrations/supabase/types.ts)",
+      "mcp__supabase__list_tables"
     ]
   },
   "enableAllProjectMcpServers": true,

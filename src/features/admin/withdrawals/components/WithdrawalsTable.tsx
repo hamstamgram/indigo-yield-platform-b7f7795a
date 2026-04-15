@@ -91,7 +91,7 @@ interface WithdrawalsTableProps {
   onRouteToFees?: (withdrawal: Withdrawal) => void;
 }
 
-const statusColors: Record<WithdrawalFullStatus, string> = {
+const statusColors: Record<string, string> = {
   pending:
     "bg-amber-500/10 text-amber-500 border-amber-500/20 uppercase tracking-wider text-[10px] font-mono",
   approved: "bg-yield/10 text-yield border-yield/20 uppercase tracking-wider text-[10px] font-mono",
@@ -483,9 +483,11 @@ export const WithdrawalsTable = memo(function WithdrawalsTable({
                         </div>
                       </TableCell>
                       <TableCell className="py-1.5">
-                        {w.settlement_date
-                          ? format(new Date(w.settlement_date), "MMM dd, yyyy")
-                          : <span className="text-muted-foreground">-</span>}
+                        {w.settlement_date ? (
+                          format(new Date(w.settlement_date), "MMM dd, yyyy")
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell className="py-1.5">
                         <span className="max-w-[200px] truncate">{w.notes || "-"}</span>

@@ -25,7 +25,7 @@ if (!QA_EMAIL || !QA_PASSWORD) {
   );
 }
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? 'https://nkfimvovosdehmyyjubn.supabase.co';
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? 'http://localhost:8080';
 const ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY ??
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTQ1OTgsImV4cCI6MjA2MjAzMDU5OH0.pZrIyCCd7dlvvNMGdW8-71BxSVfoKhxs9a5Ezbkmjgg';
 
@@ -96,13 +96,14 @@ async function dbRpc(fn: string, params: Record<string, unknown>): Promise<any> 
 // ---------------------------------------------------------------------------
 
 async function login(page: Page) {
-  await page.goto('/');
+  await page.goto('http://localhost:8080/');
   await page.getByRole('textbox', { name: 'Email Address' }).fill(QA_EMAIL!);
   await page.getByRole('textbox', { name: 'Password' }).fill(QA_PASSWORD!);
   await page.getByRole('button', { name: /Access Portal/ }).click();
   await page.waitForURL('**/admin**', { timeout: 30_000 }).catch(() => {});
   await page.goto('/admin');
-  await page.waitForSelector('text=Command Center', { timeout: 30_000 });
+  // Wait for Admin Dashboard "Command Center" h1 header
+  await page.waitForSelector('h1:has-text("Command Center")', { timeout: 30_000 });
 }
 
 async function waitForToast(page: Page, label: string, timeout = 45_000) {

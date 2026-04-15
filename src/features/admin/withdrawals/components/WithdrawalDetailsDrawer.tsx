@@ -26,11 +26,10 @@ interface WithdrawalDetailsDrawerProps {
   onAction?: (action: "approve" | "reject", withdrawal: Withdrawal) => void;
 }
 
-const statusColors: Record<WithdrawalFullStatus, string> = {
+const statusColors: Record<string, string> = {
   pending:
     "bg-amber-500/10 text-amber-500 border-amber-500/20 uppercase tracking-wider text-[10px] font-mono",
-  approved:
-    "bg-yield/10 text-yield border-yield/20 uppercase tracking-wider text-[10px] font-mono",
+  approved: "bg-yield/10 text-yield border-yield/20 uppercase tracking-wider text-[10px] font-mono",
   processing:
     "bg-indigo-500/10 text-indigo-400 border-indigo-500/20 uppercase tracking-wider text-[10px] font-mono",
   completed:

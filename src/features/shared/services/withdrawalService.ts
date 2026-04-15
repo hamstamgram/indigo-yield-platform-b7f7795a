@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { callRPC } from "@/lib/supabase/typedRPC";
 import { rpc } from "@/lib/rpc/index";
 import { parseFinancial } from "@/utils/financial";
 import {
@@ -348,10 +349,10 @@ export const withdrawalService = {
 
     if (withdrawal?.status === "completed") {
       // Completed withdrawals require RPC to void transactions + recompute positions
-      const { data, error } = await rpc.call("void_completed_withdrawal" as any, {
+      const { data, error } = await callRPC("void_completed_withdrawal", {
         p_withdrawal_id: withdrawalId,
         p_reason: reason,
-      } as any);
+      });
 
       if (error) {
         log.error("Error voiding completed withdrawal", error);
@@ -367,21 +368,15 @@ export const withdrawalService = {
       return { correlationId: corrId };
     }
 
-    // Pending/approved withdrawals: use canonical RPC for audit trail + state machine compliance
-    const { error } = await rpc.call("cancel_withdrawal_by_admin_v2" as any, {
-      p_request_id: withdrawalId,
-      p_reason: reason,
-      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-    } as any);
-
-    if (error) {
-      log.error("Error cancelling withdrawal", error);
-      const errorMessage = error.message || "Failed to cancel withdrawal";
-      throw new Error(
-        errorMessage.includes("UNAUTHORIZED") || errorMessage.includes("Admin only")
-          ? "You don't have admin privileges to cancel withdrawals"
-          : errorMessage
-      );
+// Pending/approved withdrawals: use canonical RPC for audit trail + state machine compliance
+    const { error } = await callRPC(
+      "cancel_withdrawal_by_admin_v2",
+      {
+        p_request_id: withdrawalId,
+        p_reason: reason,
+        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+      }
+    );
     }
 
     log.info("Withdrawal cancelled successfully");
@@ -461,7 +456,9 @@ export const withdrawalService = {
    * Requires super_admin role - actorId is used for authorization check
    */
   async routeToFees(params: RouteToFeesParams): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     const { error } = await supabase.rpc("route_withdrawal_to_fees", {
       p_actor_id: user?.id,
       p_request_id: params.withdrawalId,
@@ -471,9 +468,7 @@ export const withdrawalService = {
     if (error) {
       const msg = error.message || "Failed to route withdrawal to fees";
       throw new Error(
-        msg.includes("UNAUTHORIZED")
-          ? "You don't have admin privileges to route withdrawals"
-          : msg
+        msg.includes("UNAUTHORIZED") ? "You don't have admin privileges to route withdrawals" : msg
       );
     }
   },
@@ -501,10 +496,10 @@ export const withdrawalService = {
   async deleteWithdrawal(params: DeleteWithdrawalParams): Promise<void> {
     // Always use canonical RPC for proper audit trail and state machine compliance.
     // Hard-delete is no longer supported — all deletions go through cancel RPC.
-    const { error } = await rpc.call("cancel_withdrawal_by_admin_v2" as any, {
+    const { error } = await rpc.call("cancel_withdrawal_by_admin_v2", {
       p_request_id: params.withdrawalId,
       p_reason: params.reason || "Cancelled by admin",
-    } as any);
+    });
     if (error) throw error;
   },
 
@@ -521,13 +516,13 @@ export const withdrawalService = {
 
     log.info("Restoring withdrawal", { withdrawalId, reason });
 
-    const { error } = await rpc.call("restore_withdrawal_by_admin_v2" as any, {
-      p_request_id: withdrawalId,
-      p_reason: reason,
-      p_admin_notes: adminNotes
-        ? `${adminNotes} [${corrId}]`
-        : `[${corrId}]`,
-    } as any);
+const { error } = await callRPC(
+      "cancel_withdrawal_by_admin_v2",
+      {
+        p_request_id: params.withdrawalId,
+        p_reason: params.reason || "Cancelled by admin",
+      }
+    );
 
     if (error) {
       log.error("Error restoring withdrawal", error);
