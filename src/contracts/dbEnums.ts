@@ -843,6 +843,7 @@ export const TX_TYPE_VALUES = [
   "INTERNAL_WITHDRAWAL",
   "INTERNAL_CREDIT",
   "IB_DEBIT",
+  "DUST",
   "DUST_SWEEP",
 ] as const;
 
