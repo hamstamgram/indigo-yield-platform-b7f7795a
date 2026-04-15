@@ -323,3 +323,201 @@ $$;
 ALTER FUNCTION public.get_paged_notifications(uuid, int, int) OWNER TO postgres;
 GRANT EXECUTE ON FUNCTION public.get_paged_notifications(uuid, int, int) TO authenticated;
 REVOKE EXECUTE ON FUNCTION public.get_paged_notifications(uuid, int, int) FROM anon, PUBLIC;
+
+-- ============================================================
+
+-- RPC 5: get_investor_cumulative_yield
+-- Returns ITD cumulative yield totals for one investor in one fund.
+-- Security: caller must be the investor themselves OR an admin.
+CREATE OR REPLACE FUNCTION public.get_investor_cumulative_yield(
+  p_investor_id uuid,
+  p_fund_id     uuid
+)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  v_result json;
+BEGIN
+  -- 1. Access control: self or admin only
+  IF NOT (auth.uid() = p_investor_id OR public.is_admin()) THEN
+    RAISE EXCEPTION 'UNAUTHORIZED';
+  END IF;
+
+  -- 2. Aggregate from yield_allocations joined to yield_distributions
+  SELECT json_build_object(
+    'total_gross',         COALESCE(SUM(ya.gross_amount), 0),
+    'total_net',           COALESCE(SUM(ya.net_amount),   0),
+    'total_fees',          COALESCE(SUM(ya.fee_amount),   0),
+    'total_ib',            COALESCE(SUM(ya.ib_amount),    0),
+    'distribution_count',  COUNT(*)
+  )
+  INTO v_result
+  FROM public.yield_allocations ya
+  JOIN public.yield_distributions yd ON yd.id = ya.distribution_id
+  WHERE ya.investor_id = p_investor_id
+    AND ya.fund_id     = p_fund_id
+    AND ya.is_voided   = false
+    AND yd.is_voided   = false;
+
+  RETURN v_result;
+END;
+$$;
+
+ALTER FUNCTION public.get_investor_cumulative_yield(uuid, uuid) OWNER TO postgres;
+GRANT EXECUTE ON FUNCTION public.get_investor_cumulative_yield(uuid, uuid) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_investor_cumulative_yield(uuid, uuid) FROM anon, PUBLIC;
+
+-- ============================================================
+
+-- RPC 6: get_investor_yield_summary
+-- Returns yield history rows for one investor across all funds,
+-- ordered newest-first.
+-- Security: caller must be the investor themselves OR an admin.
+CREATE OR REPLACE FUNCTION public.get_investor_yield_summary(
+  p_investor_id uuid
+)
+RETURNS TABLE (
+  distribution_id uuid,
+  fund_id         uuid,
+  fund_name       text,
+  period_start    date,
+  period_end      date,
+  gross_amount    numeric,
+  net_amount      numeric,
+  fee_amount      numeric,
+  ib_amount       numeric,
+  effective_date  date,
+  created_at      timestamptz
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+  -- 1. Access control: self or admin only
+  IF NOT (auth.uid() = p_investor_id OR public.is_admin()) THEN
+    RAISE EXCEPTION 'UNAUTHORIZED';
+  END IF;
+
+  -- 2. Return rows joined to distributions and funds
+  RETURN QUERY
+  SELECT
+    ya.distribution_id,
+    ya.fund_id,
+    f.name          AS fund_name,
+    yd.period_start,
+    yd.period_end,
+    ya.gross_amount,
+    ya.net_amount,
+    ya.fee_amount,
+    ya.ib_amount,
+    yd.effective_date,
+    ya.created_at
+  FROM public.yield_allocations ya
+  JOIN public.yield_distributions yd ON yd.id = ya.distribution_id
+  JOIN public.funds               f  ON f.id  = ya.fund_id
+  WHERE ya.investor_id = p_investor_id
+    AND ya.is_voided   = false
+    AND yd.is_voided   = false
+  ORDER BY yd.effective_date DESC;
+END;
+$$;
+
+ALTER FUNCTION public.get_investor_yield_summary(uuid) OWNER TO postgres;
+GRANT EXECUTE ON FUNCTION public.get_investor_yield_summary(uuid) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_investor_yield_summary(uuid) FROM anon, PUBLIC;
+
+-- ============================================================
+
+-- RPC 7: get_fund_positions_sum
+-- Returns position totals for one fund. Admin-only.
+CREATE OR REPLACE FUNCTION public.get_fund_positions_sum(
+  p_fund_id uuid
+)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  v_result json;
+BEGIN
+  -- 1. Admin-only
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'UNAUTHORIZED: Admin privileges required';
+  END IF;
+
+  -- 2. Aggregate investor_positions for the fund
+  SELECT json_build_object(
+    'total_value',   COALESCE(SUM(CASE WHEN ip.is_active THEN ip.current_value ELSE 0 END), 0),
+    'active_count',  COUNT(*) FILTER (WHERE ip.is_active),
+    'total_count',   COUNT(*)
+  )
+  INTO v_result
+  FROM public.investor_positions ip
+  WHERE ip.fund_id = p_fund_id;
+
+  RETURN v_result;
+END;
+$$;
+
+ALTER FUNCTION public.get_fund_positions_sum(uuid) OWNER TO postgres;
+GRANT EXECUTE ON FUNCTION public.get_fund_positions_sum(uuid) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_fund_positions_sum(uuid) FROM anon, PUBLIC;
+
+-- ============================================================
+
+-- RPC 8: get_drift_summary
+-- Admin-only integrity dashboard. Returns counts from reconciliation views
+-- as a JSON object.
+CREATE OR REPLACE FUNCTION public.get_drift_summary()
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  v_aum_mismatches            bigint;
+  v_orphaned_positions        bigint;
+  v_orphaned_transactions     bigint;
+  v_yield_conservation_viol   bigint;
+BEGIN
+  -- 1. Admin-only
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'UNAUTHORIZED: Admin privileges required';
+  END IF;
+
+  -- 2. Count AUM/position health mismatches (non-healthy rows)
+  SELECT COUNT(*) INTO v_aum_mismatches
+  FROM public.v_fund_aum_position_health
+  WHERE health_status <> 'healthy';
+
+  -- 3. Count orphaned positions
+  SELECT COUNT(*) INTO v_orphaned_positions
+  FROM public.v_orphaned_positions;
+
+  -- 4. Count orphaned transactions
+  SELECT COUNT(*) INTO v_orphaned_transactions
+  FROM public.v_orphaned_transactions;
+
+  -- 5. Count yield conservation violations
+  SELECT COUNT(*) INTO v_yield_conservation_viol
+  FROM public.v_yield_conservation_violations;
+
+  -- 6. Return JSON summary
+  RETURN json_build_object(
+    'aum_position_mismatches',       v_aum_mismatches,
+    'orphaned_positions',            v_orphaned_positions,
+    'orphaned_transactions',         v_orphaned_transactions,
+    'yield_conservation_violations', v_yield_conservation_viol,
+    'checked_at',                    NOW()
+  );
+END;
+$$;
+
+ALTER FUNCTION public.get_drift_summary() OWNER TO postgres;
+GRANT EXECUTE ON FUNCTION public.get_drift_summary() TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_drift_summary() FROM anon, PUBLIC;

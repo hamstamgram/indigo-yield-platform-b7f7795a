@@ -7,7 +7,6 @@
 
 import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
-import type { TransactionType } from "@/types/domains/transaction";
 
 // =============================================================================
 // ACCESS_EVENT ENUM
@@ -740,8 +739,40 @@ export function isValidTransactionStatus(value: string): value is TransactionSta
   return TransactionStatusSchema.safeParse(value).success;
 }
 
-// TransactionType — canonical source is src/types/domains/transaction.ts
-export type { TransactionType } from '@/types/domains/transaction'
+// =============================================================================
+// TRANSACTION_TYPE ENUM
+// =============================================================================
+
+export const TRANSACTION_TYPE_VALUES = [
+  "DEPOSIT",
+  "WITHDRAWAL",
+  "INTEREST",
+  "FEE",
+  "DUST_ALLOCATION",
+] as const;
+
+export const TransactionTypeSchema = z.enum(TRANSACTION_TYPE_VALUES, {
+  errorMap: (issue, ctx) => {
+    if (issue.code === "invalid_enum_value") {
+      return { message: `Invalid transaction_type: "${ctx.data}". Valid: ${TRANSACTION_TYPE_VALUES.join(", ")}` };
+    }
+    return { message: ctx.defaultError };
+  },
+});
+
+export type TransactionType = z.infer<typeof TransactionTypeSchema>;
+
+export const DB_TRANSACTION_TYPE = {
+  "DEPOSIT": "DEPOSIT",
+  "WITHDRAWAL": "WITHDRAWAL",
+  "INTEREST": "INTEREST",
+  "FEE": "FEE",
+  "DUST_ALLOCATION": "DUST_ALLOCATION",
+} as const satisfies Record<string, TransactionType>;
+
+export function isValidTransactionType(value: string): value is TransactionType {
+  return TransactionTypeSchema.safeParse(value).success;
+}
 
 // =============================================================================
 // TX_SOURCE ENUM
@@ -1101,7 +1132,7 @@ void _ticket_statusCheck;
 type SupabaseTransactionStatus = Database["public"]["Enums"]["transaction_status"];
 const _transaction_statusCheck: TransactionStatus extends SupabaseTransactionStatus ? SupabaseTransactionStatus extends TransactionStatus ? true : false : false = true;
 void _transaction_statusCheck;
-type SupabaseTransactionType = Database["public"]["Enums"]["tx_type"];
+type SupabaseTransactionType = Database["public"]["Enums"]["transaction_type"];
 const _transaction_typeCheck: TransactionType extends SupabaseTransactionType ? SupabaseTransactionType extends TransactionType ? true : false : false = true;
 void _transaction_typeCheck;
 type SupabaseTxSource = Database["public"]["Enums"]["tx_source"];
