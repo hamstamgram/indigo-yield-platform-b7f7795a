@@ -36,10 +36,10 @@ export interface ExpertPosition {
   fund_code: string;
   asset: string;
   fund_class: string | null;
-  shares: number;
-  cost_basis: number;
-  current_value: number;
-  total_earnings: number;
+  shares: string;
+  cost_basis: string;
+  current_value: string;
+  total_earnings: string;
   last_transaction_date: string | null;
 }
 
@@ -64,13 +64,13 @@ export interface InvestorPositionDetail {
   fundCode: string;
   asset: string;
   fundClass: string;
-  shares: number;
-  currentValue: number;
-  costBasis: number;
-  unrealizedPnl: number;
-  realizedPnl: number;
+  shares: string;
+  currentValue: string;
+  costBasis: string;
+  unrealizedPnl: string;
+  realizedPnl: string;
   lastTransactionDate?: string | null;
-  allocationPercentage?: number;
+  allocationPercentage?: string;
 }
 
 // ============================================
@@ -109,15 +109,12 @@ function mapPositionToExpert(pos: RawPositionRow): ExpertPosition {
     fund_code: fund.code || fund.id || "",
     asset: fund.asset || "UNKNOWN",
     fund_class: pos.fund_class || fund.fund_class || null,
-    shares: parseFinancial(pos.shares || 0).toNumber(),
-    cost_basis: parseFinancial(pos.cost_basis || 0).toNumber(),
-    current_value: parseFinancial(pos.current_value || 0).toNumber(),
+    shares: parseFinancial(pos.shares || 0).toString(),
+    cost_basis: parseFinancial(pos.cost_basis || 0).toString(),
+    current_value: parseFinancial(pos.current_value || 0).toString(),
     total_earnings: parseFinancial(pos.realized_pnl || 0)
       .plus(parseFinancial(pos.unrealized_pnl || 0))
-      .toNumber(),
-    // NOTE: .toNumber() is acceptable here for soft-launch AUM ranges.
-    // For amounts exceeding 15 significant digits, migrate to .toString()
-    // and update ExpertPosition types + consumers to number | string.
+      .toString(),
     last_transaction_date: pos.last_transaction_date || null,
   };
 }
@@ -153,6 +150,7 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     `
     )
     .eq("investor_id", investorId)
+    .eq("is_active", true)
     .gt("shares", 0)
     .limit(100);
 
@@ -161,9 +159,10 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     throw error;
   }
 
-  const totalValue = (fundPositions || [])
-    .reduce((sum, pos) => sum.plus(parseFinancial(pos.current_value)), parseFinancial(0))
-    .toNumber();
+  const totalValue = (fundPositions || []).reduce(
+    (sum, pos) => sum.plus(parseFinancial(pos.current_value)),
+    parseFinancial(0)
+  );
 
   return (fundPositions || []).map((fp: any) => ({
     fundId: fp.fund_id,
@@ -171,19 +170,18 @@ export async function getInvestorPositions(investorId: string): Promise<Investor
     fundCode: fp.funds?.code || "N/A",
     asset: fp.funds?.asset || "Unknown",
     fundClass: fp.fund_class || fp.funds?.fund_class || "Standard",
-    shares: parseFinancial(fp.shares || 0).toNumber(),
-    currentValue: parseFinancial(fp.current_value || 0).toNumber(),
-    costBasis: parseFinancial(fp.cost_basis || 0).toNumber(),
-    unrealizedPnl: parseFinancial(fp.unrealized_pnl || 0).toNumber(),
-    realizedPnl: parseFinancial(fp.realized_pnl || 0).toNumber(),
+    shares: parseFinancial(fp.shares || 0).toString(),
+    currentValue: parseFinancial(fp.current_value || 0).toString(),
+    costBasis: parseFinancial(fp.cost_basis || 0).toString(),
+    unrealizedPnl: parseFinancial(fp.unrealized_pnl || 0).toString(),
+    realizedPnl: parseFinancial(fp.realized_pnl || 0).toString(),
     lastTransactionDate: fp.last_transaction_date || fp.updated_at,
-    allocationPercentage:
-      totalValue > 0
-        ? parseFinancial(fp.current_value || 0)
-            .div(totalValue)
-            .times(100)
-            .toNumber()
-        : 0,
+    allocationPercentage: totalValue.gt(0)
+      ? parseFinancial(fp.current_value || 0)
+          .div(totalValue)
+          .times(100)
+          .toString()
+      : "0",
   }));
 }
 
@@ -215,6 +213,7 @@ export async function fetchInvestorPositions(investorId: string): Promise<Invest
     `
     )
     .eq("investor_id", investorId)
+    .eq("is_active", true)
     .or("current_value.neq.0,cost_basis.neq.0,shares.neq.0")
     .limit(100);
 
@@ -255,10 +254,16 @@ export async function getPlatformStats(): Promise<{
   investorCount: number;
   adminCount: number;
 }> {
+  const { data, error } = await supabase.rpc("get_platform_stats");
+  if (error) {
+    logError("getPlatformStats", error);
+    return { totalAum: 0, investorCount: 0, adminCount: 0 };
+  }
+  const result = data as Record<string, unknown> | null;
   return {
-    totalAum: 0,
-    investorCount: 0,
-    adminCount: 0,
+    totalAum: Number(result?.totalAum ?? 0),
+    investorCount: Number(result?.investorCount ?? 0),
+    adminCount: Number(result?.adminCount ?? 0),
   };
 }
 
@@ -415,6 +420,7 @@ export async function getInvestorExpertView(investorId: string): Promise<ExpertI
     `
     )
     .eq("investor_id", investorId)
+    .eq("is_active", true)
     .limit(100);
 
   const typedPositions = (positions || []) as unknown as RawPositionRow[];
@@ -466,6 +472,7 @@ export async function getPositionsByFund(
     `
     )
     .eq("fund_id", fundId)
+    .eq("is_active", true)
     .gt("shares", 0)
     .limit(500);
 
@@ -494,9 +501,10 @@ export async function getPositionsByFund(
 
   // Filter to investor accounts only
   const investorPositions = (data || []).filter((pos) => investorSet.has(pos.investor_id));
-  const totalValue = investorPositions
-    .reduce((sum, pos) => sum.plus(parseFinancial(pos.current_value)), parseFinancial(0))
-    .toNumber();
+  const totalValue = investorPositions.reduce(
+    (sum, pos) => sum.plus(parseFinancial(pos.current_value)),
+    parseFinancial(0)
+  );
 
   return investorPositions.map((fp: any) => ({
     fundId: fp.fund_id,
@@ -504,19 +512,18 @@ export async function getPositionsByFund(
     fundCode: fp.funds?.code || "N/A",
     asset: fp.funds?.asset || "Unknown",
     fundClass: fp.fund_class || fp.funds?.fund_class || "Standard",
-    shares: parseFinancial(fp.shares || 0).toNumber(),
-    currentValue: parseFinancial(fp.current_value || 0).toNumber(),
-    costBasis: parseFinancial(fp.cost_basis || 0).toNumber(),
-    unrealizedPnl: parseFinancial(fp.unrealized_pnl || 0).toNumber(),
-    realizedPnl: parseFinancial(fp.realized_pnl || 0).toNumber(),
+    shares: parseFinancial(fp.shares || 0).toString(),
+    currentValue: parseFinancial(fp.current_value || 0).toString(),
+    costBasis: parseFinancial(fp.cost_basis || 0).toString(),
+    unrealizedPnl: parseFinancial(fp.unrealized_pnl || 0).toString(),
+    realizedPnl: parseFinancial(fp.realized_pnl || 0).toString(),
     lastTransactionDate: fp.last_transaction_date || fp.updated_at,
-    allocationPercentage:
-      totalValue > 0
-        ? parseFinancial(fp.current_value || 0)
-            .div(totalValue)
-            .times(100)
-            .toNumber()
-        : 0,
+    allocationPercentage: totalValue.gt(0)
+      ? parseFinancial(fp.current_value || 0)
+          .div(totalValue)
+          .times(100)
+          .toString()
+      : "0",
     investorId: fp.investor_id,
   }));
 }

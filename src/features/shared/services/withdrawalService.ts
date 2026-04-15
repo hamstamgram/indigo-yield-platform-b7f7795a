@@ -368,15 +368,12 @@ export const withdrawalService = {
       return { correlationId: corrId };
     }
 
-// Pending/approved withdrawals: use canonical RPC for audit trail + state machine compliance
-    const { error } = await callRPC(
-      "cancel_withdrawal_by_admin_v2",
-      {
-        p_request_id: withdrawalId,
-        p_reason: reason,
-        p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
-      }
-    );
+    // Pending/approved withdrawals: use canonical RPC for audit trail + state machine compliance
+    const { error } = await callRPC("cancel_withdrawal_by_admin_v2", {
+      p_request_id: withdrawalId,
+      p_reason: reason,
+      p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
+    });
 
     if (error) {
       throw new Error(`Failed to cancel withdrawal: ${error.message}`);
@@ -413,6 +410,7 @@ export const withdrawalService = {
       `
       )
       .eq("investor_id", investorId)
+      .eq("is_active", true)
       .gt("current_value", 0);
 
     if (error) throw error;
@@ -519,13 +517,10 @@ export const withdrawalService = {
 
     log.info("Restoring withdrawal", { withdrawalId, reason });
 
-const { error } = await callRPC(
-      "cancel_withdrawal_by_admin_v2",
-      {
-        p_request_id: withdrawalId,
-        p_reason: reason || "Restored by admin",
-      }
-    );
+    const { error } = await callRPC("cancel_withdrawal_by_admin_v2", {
+      p_request_id: withdrawalId,
+      p_reason: reason || "Restored by admin",
+    });
 
     if (error) {
       log.error("Error restoring withdrawal", error);
@@ -581,6 +576,7 @@ const { error } = await callRPC(
       .from("investor_positions")
       .select(`fund_id, shares, current_value, funds!fk_investor_positions_fund_id ( asset )`)
       .eq("investor_id", investorId)
+      .eq("is_active", true)
       .gt("shares", 0);
 
     if (error) throw error;

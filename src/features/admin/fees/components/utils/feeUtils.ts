@@ -130,12 +130,22 @@ export function exportFeesToPDF(
   <div class="footer">INDIGO Yield Platform</div>
 </body></html>`;
 
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    printWindow.document.write(html);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const printWindow = window.open(url, "_blank");
+    if (!printWindow) {
+      URL.revokeObjectURL(url);
+      return;
+    }
+    printWindow.addEventListener(
+      "load",
+      () => {
+        URL.revokeObjectURL(url);
+        printWindow.focus();
+        printWindow.print();
+      },
+      { once: true }
+    );
   } catch (err) {
     logError("exportFeesToPDF", err);
   }

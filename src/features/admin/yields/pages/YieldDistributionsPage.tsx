@@ -134,7 +134,12 @@ function FeeAllocationsTable({
                   <FinancialValue value={fa.fee_amount} asset={asset} />
                 </TableCell>
                 <TableCell className="text-right font-semibold">
-                  <FinancialValue value={new Decimal(fa.base_net_income || 0).minus(new Decimal(fa.fee_amount || 0)).toString()} asset={asset} />
+                  <FinancialValue
+                    value={new Decimal(fa.base_net_income || 0)
+                      .minus(new Decimal(fa.fee_amount || 0))
+                      .toString()}
+                    asset={asset}
+                  />
                 </TableCell>
               </TableRow>
             );
@@ -221,7 +226,7 @@ const distributionExportColumns: ExportColumn[] = [
 ];
 
 export function YieldDistributionsContent({ embedded = false }: { embedded?: boolean } = {}) {
-  const { data: fundsData = [] } = useFunds({ status: 'active' });
+  const { data: fundsData = [] } = useFunds({ status: "active" });
   const funds: Fund[] = fundsData.map((f) => ({
     id: f.id,
     code: f.code,
@@ -372,7 +377,8 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
     async (_distributionId: string, _reason: string) => {
       toast({
         title: "Restore not available",
-        description: "The unvoid/restore functionality has been removed. Please create a new distribution instead.",
+        description:
+          "The unvoid/restore functionality has been removed. Please create a new distribution instead.",
         variant: "destructive",
       });
     },
@@ -383,7 +389,8 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
     async (_reason: string) => {
       toast({
         title: "Restore not available",
-        description: "The unvoid/restore functionality has been removed. Please create new distributions instead.",
+        description:
+          "The unvoid/restore functionality has been removed. Please create new distributions instead.",
         variant: "destructive",
       });
       setBulkRestoreDialogOpen(false);
@@ -692,15 +699,21 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                   const regularDists = fundDistributions.filter(
                                     (d) => !isCrystallizationDist(d)
                                   );
-                                  const crystalGross = crystalDists.reduce(
-                                    (s, d) => s.plus(new Decimal(d.gross_yield || 0)),
-                                    new Decimal(0)
-                                  ).toString();
-                                  const regularGross = regularDists.reduce(
-                                    (s, d) => s.plus(new Decimal(d.gross_yield || 0)),
-                                    new Decimal(0)
-                                  ).toString();
-                                  const totalGross = new Decimal(crystalGross).plus(regularGross).toString();
+                                  const crystalGross = crystalDists
+                                    .reduce(
+                                      (s, d) => s.plus(new Decimal(d.gross_yield || 0)),
+                                      new Decimal(0)
+                                    )
+                                    .toString();
+                                  const regularGross = regularDists
+                                    .reduce(
+                                      (s, d) => s.plus(new Decimal(d.gross_yield || 0)),
+                                      new Decimal(0)
+                                    )
+                                    .toString();
+                                  const totalGross = new Decimal(crystalGross)
+                                    .plus(regularGross)
+                                    .toString();
                                   return (
                                     <Card className="border-purple-800/30 bg-purple-950/10">
                                       <CardContent className="py-3 px-4">
@@ -754,10 +767,12 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                   const yieldEvents =
                                     yieldEventsByDistribution[distribution.id] || [];
                                   const isCrystallization = isCrystallizationDist(distribution);
-                                  const totalGross = allocations.reduce(
-                                    (sum, a) => sum.plus(new Decimal(a.gross_amount || 0)),
-                                    new Decimal(0)
-                                  ).toString();
+                                  const totalGross = allocations
+                                    .reduce(
+                                      (sum, a) => sum.plus(new Decimal(a.gross_amount || 0)),
+                                      new Decimal(0)
+                                    )
+                                    .toString();
                                   return (
                                     <Card key={distribution.id}>
                                       <CardHeader className="pb-3">
@@ -818,7 +833,9 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                             </span>
                                             <div className="ml-auto flex items-center gap-1">
                                               {!distribution.is_voided &&
-                                                Number(distribution.total_fees || 0) > 0 && (
+                                                parseFinancial(distribution.total_fees || 0).gt(
+                                                  0
+                                                ) && (
                                                   <Button
                                                     variant="ghost"
                                                     size="sm"
@@ -969,10 +986,15 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                           </span>
                                                           <span>
                                                             {formatPercentage(
-                                                              ((Number(distribution.recorded_aum) -
-                                                                sj.opening_aum) /
-                                                                sj.opening_aum) *
-                                                                100,
+                                                              parseFinancial(
+                                                                distribution.recorded_aum
+                                                              )
+                                                                .minus(
+                                                                  parseFinancial(sj.opening_aum)
+                                                                )
+                                                                .div(parseFinancial(sj.opening_aum))
+                                                                .times(100)
+                                                                .toNumber(),
                                                               2
                                                             )}
                                                           </span>
@@ -1094,7 +1116,9 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                             {formatPercentage(
                                                               parseFinancial(totalGross).isZero()
                                                                 ? 0
-                                                                : parseFinancial(allocation.gross_amount || 0)
+                                                                : parseFinancial(
+                                                                    allocation.gross_amount || 0
+                                                                  )
                                                                     .div(parseFinancial(totalGross))
                                                                     .mul(100)
                                                                     .toNumber(),
@@ -1109,7 +1133,11 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                           </TableCell>
                                                           <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatPercentage(
-                                                              allocation.fee_pct != null ? Number(allocation.fee_pct) : 0,
+                                                              allocation.fee_pct != null
+                                                                ? parseFinancial(
+                                                                    allocation.fee_pct
+                                                                  ).toNumber()
+                                                                : 0,
                                                               1
                                                             )}
                                                           </TableCell>
@@ -1121,7 +1149,11 @@ export function YieldDistributionsContent({ embedded = false }: { embedded?: boo
                                                           </TableCell>
                                                           <TableCell className="text-right py-1.5 tabular-nums">
                                                             {formatPercentage(
-                                                              allocation.ib_pct != null ? Number(allocation.ib_pct) : 0,
+                                                              allocation.ib_pct != null
+                                                                ? parseFinancial(
+                                                                    allocation.ib_pct
+                                                                  ).toNumber()
+                                                                : 0,
                                                               1
                                                             )}
                                                           </TableCell>

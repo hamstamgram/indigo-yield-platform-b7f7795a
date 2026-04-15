@@ -11,8 +11,8 @@ import { parseFinancial } from "@/utils/financial";
 export interface PortfolioPosition {
   investor_id: string;
   fund_id: string;
-  shares: number;
-  current_value: number;
+  shares: string;
+  current_value: string;
   fund_class: string | null;
   fund: {
     id: string;
@@ -24,8 +24,8 @@ export interface PortfolioPosition {
 
 export interface WithdrawalFormPosition {
   fund_id: string;
-  current_value: number;
-  shares: number;
+  current_value: string;
+  shares: string;
   fund_class: string | null;
   fund: {
     name: string;
@@ -56,15 +56,16 @@ export const investorPortfolioService = {
         )
       `
       )
-      .eq("investor_id", investorId);
+      .eq("investor_id", investorId)
+      .eq("is_active", true);
 
     if (error) throw error;
 
     return (data || []).map((pos: any) => ({
       investor_id: pos.investor_id,
       fund_id: pos.fund_id,
-      shares: parseFinancial(pos.shares || 0).toNumber(),
-      current_value: parseFinancial(pos.current_value || 0).toNumber(),
+      shares: parseFinancial(pos.shares || 0).toString(),
+      current_value: parseFinancial(pos.current_value || 0).toString(),
       fund_class: pos.fund_class,
       fund: pos.funds || { id: "", name: "Unknown", code: "UNK", asset: "N/A" },
     }));
@@ -97,8 +98,8 @@ export const investorPortfolioService = {
 
     return (data || []).map((pos: any) => ({
       fund_id: pos.fund_id,
-      current_value: parseFinancial(pos.current_value || 0).toNumber(),
-      shares: parseFinancial(pos.shares || 0).toNumber(),
+      current_value: parseFinancial(pos.current_value || 0).toString(),
+      shares: parseFinancial(pos.shares || 0).toString(),
       fund_class: pos.fund_class,
       fund: pos.funds || { name: "Unknown", code: "UNK", asset: "N/A" },
     }));

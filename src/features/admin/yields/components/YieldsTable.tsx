@@ -5,6 +5,7 @@
 
 import { useMemo, useState } from "react";
 import { Decimal } from "decimal.js";
+import { parseFinancial } from "@/utils/financial";
 import { format } from "date-fns";
 import { Check, X, Loader2, Columns, Users } from "lucide-react";
 import {
@@ -291,7 +292,7 @@ export function YieldsTable({
       ),
       className: "text-right text-blue-500/70",
       cell: (record: DistributionRow) => {
-        return record.total_fee_amount != null && Number(record.total_fee_amount) > 0 ? (
+        return record.total_fee_amount != null && parseFinancial(record.total_fee_amount).gt(0) ? (
           <FinancialValue value={record.total_fee_amount} asset={getFund(record.fund_id)?.asset} />
         ) : (
           <span className="text-muted-foreground">-</span>
@@ -402,7 +403,7 @@ export function YieldsTable({
                 <TableHead className="text-right">Gross Amount</TableHead>
                 <TableHead className="text-right">Fees Paid</TableHead>
                 <TableHead className="text-right">IB Comm.</TableHead>
-                
+
                 <TableHead className="text-right">Net Yield</TableHead>
                 <TableHead className="text-right">Position After</TableHead>
               </TableRow>
@@ -421,14 +422,14 @@ export function YieldsTable({
                       <FinancialValue value={alloc.gross_amount} asset={asset} />
                     </TableCell>
                     <TableCell className="text-right text-orange-500/80">
-                      {alloc.fee_amount != null && Number(alloc.fee_amount) > 0 ? (
+                      {alloc.fee_amount != null && parseFinancial(alloc.fee_amount).gt(0) ? (
                         <FinancialValue value={alloc.fee_amount} asset={asset} prefix="-" />
                       ) : (
                         "-"
                       )}
                     </TableCell>
                     <TableCell className="text-right text-orange-500/80">
-                      {alloc.ib_amount != null && Number(alloc.ib_amount) > 0 ? (
+                      {alloc.ib_amount != null && parseFinancial(alloc.ib_amount).gt(0) ? (
                         <FinancialValue value={alloc.ib_amount} asset={asset} prefix="-" />
                       ) : (
                         "-"
@@ -441,7 +442,7 @@ export function YieldsTable({
                       {alloc.position_value_at_calc != null ? (
                         <div className="flex flex-col items-end">
                           <FinancialValue
-                          value={new Decimal(alloc.position_value_at_calc || 0)
+                            value={new Decimal(alloc.position_value_at_calc || 0)
                               .plus(new Decimal(alloc.net_amount || 0))
                               .toString()}
                             asset={asset}

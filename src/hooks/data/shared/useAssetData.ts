@@ -8,7 +8,9 @@ export const useAssetData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [assetSummaries, setAssetSummaries] = useState<AssetSummaryDetailed[]>([]);
-  const [yieldSources, setYieldSources] = useState<any[]>([]);
+  const [yieldSources, setYieldSources] = useState<
+    { source: string; tables: string[]; realData: boolean }[]
+  >([]);
   const [userName, setUserName] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -46,7 +48,8 @@ export const useAssetData = () => {
         const { data: positions, error: positionsError } = await supabase
           .from("investor_positions")
           .select("fund_id, fund_class, current_value, cost_basis, shares")
-          .eq("investor_id", user.id);
+          .eq("investor_id", user.id)
+          .eq("is_active", true);
 
         if (positionsError) {
           logError("useAssetData.fetchPositions", positionsError);
@@ -108,7 +111,7 @@ export const useAssetData = () => {
     };
 
     fetchData();
-  }, [isAdmin]);
+  }, []);
 
   return {
     loading,

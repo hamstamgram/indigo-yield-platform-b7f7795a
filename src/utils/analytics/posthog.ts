@@ -3,7 +3,7 @@ import posthog from "posthog-js";
 let isInitialized = false;
 
 export function initPostHog() {
-  const apiKey = import.meta.env.VITE_POSTHOG_API_KEY || "your_posthog_key_here";
+  const apiKey = import.meta.env.VITE_POSTHOG_API_KEY || "";
   const apiHost = import.meta.env.VITE_POSTHOG_HOST || "https://app.posthog.com";
 
   if (!apiKey || apiKey === "your_posthog_key_here") {
@@ -108,14 +108,14 @@ export const analytics = {
     });
   },
 
-  trackStatementGenerated: (
+  trackStatementGenerated: async (
     investorId: string,
     period: { year: number; month: number },
     mode: "single" | "bulk"
   ) => {
     if (!isInitialized) return;
     posthog.capture("statement_generated", {
-      investor_id_hash: hashId(investorId), // Hash for privacy
+      investor_id_hash: await hashId(investorId),
       period_year: period.year,
       period_month: period.month,
       generation_mode: mode,
@@ -183,15 +183,11 @@ export const analytics = {
 };
 
 // Helper functions
-function hashId(id: string): string {
-  // Simple hash for privacy (in production, use a proper hash)
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    const char = id.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString(36);
+async function hashId(id: string): Promise<string> {
+  const encoded = new TextEncoder().encode(id);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", encoded);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 function getAmountRange(amount: number): string {

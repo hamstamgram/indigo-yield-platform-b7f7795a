@@ -407,6 +407,23 @@ export function isFinancialZero(value: string | number | null | undefined): bool
 }
 
 /**
+ * Convert a Decimal or financial value to display string
+ * Preserves full precision from DB, removes trailing zeros
+ * Use instead of .toNumber() for all values passed to UI
+ */
+export function toDisplayString(
+  value: string | number | Decimal | null | undefined,
+  maxDecimals: number = 18
+): string {
+  const dec = parseFinancial(
+    value instanceof Decimal ? value.toString() : value == null ? 0 : String(value)
+  );
+  if (dec.isZero()) return "0";
+  const fixed = dec.toFixed(maxDecimals);
+  return fixed.replace(/\.?0+$/, "") || "0";
+}
+
+/**
  * Format a financial string for display (removes trailing zeros)
  * Use this for UI display, not for storage
  */
@@ -415,7 +432,7 @@ export function formatFinancialDisplay(
   maxDecimals: number = 8
 ): string {
   const dec = parseFinancial(value);
-  // Use toFixed then remove trailing zeros
+  if (dec.isZero()) return "0";
   const fixed = dec.toFixed(maxDecimals);
   return fixed.replace(/\.?0+$/, "") || "0";
 }
@@ -428,10 +445,14 @@ export function formatFinancialDisplay(
 /**
  * Token-Only Formatting Guidelines
  */
-export function formatCrypto(amount: string | number | Decimal, decimals?: number | string, symbol?: string): string {
+export function formatCrypto(
+  amount: string | number | Decimal,
+  decimals?: number | string,
+  symbol?: string
+): string {
   const d = toDecimal(amount);
-  const sym = typeof decimals === 'string' ? decimals : symbol;
-  const dec = typeof decimals === 'number' ? decimals : 8;
+  const sym = typeof decimals === "string" ? decimals : symbol;
+  const dec = typeof decimals === "number" ? decimals : 8;
   const formatted = d.toFixed(dec);
   const parts = formatted.split(".");
   parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -441,7 +462,10 @@ export function formatCrypto(amount: string | number | Decimal, decimals?: numbe
 /**
  * Calculate yield (legacy member)
  */
-export function calculateYield(amount: string | number | Decimal, yieldRate: string | number | Decimal): Decimal {
+export function calculateYield(
+  amount: string | number | Decimal,
+  yieldRate: string | number | Decimal
+): Decimal {
   const a = toDecimal(amount);
   const y = toDecimal(yieldRate);
   return a.times(y).dividedBy(100);

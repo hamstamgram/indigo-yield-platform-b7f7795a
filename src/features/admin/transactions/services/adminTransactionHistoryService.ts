@@ -544,6 +544,7 @@ export async function getTransactionContext(
       .select("current_value")
       .eq("investor_id", tx.investor_id)
       .eq("fund_id", tx.fund_id)
+      .eq("is_active", true)
       .maybeSingle();
     investorBalance = position ? String(position.current_value) : null;
   }
