@@ -58,13 +58,13 @@ export const DB_TABLES = {
   fee_allocations: {
     name: "fee_allocations" as const,
     primaryKey: ["id"] as const,
-    columns: ["base_net_income", "created_at", "created_by", "credit_transaction_id", "debit_transaction_id", "distribution_id", "fee_amount", "fee_percentage", "fees_account_id", "fund_id", "id", "investor_id", "is_voided", "period_end", "period_start", "purpose", "voided_at", "voided_by", "voided_by_profile_id"] as const,
+    columns: ["base_net_income", "created_at", "created_by", "credit_transaction_id", "debit_transaction_id", "distribution_id", "fee_amount", "fee_percentage", "fees_account_id", "fund_id", "id", "investor_id", "is_voided", "period_end", "period_start", "purpose", "void_reason", "voided_at", "voided_by", "voided_by_profile_id"] as const,
     rlsEnabled: true,
   },
   fund_aum_events: {
     name: "fund_aum_events" as const,
     primaryKey: ["id"] as const,
-    columns: ["closing_aum", "created_at", "created_by", "event_date", "event_ts", "fund_id", "id", "is_voided", "opening_aum", "post_flow_aum", "pre_flow_aum", "purpose", "trigger_reference", "trigger_type", "void_reason", "voided_at", "voided_by", "voided_by_profile_id"] as const,
+    columns: ["closing_aum", "created_at", "created_by", "event_date", "event_ts", "fund_id", "id", "is_voided", "opening_aum", "post_flow_aum", "pre_flow_aum", "purpose", "trigger_reference", "trigger_type", "updated_at", "void_reason", "voided_at", "voided_by", "voided_by_profile_id"] as const,
     rlsEnabled: true,
   },
   fund_daily_aum: {
@@ -100,13 +100,13 @@ export const DB_TABLES = {
   ib_allocations: {
     name: "ib_allocations" as const,
     primaryKey: ["id"] as const,
-    columns: ["created_at", "created_by", "distribution_id", "effective_date", "fund_id", "ib_fee_amount", "ib_investor_id", "ib_percentage", "id", "is_voided", "paid_at", "paid_by", "payout_batch_id", "payout_status", "period_end", "period_id", "period_start", "purpose", "source", "source_investor_id", "source_net_income", "voided_at", "voided_by", "voided_by_profile_id"] as const,
+    columns: ["created_at", "created_by", "distribution_id", "effective_date", "fund_id", "ib_fee_amount", "ib_investor_id", "ib_percentage", "id", "is_voided", "paid_at", "paid_by", "payout_batch_id", "payout_status", "period_end", "period_id", "period_start", "purpose", "source", "source_investor_id", "source_net_income", "void_reason", "voided_at", "voided_by", "voided_by_profile_id"] as const,
     rlsEnabled: true,
   },
   ib_commission_ledger: {
     name: "ib_commission_ledger" as const,
     primaryKey: ["id"] as const,
-    columns: ["asset", "created_at", "created_by", "effective_date", "fund_id", "gross_yield_amount", "ib_commission_amount", "ib_id", "ib_name", "ib_percentage", "id", "is_voided", "source_investor_id", "source_investor_name", "transaction_id", "void_reason", "voided_at", "voided_by", "yield_distribution_id"] as const,
+    columns: ["asset", "created_at", "created_by", "effective_date", "fund_id", "gross_yield_amount", "ib_commission_amount", "ib_id", "ib_name", "ib_percentage", "id", "is_voided", "source_investor_id", "source_investor_name", "transaction_id", "void_reason", "voided_at", "voided_by", "voided_by_profile_id", "yield_distribution_id"] as const,
     rlsEnabled: true,
   },
   ib_commission_schedule: {
@@ -154,7 +154,7 @@ export const DB_TABLES = {
   investor_yield_events: {
     name: "investor_yield_events" as const,
     primaryKey: ["id"] as const,
-    columns: ["created_at", "created_by", "days_in_period", "event_date", "fee_amount", "fee_pct", "fund_aum_after", "fund_aum_before", "fund_id", "fund_yield_pct", "gross_yield_amount", "ib_amount", "id", "investor_balance", "investor_id", "investor_share_pct", "is_voided", "made_visible_at", "made_visible_by", "net_yield_amount", "period_end", "period_start", "reference_id", "trigger_transaction_id", "trigger_type", "visibility_scope", "voided_at", "voided_by"] as const,
+    columns: ["created_at", "created_by", "days_in_period", "event_date", "fee_amount", "fee_pct", "fund_aum_after", "fund_aum_before", "fund_id", "fund_yield_pct", "gross_yield_amount", "ib_amount", "id", "investor_balance", "investor_id", "investor_share_pct", "is_voided", "made_visible_at", "made_visible_by", "net_yield_amount", "period_end", "period_start", "reference_id", "trigger_transaction_id", "trigger_type", "visibility_scope", "void_reason", "voided_at", "voided_by", "voided_by_profile_id"] as const,
     rlsEnabled: true,
   },
   notifications: {
@@ -166,7 +166,7 @@ export const DB_TABLES = {
   platform_fee_ledger: {
     name: "platform_fee_ledger" as const,
     primaryKey: ["id"] as const,
-    columns: ["asset", "created_at", "created_by", "effective_date", "fee_amount", "fee_percentage", "fund_id", "gross_yield_amount", "id", "investor_id", "investor_name", "is_voided", "transaction_id", "void_reason", "voided_at", "voided_by", "yield_distribution_id"] as const,
+    columns: ["asset", "created_at", "created_by", "effective_date", "fee_amount", "fee_percentage", "fund_id", "gross_yield_amount", "id", "investor_id", "investor_name", "is_voided", "transaction_id", "void_reason", "voided_at", "voided_by", "voided_by_profile_id", "yield_distribution_id"] as const,
     rlsEnabled: true,
   },
   platform_invites: {
@@ -262,7 +262,7 @@ export const DB_TABLES = {
   yield_distributions: {
     name: "yield_distributions" as const,
     primaryKey: ["id"] as const,
-    columns: ["allocation_count", "aum_record_id", "calculation_method", "closing_aum", "consolidated_into_id", "created_at", "created_by", "distribution_type", "dust_amount", "dust_receiver_id", "effective_date", "fund_id", "gross_yield", "gross_yield_amount", "id", "investor_count", "is_month_end", "is_voided", "net_yield", "opening_aum", "parent_distribution_id", "period_end", "period_start", "previous_aum", "purpose", "reason", "recorded_aum", "reference_id", "snapshot_time", "status", "summary_json", "total_fee_amount", "total_fees", "total_ib", "total_ib_amount", "total_net_amount", "void_reason", "voided_at", "voided_by", "yield_date", "yield_percentage"] as const,
+    columns: ["allocation_count", "aum_record_id", "calculation_method", "closing_aum", "consolidated_into_id", "created_at", "created_by", "distribution_type", "dust_amount", "dust_receiver_id", "effective_date", "fund_id", "gross_yield", "gross_yield_amount", "id", "investor_count", "is_month_end", "is_voided", "net_yield", "opening_aum", "parent_distribution_id", "period_end", "period_start", "previous_aum", "purpose", "reason", "recorded_aum", "reference_id", "snapshot_time", "status", "summary_json", "total_fee_amount", "total_fees", "total_ib", "total_ib_amount", "total_net_amount", "void_reason", "voided_at", "voided_by", "voided_by_profile_id", "yield_date", "yield_percentage"] as const,
     rlsEnabled: true,
   },
   yield_rate_sanity_config: {

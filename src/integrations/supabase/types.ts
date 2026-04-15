@@ -385,6 +385,7 @@ export type Database = {
           period_end: string
           period_start: string
           purpose: Database["public"]["Enums"]["aum_purpose"]
+          void_reason: string | null
           voided_at: string | null
           voided_by: string | null
           voided_by_profile_id: string | null
@@ -406,6 +407,7 @@ export type Database = {
           period_end: string
           period_start: string
           purpose: Database["public"]["Enums"]["aum_purpose"]
+          void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
           voided_by_profile_id?: string | null
@@ -427,6 +429,7 @@ export type Database = {
           period_end?: string
           period_start?: string
           purpose?: Database["public"]["Enums"]["aum_purpose"]
+          void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
           voided_by_profile_id?: string | null
@@ -597,9 +600,11 @@ export type Database = {
           purpose: Database["public"]["Enums"]["aum_purpose"]
           trigger_reference: string | null
           trigger_type: string
+          updated_at: string | null
           void_reason: string | null
           voided_at: string | null
           voided_by: string | null
+          voided_by_profile_id: string | null
         }
         Insert: {
           closing_aum?: number
@@ -616,9 +621,11 @@ export type Database = {
           purpose: Database["public"]["Enums"]["aum_purpose"]
           trigger_reference?: string | null
           trigger_type?: string
+          updated_at?: string | null
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
         Update: {
           closing_aum?: number
@@ -635,9 +642,11 @@ export type Database = {
           purpose?: Database["public"]["Enums"]["aum_purpose"]
           trigger_reference?: string | null
           trigger_type?: string
+          updated_at?: string | null
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
         Relationships: [
           {
@@ -671,6 +680,13 @@ export type Database = {
           {
             foreignKeyName: "fund_aum_events_voided_by_fkey"
             columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fund_aum_events_voided_by_profile_id_fkey"
+            columns: ["voided_by_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1070,6 +1086,7 @@ export type Database = {
           source: string | null
           source_investor_id: string
           source_net_income: number
+          void_reason: string | null
           voided_at: string | null
           voided_by: string | null
           voided_by_profile_id: string | null
@@ -1096,6 +1113,7 @@ export type Database = {
           source?: string | null
           source_investor_id: string
           source_net_income: number
+          void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
           voided_by_profile_id?: string | null
@@ -1122,6 +1140,7 @@ export type Database = {
           source?: string | null
           source_investor_id?: string
           source_net_income?: number
+          void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
           voided_by_profile_id?: string | null
@@ -1233,6 +1252,7 @@ export type Database = {
           void_reason: string | null
           voided_at: string | null
           voided_by: string | null
+          voided_by_profile_id: string | null
           yield_distribution_id: string | null
         }
         Insert: {
@@ -1254,6 +1274,7 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
           yield_distribution_id?: string | null
         }
         Update: {
@@ -1275,6 +1296,7 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
           yield_distribution_id?: string | null
         }
         Relationships: [
@@ -1337,6 +1359,13 @@ export type Database = {
           {
             foreignKeyName: "ib_commission_ledger_voided_by_fkey"
             columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ib_commission_ledger_voided_by_profile_id_fkey"
+            columns: ["voided_by_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1921,8 +1950,10 @@ export type Database = {
           trigger_transaction_id: string | null
           trigger_type: string
           visibility_scope: string
+          void_reason: string | null
           voided_at: string | null
           voided_by: string | null
+          voided_by_profile_id: string | null
         }
         Insert: {
           created_at?: string
@@ -1951,8 +1982,10 @@ export type Database = {
           trigger_transaction_id?: string | null
           trigger_type: string
           visibility_scope?: string
+          void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
         Update: {
           created_at?: string
@@ -1981,8 +2014,10 @@ export type Database = {
           trigger_transaction_id?: string | null
           trigger_type?: string
           visibility_scope?: string
+          void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
         Relationships: [
           {
@@ -2048,6 +2083,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "investor_yield_events_voided_by_profile_id_fkey"
+            columns: ["voided_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notifications: {
@@ -2104,6 +2146,7 @@ export type Database = {
           void_reason: string | null
           voided_at: string | null
           voided_by: string | null
+          voided_by_profile_id: string | null
           yield_distribution_id: string | null
         }
         Insert: {
@@ -2123,6 +2166,7 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
           yield_distribution_id?: string | null
         }
         Update: {
@@ -2142,6 +2186,7 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
           yield_distribution_id?: string | null
         }
         Relationships: [
@@ -2197,6 +2242,13 @@ export type Database = {
           {
             foreignKeyName: "platform_fee_ledger_voided_by_fkey"
             columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_fee_ledger_voided_by_profile_id_fkey"
+            columns: ["voided_by_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -3454,6 +3506,7 @@ export type Database = {
           void_reason: string | null
           voided_at: string | null
           voided_by: string | null
+          voided_by_profile_id: string | null
           yield_date: string | null
           yield_percentage: number | null
         }
@@ -3497,6 +3550,7 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
           yield_date?: string | null
           yield_percentage?: number | null
         }
@@ -3540,6 +3594,7 @@ export type Database = {
           void_reason?: string | null
           voided_at?: string | null
           voided_by?: string | null
+          voided_by_profile_id?: string | null
           yield_date?: string | null
           yield_percentage?: number | null
         }
@@ -3624,6 +3679,13 @@ export type Database = {
           {
             foreignKeyName: "yield_distributions_voided_by_fkey"
             columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_distributions_voided_by_profile_id_fkey"
+            columns: ["voided_by_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -6141,6 +6203,8 @@ export type Database = {
         | "suspended"
         | "deprecated"
         | "pending"
+        | "closed"
+        | "available"
       notification_priority: "low" | "medium" | "high"
       notification_type:
         | "deposit"
@@ -6423,7 +6487,15 @@ export const Constants = {
         "SYSTEM",
       ],
       fee_kind: ["mgmt", "perf"],
-      fund_status: ["active", "inactive", "suspended", "deprecated", "pending"],
+      fund_status: [
+        "active",
+        "inactive",
+        "suspended",
+        "deprecated",
+        "pending",
+        "closed",
+        "available",
+      ],
       notification_priority: ["low", "medium", "high"],
       notification_type: [
         "deposit",
