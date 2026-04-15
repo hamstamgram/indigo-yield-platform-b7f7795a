@@ -241,11 +241,11 @@ async function autoResolveStaleAlerts(): Promise<void> {
  * Fetch potential duplicate profiles
  */
 export async function fetchDuplicateProfiles(): Promise<DuplicateProfile[]> {
-  const { data, error } = await supabase
-    .from("v_potential_duplicate_profiles")
+  const { data, error } = await (supabase
+    .from("v_potential_duplicate_profiles" as any)
     .select(
       "duplicate_type, emails, names, profile_ids, profile_count, match_key, first_created, last_created, total_funds_affected, total_value_affected"
-    )
+    ) as any)
     .order("profile_count", { ascending: false });
 
   if (error) {

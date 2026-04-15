@@ -377,6 +377,9 @@ export const withdrawalService = {
         p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
       }
     );
+
+    if (error) {
+      throw new Error(`Failed to cancel withdrawal: ${error.message}`);
     }
 
     log.info("Withdrawal cancelled successfully");
@@ -519,8 +522,8 @@ export const withdrawalService = {
 const { error } = await callRPC(
       "cancel_withdrawal_by_admin_v2",
       {
-        p_request_id: params.withdrawalId,
-        p_reason: params.reason || "Cancelled by admin",
+        p_request_id: withdrawalId,
+        p_reason: reason || "Restored by admin",
       }
     );
 
