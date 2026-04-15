@@ -68,7 +68,7 @@ BEGIN
     'WITHDRAWAL_CANCELLED_BY_ADMIN',
     'withdrawal_requests',
     p_request_id::text,
-    jsonb_build_object('previous_status', v_request.status),
+    jsonb_build_object('status', v_request.status, 'investor_id', v_request.investor_id, 'fund_id', v_request.fund_id),
     jsonb_build_object(
       'reason',       p_reason,
       'admin_notes',  p_admin_notes,
@@ -108,14 +108,13 @@ DECLARE
 BEGIN
   -- 1. Verify caller is admin
   IF NOT public.is_admin() THEN
-    RETURN json_build_object('success', false, 'error', 'Admin access required');
+    RAISE EXCEPTION 'UNAUTHORIZED: Admin only';
   END IF;
 
   v_admin_id := auth.uid();
 
-  -- 2. Bypass immutability triggers
-  PERFORM set_config('indigo.canonical_rpc', 'true', true);
-  PERFORM set_config('app.canonical_rpc', 'true', true);
+  -- 2. Advisory lock to prevent concurrent mutations
+  PERFORM pg_advisory_xact_lock(hashtext('void_completed_withdrawal:' || p_withdrawal_id::text));
 
   -- 3. Look up withdrawal request
   SELECT * INTO v_request
@@ -147,10 +146,16 @@ BEGIN
   ORDER BY tx_date DESC
   LIMIT 1;
 
-  -- 6. Void the transaction if found
-  IF v_tx_id IS NOT NULL THEN
-    v_void_result := public.void_transaction(v_tx_id, v_admin_id, p_reason);
+  -- 6. Void the transaction — raise if not found (financial correctness: no silent no-op)
+  IF v_tx_id IS NULL THEN
+    RAISE EXCEPTION 'VOID_TX_NOT_FOUND: No matching WITHDRAWAL transaction found for this completed withdrawal. Manual review required.';
   END IF;
+
+  -- Bypass immutability triggers immediately before first write
+  PERFORM set_config('indigo.canonical_rpc', 'true', true);
+  PERFORM set_config('app.canonical_rpc', 'true', true);
+
+  v_void_result := public.void_transaction(v_tx_id, v_admin_id, p_reason);
 
   -- 7. UPDATE withdrawal_requests → cancelled
   UPDATE public.withdrawal_requests
