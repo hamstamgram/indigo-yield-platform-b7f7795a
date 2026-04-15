@@ -197,8 +197,8 @@ REVOKE EXECUTE ON FUNCTION public.void_completed_withdrawal(uuid, text) FROM ano
 -- Called from: src/services/shared/auditLogService.ts line 129
 -- Returns paginated audit_log rows with total_count window column.
 CREATE OR REPLACE FUNCTION public.get_paged_audit_logs(
-  p_limit    int,
-  p_offset   int,
+  p_limit    int     DEFAULT NULL,
+  p_offset   int     DEFAULT 0,
   p_entity   text    DEFAULT NULL,
   p_action   text    DEFAULT NULL,
   p_actor_id uuid    DEFAULT NULL
@@ -225,7 +225,10 @@ BEGIN
     RAISE EXCEPTION 'UNAUTHORIZED: Admin privileges required';
   END IF;
 
-  -- 2. Return paginated rows with window total_count
+  -- 2. Cap p_limit at 500 rows
+  p_limit := LEAST(COALESCE(p_limit, 50), 500);
+
+  -- 3. Return paginated rows with window total_count
   RETURN QUERY
   SELECT
     al.id,
@@ -252,15 +255,18 @@ $$;
 ALTER FUNCTION public.get_paged_audit_logs(int, int, text, text, uuid) OWNER TO postgres;
 GRANT EXECUTE ON FUNCTION public.get_paged_audit_logs(int, int, text, text, uuid) TO authenticated;
 REVOKE EXECUTE ON FUNCTION public.get_paged_audit_logs(int, int, text, text, uuid) FROM anon, PUBLIC;
+-- Note: signature (int, int, text, text, uuid) remains valid; defaults are set inside the body.
 
 -- ============================================================
 
 -- RPC 4: get_paged_notifications
 -- Called from: src/services/shared/notificationService.ts line 18
+-- Signature matches frontend: { p_user_id, p_limit, p_offset }
 -- Returns paginated notification rows for the current user with total_count window column.
 CREATE OR REPLACE FUNCTION public.get_paged_notifications(
-  p_page      int,
-  p_page_size int
+  p_user_id   uuid,
+  p_limit     int  DEFAULT NULL,
+  p_offset    int  DEFAULT 0
 )
 RETURNS TABLE (
   id          uuid,
@@ -279,17 +285,19 @@ SECURITY DEFINER
 SET search_path TO 'public'
 AS $$
 DECLARE
-  v_user_id uuid;
-  v_offset  int;
+  v_caller_id uuid;
 BEGIN
-  -- 1. Identify current user
-  v_user_id := auth.uid();
-  IF v_user_id IS NULL THEN
+  -- 1. Identify caller and verify they only fetch their own notifications
+  v_caller_id := auth.uid();
+  IF v_caller_id IS NULL THEN
     RAISE EXCEPTION 'UNAUTHORIZED';
   END IF;
+  IF v_caller_id != p_user_id THEN
+    RAISE EXCEPTION 'FORBIDDEN: Cannot fetch another user''s notifications';
+  END IF;
 
-  -- 2. Compute offset from 1-based page number
-  v_offset := (p_page - 1) * p_page_size;
+  -- 2. Cap p_limit at 200 rows
+  p_limit := LEAST(COALESCE(p_limit, 50), 200);
 
   -- 3. Return paginated rows with window total_count
   RETURN QUERY
@@ -305,13 +313,13 @@ BEGIN
     n.created_at,
     COUNT(*) OVER()::bigint AS total_count
   FROM public.notifications n
-  WHERE n.user_id = v_user_id
+  WHERE n.user_id = v_caller_id
   ORDER BY n.created_at DESC
-  LIMIT  p_page_size
-  OFFSET v_offset;
+  LIMIT  p_limit
+  OFFSET p_offset;
 END;
 $$;
 
-ALTER FUNCTION public.get_paged_notifications(int, int) OWNER TO postgres;
-GRANT EXECUTE ON FUNCTION public.get_paged_notifications(int, int) TO authenticated;
-REVOKE EXECUTE ON FUNCTION public.get_paged_notifications(int, int) FROM anon, PUBLIC;
+ALTER FUNCTION public.get_paged_notifications(uuid, int, int) OWNER TO postgres;
+GRANT EXECUTE ON FUNCTION public.get_paged_notifications(uuid, int, int) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.get_paged_notifications(uuid, int, int) FROM anon, PUBLIC;
