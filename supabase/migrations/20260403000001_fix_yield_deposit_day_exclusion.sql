@@ -138,7 +138,7 @@ BEGIN
     p_recorded_aum, v_opening_aum, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     'applied'::yield_distribution_status, v_admin,
     'flat_position_proportional_v7', p_purpose, v_is_month_end, 0,
-    CASE WHEN p_purpose = 'reporting' THEN 'month_end' ELSE p_purpose::text END
+    'daily'
   ) RETURNING id INTO v_distribution_id;
 
   DROP TABLE IF EXISTS _vflat_alloc;

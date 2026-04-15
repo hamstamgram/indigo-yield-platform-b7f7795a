@@ -29,11 +29,12 @@ BEGIN
     BEGIN
         INSERT INTO yield_distributions (
             fund_id, distribution_type, period_start, period_end,
-            total_amount, recorded_aum, distribution_date,
-            is_voided, created_by
+            gross_yield_amount, recorded_aum, effective_date,
+            status, purpose, is_voided, created_by
         ) VALUES (
             v_fund_id, 'original', CURRENT_DATE - 30, CURRENT_DATE - 1,
             1000.00, 100000.00, CURRENT_DATE,
+            'applied'::yield_distribution_status, 'transaction'::aum_purpose,
             FALSE, (SELECT id FROM profiles LIMIT 1)
         );
         RAISE NOTICE '✓ PASS: Original distribution type inserts without parent';
@@ -45,11 +46,12 @@ BEGIN
     BEGIN
         INSERT INTO yield_distributions (
             fund_id, distribution_type, period_start, period_end,
-            total_amount, recorded_aum, distribution_date,
-            is_voided, created_by
+            gross_yield_amount, recorded_aum, effective_date,
+            status, purpose, is_voided, created_by
         ) VALUES (
             v_fund_id, 'daily', CURRENT_DATE - 7, CURRENT_DATE - 1,
             100.00, 100000.00, CURRENT_DATE,
+            'applied'::yield_distribution_status, 'transaction'::aum_purpose,
             FALSE, (SELECT id FROM profiles LIMIT 1)
         );
         RAISE NOTICE '✓ PASS: Daily distribution type inserts without parent';
@@ -61,12 +63,13 @@ BEGIN
     BEGIN
         INSERT INTO yield_distributions (
             fund_id, distribution_type, period_start, period_end,
-            total_amount, recorded_aum, distribution_date,
-            is_voided, created_by, parent_distribution_id
+            gross_yield_amount, recorded_aum, effective_date,
+            status, purpose, is_voided, created_by, parent_distribution_id, reason
         ) VALUES (
             v_fund_id, 'correction', CURRENT_DATE - 30, CURRENT_DATE - 1,
             -50.00, 100000.00, CURRENT_DATE,
-            FALSE, (SELECT id FROM profiles LIMIT 1), NULL
+            'applied'::yield_distribution_status, 'transaction'::aum_purpose,
+            FALSE, (SELECT id FROM profiles LIMIT 1), NULL, 'test correction'
         );
         v_test_passed := FALSE;
         RAISE EXCEPTION 'FAIL: Correction without parent should have been rejected';

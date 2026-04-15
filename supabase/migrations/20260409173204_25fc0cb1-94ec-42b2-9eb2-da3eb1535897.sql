@@ -226,7 +226,7 @@ BEGIN
   ) values (
     p_fund_id, v_event_date, p_purpose, false, p_closing_aum, v_opening_aum,
     v_total_gross_allocated, v_total_net_allocated, v_total_fees_allocated, v_investors_processed,
-    'yield_event', 'complete', v_period_start, v_event_date, v_dust_amount, null, p_admin_id,
+    CASE WHEN p_trigger_type = 'month_end' THEN 'daily' ELSE p_trigger_type END, 'applied'::yield_distribution_status, v_period_start, v_event_date, v_dust_amount, null, p_admin_id,
     'CRYS:' || p_fund_id::text || ':' || v_event_date::text, 'current_value_weighted'
   ) returning id into v_distribution_id;
 
