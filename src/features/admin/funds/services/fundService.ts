@@ -86,7 +86,7 @@ export async function createFund(
 
   const result = await db.insert("funds", dbRecord as any);
 
-  if (result.error) throw new Error(result.error.userMessage);
+  if (result.error) throw new Error(result.error.message || result.error.userMessage);
   if (!result.data) throw new Error("Failed to create fund");
   return mapDbFundToFund(result.data);
 }
@@ -112,12 +112,12 @@ export async function createFundSimple(input: CreateFundInput): Promise<Fund> {
     inception_date: input.inception_date,
     status: "active",
     logo_url: input.logo_url || null,
-    mgmt_fee_bps: 0, // CFO Policy: No management fees - frozen at DB level
+    mgmt_fee_bps: 0,
     perf_fee_bps: 2000,
     min_investment: 0,
   });
 
-  if (result.error) throw new Error(result.error.userMessage);
+  if (result.error) throw new Error(result.error.message || result.error.userMessage);
   if (!result.data) throw new Error("Failed to create fund");
   return mapDbFundToFund(result.data);
 }
@@ -126,12 +126,11 @@ export async function createFundSimple(input: CreateFundInput): Promise<Fund> {
  * Update fund
  */
 export async function updateFund(fundId: string, updates: Partial<Fund>): Promise<Fund> {
-  // Convert to DB format (string financial fields -> numbers)
   const dbUpdates = mapFundToDb(updates);
 
   const result = await db.update("funds", dbUpdates as any, { column: "id", value: fundId });
 
-  if (result.error) throw new Error(result.error.userMessage);
+  if (result.error) throw new Error(result.error.message || result.error.userMessage);
   if (!result.data || result.data.length === 0) throw new Error(`Fund not found: ${fundId}`);
   return mapDbFundToFund(result.data[0]);
 }
@@ -314,7 +313,7 @@ export async function codeExists(code: string): Promise<boolean> {
 export async function deactivateFund(fundId: string): Promise<void> {
   const result = await db.update("funds", { status: "inactive" }, { column: "id", value: fundId });
 
-  if (result.error) throw new Error(result.error.userMessage);
+  if (result.error) throw new Error(result.error.message || result.error.userMessage);
 }
 
 /**

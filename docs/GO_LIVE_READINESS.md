@@ -1,7 +1,8 @@
 # Indigo Yield Platform — Go-Live Readiness Report
 
-> **Generated:** 2026-04-06  
-> **Status:** ✅ All audits passed — platform is production-ready  
+> **Generated:** 2026-04-06
+> **Updated:** 2026-06-17
+> **Status:** ⚠️ 2 production issues discovered during manual UI testing
 > **Prepared by:** Platform Engineering
 
 ---
@@ -239,3 +240,44 @@ The `audit_leakage_report()` function is available via the `audit-leakage` edge 
 | Platform Lead | _______________ | ____/____/2026 | _____________ |
 | QA Lead | _______________ | ____/____/2026 | _____________ |
 | Operations | _______________ | ____/____/2026 | _____________ |
+
+---
+
+## 9. Manual UI Testing Issues (2026-06-17)
+
+### 9.1 Void & Reissue — CANONICAL_MUTATION_REQUIRED (P0)
+
+**Symptom:** Clicking "Void & Reissue" on any transaction shows generic error toast.
+
+**Console error:**
+```
+[RPC_ERROR] void_and_reissue_transaction P0001 — 
+CANONICAL_MUTATION_REQUIRED: Direct INSERT on transactions_v2 is blocked.
+```
+
+**Fix:** Migration `20260617000000_fix_void_and_reissue_canonical_rpc.sql` — re-creates `void_and_reissue_transaction` and `void_and_reissue_full_exit` with defense-in-depth `set_config('indigo.canonical_rpc', 'true', true)` before every INSERT.
+
+**Status:** Migration written, NEEDS APPLY to remote DB.
+
+### 9.2 v_liquidity_risk — 404 Console Spam (P0)
+
+**Symptom:** Browser console shows ~10 failed GET requests per poll cycle for `v_liquidity_risk?select=*`.
+
+**Fix:** `useRiskAlerts.ts` now returns `[]` on 404 with no retry. Views still need to be created on the remote DB for full risk monitoring.
+
+### 9.3 Error Propagation — Generic Fallback (P1)
+
+**Symptom:** Any RPC error shows "An unexpected error occurred. Please try again or contact support." instead of the specific error.
+
+**Fix:** Flipped error priority from `userMessage || message` to `message || userMessage` across 10 service files. Added 6 new error patterns to `rpcErrors.ts`.
+
+### 9.4 notify-yield-applied — 500 (P1)
+
+**Symptom:** After yield distribution, `POST /functions/v1/notify-yield-applied` returns 500.
+
+**Fix:** Configure `SUPABASE_SERVICE_ROLE_KEY` env var on the edge function.
+
+### See Also
+
+- Full issue registry: `docs/POST_LAUNCH_TECH_DEBT.md`
+- Action plan: `docs/PLAN_REMAINING_WORK.md`

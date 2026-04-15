@@ -316,7 +316,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
   });
 
   if (result.error) {
-    throw new Error(result.error.userMessage);
+    throw new Error(result.error.message || result.error.userMessage);
   }
 
   const data = result.data as unknown as { success?: boolean } | null;

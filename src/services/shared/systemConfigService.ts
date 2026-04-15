@@ -51,7 +51,7 @@ async function upsertConfig<T = any>(key: string, value: T): Promise<void> {
     updated_at: new Date().toISOString(),
   } as any);
 
-  if (error) throw new Error(error.userMessage || error.message);
+  if (error) throw new Error(error.message || error.userMessage);
 }
 
 async function savePlatformSettings(settings: PlatformSettings): Promise<void> {

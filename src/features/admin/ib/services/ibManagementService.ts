@@ -76,7 +76,7 @@ async function assignIBRoleToUser(userId: string): Promise<{ alreadyExists: bool
     if (error.code === "23505") {
       return { alreadyExists: true };
     }
-    throw new Error(error.userMessage);
+    throw new Error(error.message || error.userMessage);
   }
 
   return { alreadyExists: false };

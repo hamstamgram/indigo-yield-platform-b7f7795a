@@ -80,7 +80,7 @@ export async function updateFeeRateForAllFunds(
       { onConflict: "investor_id,fund_id,effective_date" }
     );
     if (result.error) {
-      throw new Error(result.error.userMessage);
+      throw new Error(result.error.message || result.error.userMessage);
     }
   }
 }
@@ -101,7 +101,7 @@ export async function addFeeEntry(params: {
   });
 
   if (result.error) {
-    throw new Error(result.error.userMessage);
+    throw new Error(result.error.message || result.error.userMessage);
   }
 }
 
@@ -109,7 +109,7 @@ export async function deleteFeeEntry(entryId: string): Promise<void> {
   const result = await db.delete("investor_fee_schedule", { column: "id", value: entryId });
 
   if (result.error) {
-    throw new Error(result.error.userMessage);
+    throw new Error(result.error.message || result.error.userMessage);
   }
 }
 
@@ -169,7 +169,7 @@ export async function upsertGlobalFee(investorId: string, feePct: number): Promi
       fee_pct: feePct,
       effective_date: "2024-01-01",
     });
-    if (result.error) throw new Error(result.error.userMessage);
+    if (result.error) throw new Error(result.error.message || result.error.userMessage);
   }
 }
 

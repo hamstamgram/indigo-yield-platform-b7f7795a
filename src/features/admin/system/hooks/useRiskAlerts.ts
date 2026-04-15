@@ -1,26 +1,40 @@
 import { useQuery } from "@tanstack/react-query";
-import { REFETCH_INTERVAL, QUERY_DEFAULTS } from "@/constants/queryConfig";
 import { QUERY_KEYS } from "@/constants/queryKeys";
 import { queryView, type VLiquidityRisk, type VConcentrationRisk } from "@/lib/db/viewTypes";
 
-// Re-export types for consumers
 export type { VLiquidityRisk as LiquidityRisk, VConcentrationRisk as ConcentrationRisk };
 
-// Fetch liquidity risk view
+function isMissingViewError(error: unknown): boolean {
+  if (!error) return false;
+  const err = error as { code?: string; message?: string; status?: number };
+  return (
+    err.code === "42P01" ||
+    err.status === 404 ||
+    (err.message?.includes("does not exist") ?? false) ||
+    (err.message?.includes("not found in the schema cache") ?? false)
+  );
+}
+
 export function useLiquidityRisk() {
   return useQuery({
     queryKey: QUERY_KEYS.liquidityRisk,
     queryFn: async () => {
       const { data, error } = await queryView("v_liquidity_risk").select("*");
-      if (error) throw error;
+      if (error) {
+        if (isMissingViewError(error)) return [] as VLiquidityRisk[];
+        throw error;
+      }
       return (data || []) as VLiquidityRisk[];
     },
-    ...QUERY_DEFAULTS.riskMonitoring,
-    refetchInterval: REFETCH_INTERVAL.LOW,
+    retry: (failureCount, error) => {
+      if (isMissingViewError(error)) return false;
+      return failureCount < 2;
+    },
+    refetchInterval: false,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
-// Fetch concentration risk view
 export function useConcentrationRisk() {
   return useQuery({
     queryKey: QUERY_KEYS.concentrationRisk,
@@ -30,15 +44,17 @@ export function useConcentrationRisk() {
         .in("concentration_level", ["MEDIUM", "HIGH", "CRITICAL"])
         .order("ownership_pct", { ascending: false })
         .limit(20);
-      if (error) throw error;
+      if (error) {
+        if (isMissingViewError(error)) return [] as VConcentrationRisk[];
+        throw error;
+      }
       return (data || []) as VConcentrationRisk[];
     },
-    ...QUERY_DEFAULTS.riskMonitoring,
-    refetchInterval: REFETCH_INTERVAL.LOW,
+    retry: (failureCount, error) => {
+      if (isMissingViewError(error)) return false;
+      return failureCount < 2;
+    },
+    refetchInterval: false,
+    staleTime: 5 * 60 * 1000,
   });
 }
-
-// Note: PlatformMetrics and FundSummary types moved to useLivePlatformMetrics.ts
-// Deprecated hooks (usePlatformMetrics, useFundSummaries, useRefreshMaterializedViews)
-// were removed in the real-time architecture upgrade (2026-01-19).
-// Use useLivePlatformMetrics and useLiveFundSummary from '@/hooks/data/shared/useLivePlatformMetrics' instead.

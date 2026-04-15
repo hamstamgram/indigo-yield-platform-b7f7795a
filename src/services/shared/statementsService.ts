@@ -48,7 +48,7 @@ async function upsertStatement(data: StatementUpsertData): Promise<void> {
     storage_path: data.storage_path || null,
   });
 
-  if (error) throw new Error(error.userMessage || error.message);
+  if (error) throw new Error(error.message || error.userMessage);
 }
 
 async function uploadStatementPDF(

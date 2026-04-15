@@ -35,6 +35,7 @@ import {
   SelectValue,
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   Checkbox,
@@ -746,6 +747,9 @@ const InvestorReports = ({ embedded = false }: { embedded?: boolean }) => {
             <DialogTitle>
               {previewName} - {monthLabel}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Statement preview for {previewName}
+            </DialogDescription>
           </DialogHeader>
           {previewHtml && (
             <iframe

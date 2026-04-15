@@ -1140,10 +1140,6 @@ WHERE distribution_type = 'yield_event';
 -- MIGRATION RECORD
 -- =============================================================================
 
-INSERT INTO supabase_migrations.schema_migrations (version, name)
-VALUES ('20260616000000', 'fix_yield_constraint_violations_add_missing_checks')
-ON CONFLICT (version) DO NOTHING;
-
 DO $$
 BEGIN
   RAISE NOTICE '============================================================';

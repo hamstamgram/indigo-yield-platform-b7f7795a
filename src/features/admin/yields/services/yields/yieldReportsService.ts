@@ -159,7 +159,10 @@ export async function createMonthlyReportTemplate(
     mtd_net_income: 0,
   });
 
-  if (result.error) throw new Error(`Failed to create template: ${result.error.userMessage}`);
+  if (result.error)
+    throw new Error(
+      `Failed to create template: ${result.error.message || result.error.userMessage}`
+    );
 }
 
 /**

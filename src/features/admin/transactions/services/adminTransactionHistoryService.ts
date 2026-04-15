@@ -211,7 +211,12 @@ async function updateTransaction(params: UpdateTransactionParams): Promise<void>
     p_reason: params.reason,
   });
 
-  if (error) throw new Error(error.userMessage || error.message);
+  if (error) {
+    const err = new Error(error.message || error.userMessage) as ExtendedError;
+    err.code = error.code;
+    err.details = error.originalError;
+    throw err;
+  }
 }
 
 /**
@@ -234,16 +239,25 @@ async function voidTransaction(params: VoidTransactionParams): Promise<void> {
   });
 
   if (error) {
-    const err = new Error(error.userMessage || error.message || "Failed to void transaction") as ExtendedError;
+    const err = new Error(
+      error.message || error.userMessage || "Failed to void transaction"
+    ) as ExtendedError;
     err.code = error.code;
     err.details = error.originalError;
     throw err;
   }
 
   // Check RPC result for success
-  const result = data as { success?: boolean; message?: string; error_code?: string; details?: unknown } | null;
+  const result = data as {
+    success?: boolean;
+    message?: string;
+    error_code?: string;
+    details?: unknown;
+  } | null;
   if (result && result.success === false) {
-    const err = new Error(result.message || result.error_code || "Failed to void transaction") as ExtendedError;
+    const err = new Error(
+      result.message || result.error_code || "Failed to void transaction"
+    ) as ExtendedError;
     err.code = result.error_code;
     err.details = result.details;
     throw err;
@@ -280,13 +294,19 @@ async function voidAndReissueTransaction(
   });
 
   if (error) {
-    throw new Error(error.userMessage || error.message);
+    const err = new Error(error.message || error.userMessage) as ExtendedError;
+    err.code = error.code;
+    err.details = error.originalError;
+    throw err;
   }
 
-  // Handle standardized response from canonical RPC
   const result = (data as any) || {};
   if (result.success === false) {
-    throw new Error(result.error?.message || result.message || "Failed to correct transaction");
+    const err = new Error(
+      result.error?.message || result.message || "Failed to correct transaction"
+    ) as ExtendedError;
+    err.code = result.error?.code;
+    throw err;
   }
 
   return {
@@ -331,11 +351,22 @@ async function unvoidTransaction(params: UnvoidTransactionParams): Promise<void>
     p_reason: params.reason,
   });
 
-  if (error) throw new Error(error.message || "Failed to restore transaction");
+  if (error) {
+    const err = new Error(
+      error.message || error.userMessage || "Failed to restore transaction"
+    ) as ExtendedError;
+    err.code = error.code;
+    err.details = error.originalError;
+    throw err;
+  }
 
   const result = data as RPCJsonResult | null;
   if (result && result.success === false) {
-    throw new Error(result.message || result.error_code || "Failed to restore transaction");
+    const err = new Error(
+      result.message || result.error_code || "Failed to restore transaction"
+    ) as ExtendedError;
+    err.code = result.error_code;
+    throw err;
   }
 }
 
@@ -353,11 +384,22 @@ async function voidTransactionsBulk(
     p_reason: params.reason,
   });
 
-  if (error) throw new Error(error.message || "Failed to void transactions");
+  if (error) {
+    const err = new Error(
+      error.message || error.userMessage || "Failed to void transactions"
+    ) as ExtendedError;
+    err.code = error.code;
+    err.details = error.originalError;
+    throw err;
+  }
 
   const result = data as RPCJsonResult | null;
   if (result && result.success === false) {
-    throw new Error(result.message || result.error_code || "Failed to void transactions");
+    const err = new Error(
+      result.message || result.error_code || "Failed to void transactions"
+    ) as ExtendedError;
+    err.code = result.error_code;
+    throw err;
   }
 
   return {
@@ -381,11 +423,22 @@ async function unvoidTransactionsBulk(
     p_reason: params.reason,
   });
 
-  if (error) throw new Error(error.message || "Failed to restore transactions");
+  if (error) {
+    const err = new Error(
+      error.message || error.userMessage || "Failed to restore transactions"
+    ) as ExtendedError;
+    err.code = error.code;
+    err.details = error.originalError;
+    throw err;
+  }
 
   const result = data as RPCJsonResult | null;
   if (result && result.success === false) {
-    throw new Error(result.message || result.error_code || "Failed to restore transactions");
+    const err = new Error(
+      result.message || result.error_code || "Failed to restore transactions"
+    ) as ExtendedError;
+    err.code = result.error_code;
+    throw err;
   }
 
   return {
@@ -540,13 +593,20 @@ async function voidAndReissueFullExit(params: {
   );
 
   if (error) {
-    throw new Error(error.userMessage || error.message);
+    const err = new Error(error.message || error.userMessage) as ExtendedError;
+    err.code = error.code;
+    err.details = error.originalError;
+    throw err;
   }
 
   const result = (data as Record<string, unknown>) || {};
   if (result.success === false) {
     const errorObj = (result.error as Record<string, unknown>) || {};
-    throw new Error((errorObj.message as string) || "Full-exit void and reissue failed");
+    const err = new Error(
+      (errorObj.message as string) || "Full-exit void and reissue failed"
+    ) as ExtendedError;
+    err.code = (errorObj.code as string) || undefined;
+    throw err;
   }
 
   return {

@@ -106,6 +106,39 @@ const ERROR_PATTERNS: Array<{
       "You don't have permission to perform this action. Please contact an administrator.",
   },
 
+  // RPC function not found (schema cache stale or function missing)
+  {
+    pattern: /not found in the schema cache|could not find the function/i,
+    message: () =>
+      "This operation is not available yet. Please refresh the page and try again, or contact support.",
+  },
+
+  // RPC parameter mismatch
+  {
+    pattern: /could not find the function.*with the specified parameters/i,
+    message: () =>
+      "Operation parameter mismatch. Please refresh the page and try again. If this persists, contact support.",
+  },
+
+  // Void-related errors from DB
+  {
+    pattern: /already voided/i,
+    message: () => "This transaction has already been voided and cannot be modified.",
+  },
+  {
+    pattern: /cannot void.*locked/i,
+    message: () => "This transaction is locked and cannot be voided. Contact an administrator.",
+  },
+  {
+    pattern: /first principles violation/i,
+    message: () =>
+      "Cannot void this transaction because a subsequent yield distribution depends on it. Void the yield distribution first, then void this transaction.",
+  },
+  {
+    pattern: /transaction not found/i,
+    message: () => "Transaction not found. It may have been deleted. Please refresh and try again.",
+  },
+
   // Connection/timeout errors
   {
     pattern: /connection.*timeout|statement timeout/i,

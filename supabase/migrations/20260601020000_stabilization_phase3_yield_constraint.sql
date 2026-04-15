@@ -13,72 +13,85 @@
 -- =============================================================================
 
 -- 1. Validate yield_distributions constraint - INSERT test cases
+-- Uses is_voided=TRUE so test rows are inert and safe to leave behind
 DO $$
 DECLARE
     v_fund_id UUID;
     v_test_passed BOOLEAN := TRUE;
+    v_test_id_1 UUID;
+    v_test_id_2 UUID;
 BEGIN
-    -- Get a test fund_id
+    PERFORM set_config('indigo.canonical_rpc', 'true', true);
+
     SELECT id INTO v_fund_id FROM funds LIMIT 1;
     IF v_fund_id IS NULL THEN
         RAISE NOTICE 'SKIP: No funds found - skipping yield constraint validation';
         RETURN;
     END IF;
 
-    -- Test case 1: Original distribution type (should PASS - allowed standalone)
+   -- Test case 1: Original distribution type (should PASS - allowed standalone)
     BEGIN
+        PERFORM set_config('indigo.canonical_rpc', 'true', true);
         INSERT INTO yield_distributions (
             fund_id, distribution_type, period_start, period_end,
             gross_yield_amount, recorded_aum, effective_date,
             status, purpose, is_voided, created_by
         ) VALUES (
             v_fund_id, 'original', CURRENT_DATE - 30, CURRENT_DATE - 1,
-            1000.00, 100000.00, CURRENT_DATE,
+            0, 0, CURRENT_DATE,
             'applied'::yield_distribution_status, 'transaction'::aum_purpose,
-            FALSE, (SELECT id FROM profiles LIMIT 1)
-        );
-        RAISE NOTICE '✓ PASS: Original distribution type inserts without parent';
+            TRUE, (SELECT id FROM profiles LIMIT 1)
+        )
+        RETURNING id INTO v_test_id_1;
+        RAISE NOTICE 'PASS: Original distribution type inserts without parent';
     EXCEPTION WHEN check_violation THEN
         RAISE EXCEPTION 'FAIL: Original distribution type failed - constraint too restrictive';
     END;
 
     -- Test case 2: Daily distribution type (should PASS - allowed standalone)
     BEGIN
+        PERFORM set_config('indigo.canonical_rpc', 'true', true);
         INSERT INTO yield_distributions (
             fund_id, distribution_type, period_start, period_end,
             gross_yield_amount, recorded_aum, effective_date,
             status, purpose, is_voided, created_by
         ) VALUES (
             v_fund_id, 'daily', CURRENT_DATE - 7, CURRENT_DATE - 1,
-            100.00, 100000.00, CURRENT_DATE,
+            0, 0, CURRENT_DATE,
             'applied'::yield_distribution_status, 'transaction'::aum_purpose,
-            FALSE, (SELECT id FROM profiles LIMIT 1)
-        );
-        RAISE NOTICE '✓ PASS: Daily distribution type inserts without parent';
+            TRUE, (SELECT id FROM profiles LIMIT 1)
+        )
+        RETURNING id INTO v_test_id_2;
+        RAISE NOTICE 'PASS: Daily distribution type inserts without parent';
     EXCEPTION WHEN check_violation THEN
         RAISE EXCEPTION 'FAIL: Daily distribution type failed - constraint too restrictive';
     END;
 
     -- Test case 3: Correction without parent (should FAIL - requires parent)
     BEGIN
+        PERFORM set_config('indigo.canonical_rpc', 'true', true);
         INSERT INTO yield_distributions (
             fund_id, distribution_type, period_start, period_end,
             gross_yield_amount, recorded_aum, effective_date,
             status, purpose, is_voided, created_by, parent_distribution_id, reason
         ) VALUES (
             v_fund_id, 'correction', CURRENT_DATE - 30, CURRENT_DATE - 1,
-            -50.00, 100000.00, CURRENT_DATE,
+            0, 0, CURRENT_DATE,
             'applied'::yield_distribution_status, 'transaction'::aum_purpose,
-            FALSE, (SELECT id FROM profiles LIMIT 1), NULL, 'test correction'
+            TRUE, (SELECT id FROM profiles LIMIT 1), NULL, 'test correction'
         );
         v_test_passed := FALSE;
         RAISE EXCEPTION 'FAIL: Correction without parent should have been rejected';
     EXCEPTION WHEN check_violation THEN
-        RAISE NOTICE '✓ PASS: Correction without parent correctly rejected';
+        RAISE NOTICE 'PASS: Correction without parent correctly rejected';
     END;
 
+    -- Clean up test rows
+    PERFORM set_config('indigo.canonical_rpc', 'true', true);
+    DELETE FROM yield_distributions WHERE id IN (v_test_id_1, v_test_id_2);
+
     RAISE NOTICE '============================================================';
-    RAISE NOTICE '✓ PASS: Yield constraint chk_correction_has_parent validated';
+    RAISE NOTICE 'PASS: Yield constraint chk_correction_has_parent validated';
     RAISE NOTICE '============================================================';
 END $$;
 
@@ -135,7 +148,7 @@ BEGIN
         END IF;
     END IF;
 
-    -- Apply yield with existing function
+    -- Apply yield with existing function (sets canonical_rpc internally)
     v_result := public.apply_adb_yield_distribution_v3(
         p_fund_id,
         p_period_start,
@@ -149,6 +162,7 @@ BEGIN
 
     -- Update idempotency key if provided
     IF p_idempotency_key IS NOT NULL AND v_result->>'success' = 'true' THEN
+        PERFORM set_config('indigo.canonical_rpc', 'true', true);
         UPDATE yield_distributions
         SET idempotency_key = p_idempotency_key
         WHERE id = (
@@ -169,11 +183,6 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 ALTER FUNCTION public.apply_yield_idempotent(UUID, DATE, DATE, NUMERIC, UUID, TEXT, aum_purpose) OWNER TO postgres;
-
--- 4. Migration record (Supabase uses version-based schema_migrations)
-INSERT INTO supabase_migrations.schema_migrations (version, name)
-VALUES ('20260601020000_stabilization_phase3_yield_constraint', 'Stabilization Phase 3: Yield constraint gate')
-ON CONFLICT (version) DO NOTHING;
 
 DO $$
 BEGIN

@@ -52,10 +52,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .select("requested_amount")
       .eq("status", "pending");
 
-    const pendingWithdrawals = withdrawalRequests?.reduce(
-      (sum, req) => sum.plus(parseFinancial(req.requested_amount)),
-      parseFinancial(0)
-    ).toNumber() || 0;
+    const pendingWithdrawals =
+      withdrawalRequests
+        ?.reduce((sum, req) => sum.plus(parseFinancial(req.requested_amount)), parseFinancial(0))
+        .toNumber() || 0;
 
     // Sum actual YIELD transactions from the last 24 hours
     const yesterday = new Date(Date.now() - 86400000).toISOString();
@@ -66,10 +66,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .eq("is_voided", false)
       .gte("created_at", yesterday);
 
-    const interest24h = recentYields?.reduce(
-      (sum, tx) => sum.plus(parseFinancial(tx.amount)),
-      parseFinancial(0)
-    ).toNumber() || 0;
+    const interest24h =
+      recentYields
+        ?.reduce((sum, tx) => sum.plus(parseFinancial(tx.amount)), parseFinancial(0))
+        .toNumber() || 0;
 
     return {
       totalAum,
@@ -217,7 +217,7 @@ export async function createInvestor(investorData: {
 export async function updateInvestorStatus(investorId: string, status: string): Promise<void> {
   try {
     const result = await db.update("profiles", { status }, { column: "id", value: investorId });
-    if (result.error) throw new Error(result.error.userMessage);
+    if (result.error) throw new Error(result.error.message || result.error.userMessage);
   } catch (error) {
     logError("adminService.updateInvestorStatus", error);
     throw error;
@@ -230,7 +230,7 @@ export async function bulkUpdateInvestors(
 ): Promise<void> {
   try {
     const result = await db.updateIn("profiles", updates, "id", investorIds);
-    if (result.error) throw new Error(result.error.userMessage);
+    if (result.error) throw new Error(result.error.message || result.error.userMessage);
   } catch (error) {
     logError("adminService.bulkUpdateInvestors", error);
     throw error;

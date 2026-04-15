@@ -42,7 +42,7 @@ export async function addIBEntry(params: {
   });
 
   if (result.error) {
-    throw new Error(result.error.userMessage);
+    throw new Error(result.error.message || result.error.userMessage);
   }
 }
 
@@ -50,7 +50,7 @@ export async function deleteIBEntry(entryId: string): Promise<void> {
   const result = await db.delete("ib_commission_schedule", { column: "id", value: entryId });
 
   if (result.error) {
-    throw new Error(result.error.userMessage);
+    throw new Error(result.error.message || result.error.userMessage);
   }
 }
 
