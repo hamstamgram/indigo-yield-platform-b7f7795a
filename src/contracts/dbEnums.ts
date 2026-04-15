@@ -374,6 +374,8 @@ export const FUND_STATUS_VALUES = [
   "suspended",
   "deprecated",
   "pending",
+  "closed",
+  "available",
 ] as const;
 
 export const FundStatusSchema = z.enum(FUND_STATUS_VALUES, {
@@ -393,6 +395,8 @@ export const DB_FUND_STATUS = {
   "suspended": "suspended",
   "deprecated": "deprecated",
   "pending": "pending",
+  "closed": "closed",
+  "available": "available",
 } as const satisfies Record<string, FundStatus>;
 
 export function isValidFundStatus(value: string): value is FundStatus {
