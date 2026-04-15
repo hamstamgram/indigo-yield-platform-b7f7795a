@@ -3386,6 +3386,10 @@ export type Database = {
           ownership_pct: number | null
           position_value_at_calc: number | null
           transaction_id: string | null
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+          voided_by_profile_id: string | null
         }
         Insert: {
           adb_share?: number | null
@@ -3406,6 +3410,10 @@ export type Database = {
           ownership_pct?: number | null
           position_value_at_calc?: number | null
           transaction_id?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
         Update: {
           adb_share?: number | null
@@ -3426,6 +3434,10 @@ export type Database = {
           ownership_pct?: number | null
           position_value_at_calc?: number | null
           transaction_id?: string | null
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+          voided_by_profile_id?: string | null
         }
         Relationships: [
           {
@@ -3461,6 +3473,13 @@ export type Database = {
             columns: ["ib_transaction_id"]
             isOneToOne: false
             referencedRelation: "v_orphaned_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "yield_allocations_voided_by_profile_id_fkey"
+            columns: ["voided_by_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

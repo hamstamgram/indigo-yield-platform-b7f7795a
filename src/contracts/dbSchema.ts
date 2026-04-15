@@ -76,7 +76,7 @@ export const DB_TABLES = {
   fund_yield_snapshots: {
     name: "fund_yield_snapshots" as const,
     primaryKey: ["id"] as const,
-    columns: ["closing_aum", "created_at", "created_by", "days_in_period", "fund_id", "gross_yield_amount", "gross_yield_pct", "id", "is_voided", "net_yield_amount", "opening_aum", "period_end", "period_start", "snapshot_date", "trigger_reference", "trigger_type", "updated_at", "void_reason", "voided_at", "voided_by"] as const,
+    columns: ["closing_aum", "created_at", "created_by", "days_in_period", "fees_amount", "fund_id", "gross_yield_amount", "gross_yield_pct", "ib_commission_amount", "id", "investor_count", "net_yield_amount", "opening_aum", "period_end", "period_start", "snapshot_date", "trigger_reference", "trigger_type"] as const,
     rlsEnabled: true,
   },
   funds: {
@@ -256,7 +256,7 @@ export const DB_TABLES = {
   yield_allocations: {
     name: "yield_allocations" as const,
     primaryKey: ["id"] as const,
-    columns: ["adb_share", "created_at", "distribution_id", "fee_amount", "fee_pct", "fee_transaction_id", "fund_id", "gross_amount", "ib_amount", "ib_pct", "ib_transaction_id", "id", "investor_id", "is_voided", "net_amount", "ownership_pct", "position_value_at_calc", "transaction_id"] as const,
+    columns: ["adb_share", "created_at", "distribution_id", "fee_amount", "fee_pct", "fee_transaction_id", "fund_id", "gross_amount", "ib_amount", "ib_pct", "ib_transaction_id", "id", "investor_id", "is_voided", "net_amount", "ownership_pct", "position_value_at_calc", "transaction_id", "void_reason", "voided_at", "voided_by", "voided_by_profile_id"] as const,
     rlsEnabled: true,
   },
   yield_distributions: {

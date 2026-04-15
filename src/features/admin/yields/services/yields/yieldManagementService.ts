@@ -148,7 +148,7 @@ export async function getYieldDetails(recordId: string): Promise<YieldDetails | 
   const { data: record, error } = await supabase
     .from("yield_distributions")
     .select(
-      "id, fund_id, aum_date:effective_date, total_aum:recorded_aum, is_month_end, is_voided, voided_at, void_reason, created_at, created_by"
+      "id, fund_id, aum_date:effective_date, total_aum:recorded_aum, is_month_end, is_voided, voided_at, voided_by, voided_by_profile_id, void_reason, created_at, created_by"
     )
     .eq("id", recordId)
     .maybeSingle();
@@ -164,6 +164,20 @@ export async function getYieldDetails(recordId: string): Promise<YieldDetails | 
     .eq("id", (record as any).fund_id)
     .maybeSingle();
 
+  // Look up voided_by profile name if voided
+  let voidedByName: string | undefined;
+  const voidedByProfileId = (record as any).voided_by_profile_id;
+  if (voidedByProfileId) {
+    const { data: voidedByProfile } = await supabase
+      .from("profiles")
+      .select("first_name, last_name")
+      .eq("id", voidedByProfileId)
+      .maybeSingle();
+    if (voidedByProfile) {
+      voidedByName = `${voidedByProfile.first_name ?? ""} ${voidedByProfile.last_name ?? ""}`.trim() || undefined;
+    }
+  }
+
   return {
     id: record.id,
     fund_id: (record as any).fund_id,
@@ -176,7 +190,8 @@ export async function getYieldDetails(recordId: string): Promise<YieldDetails | 
     source: "yield_distribution",
     is_voided: record.is_voided || false,
     voided_at: record.voided_at,
-    voided_by: null,
+    voided_by: (record as any).voided_by,
+    voided_by_name: voidedByName,
     void_reason: record.void_reason,
     created_at: record.created_at,
     created_by: record.created_by,
