@@ -153,35 +153,3 @@ export async function getInvestorPortfolio(investorId?: string): Promise<Investo
     performance_metrics: performanceMetrics,
   };
 }
-
-import { rpc } from "@/lib/rpc/index";
-
-/**
- * Get all investors with their position summaries
- * Authoritative server-side aggregation for scalability
- */
-export async function getAllInvestorsWithSummary(): Promise<InvestorSummary[]> {
-  const { data, error } = await rpc.callNoArgs("get_all_investors_summary");
-
-  if (error) {
-    logError("getAllInvestorsWithSummary", error);
-    throw error;
-  }
-
-  const results = (data || []) as any[];
-
-  return results.map((investor) => ({
-    id: investor.id,
-    name: investor.name || "Unknown",
-    email: investor.email || "",
-    status: investor.status || "active",
-    totalAUM: parseFinancial(investor.totalAUM || 0).toNumber(),
-    totalEarned: parseFinancial(investor.totalEarned || 0).toNumber(),
-    totalPrincipal: parseFinancial(investor.totalPrincipal || 0).toNumber(),
-    positionCount: investor.positionCount || 0,
-    assetBreakdown: investor.assetBreakdown || {},
-    onboardingDate: investor.onboardingDate,
-    createdAt: investor.createdAt,
-    isSystemAccount: investor.account_type === "fees_account",
-  })) as InvestorSummary[];
-}

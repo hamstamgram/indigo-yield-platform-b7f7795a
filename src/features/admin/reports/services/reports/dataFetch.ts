@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc/index";
 import { logError } from "@/lib/logger";
 import { sanitizeSearchInput } from "@/utils/searchSanitizer";
 import type { InvestorReportSummary, PerformanceReportDetail, DeliveryStatus } from "./types";
@@ -155,7 +156,7 @@ export async function fetchAdminInvestorReports(
   }
 
   // Call the new high-performance RPC
-  const { data, error } = await supabase.rpc("get_investor_reports_v2", {
+  const { data, error } = await rpc.call("get_investor_reports_v2", {
     p_period_id: period.id,
   });
 

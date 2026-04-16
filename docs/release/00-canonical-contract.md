@@ -8,7 +8,12 @@
 - Stabilization migrations applied (Phases 1-5)
 - Frontend types regenerated
 - All `as any` casts removed from RPC calls via typedRPC helper
-**Based on:** Phase 4A/4B/4C hardening complete; Phase 6A archive classification complete  
+- **Migration squash completed (2026-04-15):** 131 migrations → 2 canonical files
+- **Dropped overloaded signatures:** `apply_investor_transaction(old)`, `adjust_investor_position(old)`, `check_aum_reconciliation(old)`, `set_account_type_for_ib(1-arg)`
+- **Standardized:** All financial columns to `numeric(28,10)`
+- **Security:** `is_admin()` + `canonical_rpc` gates added to all 4 core mutation functions
+- **Dropped:** `qa_entity_manifest` table, `qa_fees_account_id()` function
+**Based on:** Phase 4A/4B/4C hardening complete; Phase 6A archive classification complete; Migration squash complete  
 **Source of truth for:** All frontend service calls, RPC invocations, and table reads  
 
 ---

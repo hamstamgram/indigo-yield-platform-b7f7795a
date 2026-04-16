@@ -1,0 +1,10 @@
+Initialising login role...
+Dumping data from remote database...
+pg_dump: warning: there are circular foreign-key constraints on this table:
+pg_dump: detail: profiles
+pg_dump: hint: You might not be able to restore the dump without using --disable-triggers or temporarily dropping the constraints.
+pg_dump: hint: Consider using a full dump instead of a --data-only dump to avoid this problem.
+pg_dump: warning: there are circular foreign-key constraints on this table:
+pg_dump: detail: yield_distributions
+pg_dump: hint: You might not be able to restore the dump without using --disable-triggers or temporarily dropping the constraints.
+pg_dump: hint: Consider using a full dump instead of a --data-only dump to avoid this problem.

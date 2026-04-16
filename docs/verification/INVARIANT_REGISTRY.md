@@ -235,6 +235,69 @@ HAVING COUNT(*) > 1;
 
 ---
 
+---
+
+### Security Invariants
+
+#### I9: SECDEF Read Function Admin Gate
+
+| Property | Value |
+|----------|-------|
+| **ID** | I9 |
+| **Name** | SECDEF Read Function Admin Gate |
+| **Definition** | All SECURITY DEFINER STABLE read functions returning cross-tenant data must have `is_admin()` gate |
+| **Tolerance** | ZERO TOLERANCE |
+| **Severity** | HIGH |
+
+**Verification Query:**
+```sql
+SELECT p.proname, p.prosrc
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND p.prosecdef = true
+  AND p.provolatile = 's'  -- STABLE
+  AND p.prolang <> (SELECT oid FROM pg_language WHERE lanname = 'sql')
+  AND NOT EXISTS (
+    SELECT 1 FROM pg_depend d
+    JOIN pg_proc cp ON cp.oid = d.objid
+    WHERE d.refobjid = p.oid
+      AND cp.proname = 'is_admin'
+  )
+  AND p.proname NOT IN (
+    'get_system_mode', 'get_user_admin_status',
+    'get_dust_tolerance_for_fund', 'get_existing_preflow_aum',
+    'get_investor_fee_pct', 'get_investor_ib_pct',
+    '_resolve_investor_fee_pct', '_resolve_investor_ib_pct',
+    'calc_avg_daily_balance'
+  );
+-- Expected: 0 rows
+```
+
+---
+
+#### I10: SECDEF Cross-Tenant Function Isolation
+
+| Property | Value |
+|----------|-------|
+| **ID** | I10 |
+| **Name** | Cross-Tenant SECDEF Function Isolation |
+| **Definition** | All SECURITY DEFINER read functions with no investor/fund scope parameter must gate with `is_admin()` |
+| **Severity** | CRITICAL |
+
+**Category A functions (no scope param, return all data):**
+- `get_all_investors_summary`, `get_all_dust_tolerances`, `get_aum_position_reconciliation`, `get_funds_daily_flows`, `verify_aum_purpose_usage`
+
+**Category B functions (fund-scoped, return financial details):**
+- `get_fund_aum_as_of`, `get_fund_base_asset`, `get_fund_net_flows`, `get_transaction_aum`, `preview_crystallization`, `preview_merge_duplicate_profiles`
+
+**Intentionally ungated (safe):**
+- `get_system_mode` — UI helper, may be needed by non-admin
+- `get_user_admin_status` — auth helper
+- Internal-only helpers called by gated parents
+
+---
+
 ## B. Operation-to-Invariant Map
 
 ### After Deposit
@@ -368,8 +431,8 @@ SELECT reference_id, COUNT(*) as dup FROM transactions_v2 WHERE reference_id IS 
 
 | Priority | Invariant Count | Blockers |
 |----------|----------------|----------|
-| CRITICAL | 4 (I1-I4) | 4 |
-| HIGH | 3 (I5, I7, I8) | 0 |
+| CRITICAL | 5 (I1-I4, I10) | 5 |
+| HIGH | 4 (I5, I7, I8, I9) | 0 |
 | MEDIUM | 1 (I6) | 0 |
 
 **Absolute Blockers if violated:**
@@ -377,5 +440,6 @@ SELECT reference_id, COUNT(*) as dup FROM transactions_v2 WHERE reference_id IS 
 2. I2: Yield conservation error > 0.01
 3. I3: Any negative position
 4. I4: Any duplicate transaction
+5. I10: Cross-tenant SECDEF function without admin gate
 
 **Release Criteria:** All 4 critical invariants must pass before deployment.

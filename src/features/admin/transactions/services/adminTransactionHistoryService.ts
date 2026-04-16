@@ -300,20 +300,21 @@ async function voidAndReissueTransaction(
     throw err;
   }
 
-  const result = (data as any) || {};
+  const result = (data as Record<string, unknown> | null) ?? {};
+  const errorObj = (result.error as Record<string, unknown> | undefined) ?? {};
   if (result.success === false) {
     const err = new Error(
-      result.error?.message || result.message || "Failed to correct transaction"
+      (errorObj.message as string) || (result.message as string) || "Failed to correct transaction"
     ) as ExtendedError;
-    err.code = result.error?.code;
+    err.code = errorObj.code as string | undefined;
     throw err;
   }
 
   return {
     success: true,
-    voided_transaction_id: result.voided_tx_id || params.transactionId,
-    new_transaction_id: result.new_tx_id || "",
-    message: result.message || "Transaction corrected successfully",
+    voided_transaction_id: (result.voided_tx_id as string) || params.transactionId,
+    new_transaction_id: (result.new_tx_id as string) || "",
+    message: (result.message as string) || "Transaction corrected successfully",
   };
 }
 
@@ -582,16 +583,13 @@ async function voidAndReissueFullExit(params: {
   if (userError) throw userError;
   if (!user?.id) throw new Error("Authentication required");
 
-  const { data, error } = await rpc.call(
-    "void_and_reissue_full_exit" as any,
-    {
-      p_transaction_id: params.transactionId,
-      p_new_amount: parseFinancial(params.newAmount).toString() as unknown as number,
-      p_admin_id: user.id,
-      p_reason: params.reason,
-      p_new_date: params.newDate || undefined,
-    } as any
-  );
+  const { data, error } = await rpc.call("void_and_reissue_full_exit", {
+    p_transaction_id: params.transactionId,
+    p_new_amount: parseFinancial(params.newAmount).toNumber(),
+    p_admin_id: user.id,
+    p_reason: params.reason,
+    p_new_date: params.newDate || undefined,
+  });
 
   if (error) {
     const err = new Error(error.message || error.userMessage) as ExtendedError;

@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { parseFinancial } from "@/utils/financial";
 import { db } from "@/lib/db/index";
 import { logError } from "@/lib/logger";
+import { rpc } from "@/lib/rpc/index";
 import { investorDataService } from "@/services/investor/investorDataService";
 import type { InvestorPositionDetail } from "@/services/investor/investorDataService";
 import { requireAdmin } from "@/utils/authorizationHelper";
@@ -85,25 +86,35 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
 export async function getAllInvestorsWithSummary(): Promise<AdminInvestorSummary[]> {
   try {
-    const investorSummaries = await investorDataService.getAllInvestorsWithSummary();
+    const { data, error } = await rpc.callNoArgs("get_all_investors_summary");
+
+    if (error) {
+      logError("adminService.getAllInvestorsWithSummary", error);
+      throw error;
+    }
+
+    const investorSummaries = (data || []) as any[];
 
     return investorSummaries.map((summary) => ({
       id: summary.id,
-      email: summary.email,
-      firstName: summary.name.split(" ")[0] || "",
-      lastName: summary.name.split(" ").slice(1).join(" ") || "",
-      totalAum: summary.totalAUM,
-      status: summary.status,
+      email: summary.email || "",
+      firstName: summary.name?.split(" ")[0] || "",
+      lastName: summary.name?.split(" ").slice(1).join(" ") || "",
+      totalAum: parseFinancial(summary.totalAUM || 0).toNumber(),
+      status: summary.status || "active",
       onboardingDate: summary.onboardingDate || null,
       createdAt: summary.createdAt || null,
       lastStatementDate: null,
-      isSystemAccount: summary.isSystemAccount || false,
+      isSystemAccount: summary.account_type === "fees_account" || false,
       portfolioDetails: {
         assetBreakdown: summary.assetBreakdown || {},
         performanceMetrics: {
-          totalReturn: summary.totalEarned,
-          monthlyReturn: summary.totalEarned / 12,
-          sharpeRatio: summary.totalEarned > 0 ? Math.min(summary.totalEarned * 2, 3) : 0,
+          totalReturn: parseFinancial(summary.totalEarned || 0).toNumber(),
+          monthlyReturn: parseFinancial(summary.totalEarned || 0).toNumber() / 12,
+          sharpeRatio:
+            parseFinancial(summary.totalEarned || 0).toNumber() > 0
+              ? Math.min(parseFinancial(summary.totalEarned || 0).toNumber() * 2, 3)
+              : 0,
         },
       },
     }));
@@ -141,7 +152,7 @@ export async function getWithdrawalRequests(status?: WithdrawalStatus): Promise<
 export async function getFundPerformanceData(fundId?: string): Promise<any[]> {
   try {
     // In V6, we use the first-principles dynamic snapshot
-    const { data: aumData, error: aumError } = await supabase.rpc("get_funds_aum_snapshot", {
+    const { data: aumData, error: aumError } = await rpc.call("get_funds_aum_snapshot", {
       p_as_of_date: new Date().toISOString().split("T")[0],
     });
 

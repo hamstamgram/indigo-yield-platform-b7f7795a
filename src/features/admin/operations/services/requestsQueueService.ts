@@ -4,10 +4,8 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
-import type {
-  WithdrawalRequest,
-  RejectWithdrawalParams,
-} from "@/types/domains/requests";
+import { rpc } from "@/lib/rpc/index";
+import type { WithdrawalRequest, RejectWithdrawalParams } from "@/types/domains/requests";
 
 export const requestsQueueService = {
   /**
@@ -33,7 +31,7 @@ export const requestsQueueService = {
    * Reject a withdrawal request
    */
   async rejectWithdrawal(params: RejectWithdrawalParams): Promise<void> {
-    const { error } = await supabase.rpc("reject_withdrawal", {
+    const { error } = await rpc.call("reject_withdrawal", {
       p_request_id: params.requestId,
       p_reason: params.reason,
       p_admin_notes: params.notes,

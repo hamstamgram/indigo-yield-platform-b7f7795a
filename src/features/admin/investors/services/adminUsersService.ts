@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc/index";
 import { logError } from "@/lib/logger";
 
 export interface AdminUserProfile {
@@ -46,7 +47,7 @@ export async function toggleAdminStatus(userId: string, currentStatus: boolean):
       .eq("role", "admin");
     if (error) throw error;
   } else {
-    const { error } = await supabase.rpc("update_admin_role", {
+    const { error } = await rpc.call("update_admin_role", {
       p_target_user_id: userId,
       p_new_role: "admin",
     });

@@ -5,6 +5,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc/index";
 import { logError } from "@/lib/logger";
 import { parseFinancial } from "@/utils/financial";
 
@@ -254,7 +255,7 @@ export async function getPlatformStats(): Promise<{
   investorCount: number;
   adminCount: number;
 }> {
-  const { data, error } = await supabase.rpc("get_platform_stats");
+  const { data, error } = await rpc.callNoArgs("get_platform_stats");
   if (error) {
     logError("getPlatformStats", error);
     return { totalAum: 0, investorCount: 0, adminCount: 0 };
@@ -538,7 +539,7 @@ export async function checkAdminStatus(): Promise<{ isAdmin: boolean | null }> {
   } = await supabase.auth.getUser();
   if (!user) return { isAdmin: false };
 
-  const { data, error } = await supabase.rpc("is_admin");
+  const { data, error } = await rpc.callNoArgs("is_admin");
 
   if (error) {
     logError("investorPosition.checkAdminStatus", error);

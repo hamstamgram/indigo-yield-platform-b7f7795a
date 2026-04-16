@@ -83,12 +83,14 @@ export function UnvoidTransactionDialog({
             </AlertDescription>
           </Alert>
 
-          {/* AUM warning */}
+          {/* Cascade warning */}
           <Alert className="border-amber-500/50 bg-amber-500/10">
             <div className="flex items-start gap-2">
               <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-amber-600" />
               <AlertDescription className="text-amber-700 text-sm">
-                AUM records may need recalculation after restoring this transaction.
+                Only the transaction itself is restored. Cascade-voided yield distributions, fee
+                allocations, and IB ledger entries are NOT automatically restored. AUM is
+                recalculated, but you may need to re-apply yield distributions manually.
               </AlertDescription>
             </div>
           </Alert>

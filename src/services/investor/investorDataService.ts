@@ -52,7 +52,6 @@ export {
 export {
   getInvestorSummary,
   getInvestorPortfolio,
-  getAllInvestorsWithSummary,
 } from "@/features/investor/portfolio/services/investorPortfolioSummaryService";
 
 export {
@@ -74,7 +73,10 @@ export {
 // ============================================
 
 import * as positionService from "@/features/investor/portfolio/services/investorPositionService";
-import * as portfolioService from "@/features/investor/portfolio/services/investorPortfolioSummaryService";
+import {
+  getInvestorPortfolio,
+  getInvestorSummary,
+} from "@/features/investor/portfolio/services/investorPortfolioSummaryService";
 import * as withdrawalService from "@/features/investor/withdrawals/services/investorWithdrawalService";
 import * as yieldHistoryService from "@/features/investor/yields/services/investorYieldHistoryService";
 
@@ -83,9 +85,9 @@ export const investorDataService = {
   getUserPositions: positionService.getUserPositions,
   getTotalAUM: positionService.getTotalAUM,
   getActiveInvestorCount: positionService.getActiveInvestorCount,
-  getInvestorPortfolio: portfolioService.getInvestorPortfolio,
-  getInvestorSummary: portfolioService.getInvestorSummary,
-  getAllInvestorsWithSummary: portfolioService.getAllInvestorsWithSummary,
+  getInvestorPortfolio,
+  getInvestorSummary,
+
   getWithdrawalRequests: withdrawalService.getWithdrawalRequests,
   cancelWithdrawalRequest: withdrawalService.cancelWithdrawalRequest,
   getAvailableFunds: withdrawalService.getAvailableFunds,

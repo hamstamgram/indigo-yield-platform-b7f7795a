@@ -1,6 +1,6 @@
 /**
  * Investor Services - Local services only
- * 
+ *
  * For cross-feature services, import from canonical paths:
  * - withdrawalService → @/features/shared/services/withdrawalService
  * - transactionsV2Service → @/features/shared/services/transactionsV2Service
@@ -94,7 +94,6 @@ export {
 export {
   getInvestorSummary,
   getInvestorPortfolio,
-  getAllInvestorsWithSummary,
 } from "@/features/investor/portfolio/services/investorPortfolioSummaryService";
 
 export {
