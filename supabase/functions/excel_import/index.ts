@@ -83,7 +83,7 @@ serve(async (req) => {
   }
 
   // Check if user is admin via user_roles table (secure method)
-  const adminCheck = await checkAdminAccess(supabase, user.id);
+  const adminCheck = await checkAdminAccess(supabase as any, user.id);
   if (!adminCheck.isAdmin) {
     return createAdminDeniedResponse(corsHeaders);
   }

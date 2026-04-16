@@ -203,11 +203,6 @@ Indigo Yield Team`;
     console.log("Email sent successfully:", resendResult);
 
     // Log email send to database using correct column names
-    const serviceClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
     const { error: logError } = await serviceClient.from("email_logs").insert({
       recipient: toArray[0], // Primary recipient
       subject: emailSubject,

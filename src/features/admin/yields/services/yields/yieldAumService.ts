@@ -87,7 +87,7 @@ export const yieldAumService = {
       const { data, error } = await rpc.call("check_aum_reconciliation", {
         p_fund_id: fundId,
         p_as_of_date: asOfDate,
-        p_tolerance_pct: tolerancePct,
+        p_tolerance: tolerancePct,
       });
 
       if (error) throw error;
