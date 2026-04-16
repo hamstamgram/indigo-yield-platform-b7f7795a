@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { callRPCNoArgs } from "@/lib/supabase/typedRPC";
+import { db } from "@/lib/db";
 
 export interface AdminInvite {
   id: string;
@@ -34,14 +35,14 @@ export async function getAllInvites(): Promise<AdminInvite[]> {
     .order("created_at", { ascending: false });
 
   if (error) throw error;
-  return (data || []).map(row => ({
+  return (data || []).map((row) => ({
     id: row.id,
     email: row.email,
     invite_code: row.invite_code,
     created_at: row.created_at,
     expires_at: row.expires_at,
-    used: row.status === 'accepted',
-    created_by: row.created_by
+    used: row.status === "accepted",
+    created_by: row.created_by,
   }));
 }
 
@@ -63,14 +64,14 @@ export async function createInvite(
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { error } = await supabase.from("platform_invites").insert({
+  const { error } = await db.insert("platform_invites", {
     email,
     invite_code: inviteCode,
     expires_at: expiresAt.toISOString(),
     created_by: user?.id,
   });
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 
   return { email, inviteCode };
 }
@@ -79,12 +80,9 @@ export async function createInvite(
  * Delete/revoke an invite
  */
 export async function revokeInvite(inviteId: string): Promise<void> {
-  const { error } = await supabase
-    .from("platform_invites")
-    .delete()
-    .eq("id", inviteId);
+  const { error } = await db.delete("platform_invites", { column: "id", value: inviteId });
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 }
 
 /**

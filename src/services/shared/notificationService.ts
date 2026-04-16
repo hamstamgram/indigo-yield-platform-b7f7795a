@@ -5,6 +5,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { callRPC } from "@/lib/supabase/typedRPC";
+import { db } from "@/lib/db";
 import type { NotificationSettings, PriceAlert } from "@/types/domains";
 import { toNotifications, type Notification } from "@/lib/typeAdapters";
 
@@ -45,31 +46,32 @@ async function getNotificationsForUser(userId: string, limit = 50): Promise<Noti
 }
 
 async function markAsRead(notificationId: string): Promise<void> {
-  const { error } = await supabase
-    .from("notifications")
-    .update({ read_at: new Date().toISOString() })
-    .eq("id", notificationId);
+  const { error } = await db.update(
+    "notifications",
+    { read_at: new Date().toISOString() },
+    { column: "id", value: notificationId }
+  );
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 }
 
 async function deleteNotification(notificationId: string): Promise<void> {
-  const { error } = await supabase.from("notifications").delete().eq("id", notificationId);
+  const { error } = await db.delete("notifications", { column: "id", value: notificationId });
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 }
 
 async function markAllAsRead(): Promise<void> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return;
 
-  const { error } = await supabase
-    .from("notifications")
-    .update({ read_at: new Date().toISOString() })
-    .eq("user_id", userData.user.id)
-    .is("read_at", null);
+  const { error } = await db.update(
+    "notifications",
+    { read_at: new Date().toISOString() },
+    { column: "user_id", value: userData.user.id }
+  );
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 }
 
 async function getUnreadCount(): Promise<number> {

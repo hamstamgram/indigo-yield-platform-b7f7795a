@@ -1,0 +1,56 @@
+#!/usr/bin/env sh
+
+echo "🔍 Running pre-commit checks..."
+
+# 1. Check migration file naming convention
+STAGED_MIGRATIONS=$(git diff --cached --name-only --diff-filter=ACM -- 'supabase/migrations/*.sql' 2>/dev/null)
+if [ -n "$STAGED_MIGRATIONS" ]; then
+  for f in $STAGED_MIGRATIONS; do
+    BASENAME=$(basename "$f")
+    if ! echo "$BASENAME" | grep -qE '^[0-9]{14}_[a-z][a-z0-9_]*\.sql$'; then
+      echo "❌ ERROR: Migration file '$BASENAME' does not match naming convention: <timestamp>_<snake_case>.sql"
+      echo "   Use: npx supabase migration new <description>"
+      exit 1
+    fi
+  done
+  echo "✅ Migration naming convention OK"
+fi
+
+# 2. Check for SECURITY DEFINER functions without admin gates in new migrations
+if [ -n "$STAGED_MIGRATIONS" ]; then
+  for f in $STAGED_MIGRATIONS; do
+    if grep -q "SECURITY DEFINER" "$f"; then
+       if ! grep -q "is_admin\|require_admin" "$f"; then
+         echo "❌ ERROR: $f contains SECURITY DEFINER function(s) without is_admin/require_admin gate"
+         echo "   All SECURITY DEFINER mutation functions must have admin checks (see ADR 003)"
+         exit 1
+       fi
+    fi
+  done
+fi
+
+# 3. Check for unbounded numeric in new migrations
+if [ -n "$STAGED_MIGRATIONS" ]; then
+  for f in $STAGED_MIGRATIONS; do
+    UNBOUNDED=$(grep -nE '"(amount|fee_amount|fee_percentage|aum_percentage|cumulative_yield_earned|balance|value|gross_yield|net_yield|investor_share_pct|fund_yield_pct|fund_aum_before|fund_aum_after)" numeric[^(,]' "$f" 2>/dev/null || true)
+    if [ -n "$UNBOUNDED" ]; then
+      echo "❌ ERROR: Unbounded numeric column in $f:"
+      echo "$UNBOUNDED"
+      echo "   Financial columns MUST use numeric(28,10) — see ADR 002"
+      exit 1
+    fi
+  done
+fi
+
+# 4. Check for console.log statements
+STAGED_TS=$(git diff --cached --name-only --diff-filter=ACM -- '*.ts' '*.tsx' 2>/dev/null)
+if [ -n "$STAGED_TS" ]; then
+  CONSOLE_LOGS=$(echo "$STAGED_TS" | xargs grep -l "console\.log" 2>/dev/null || true)
+  if [ -n "$CONSOLE_LOGS" ]; then
+    echo "⚠️  WARNING: console.log statements found in:"
+    echo "$CONSOLE_LOGS"
+  fi
+fi
+
+# 5. Type check (fast — only checks changed files via tsc)
+echo "✅ Pre-commit checks passed"

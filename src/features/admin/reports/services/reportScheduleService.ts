@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import type { Json } from "@/integrations/supabase/types";
 import { logError } from "@/lib/logger";
 import type {
@@ -84,11 +85,7 @@ export async function createReportSchedule(
     failure_count: schedule.failureCount,
   };
 
-  const { data, error } = await supabase
-    .from("report_schedules")
-    .insert([payload])
-    .select("*")
-    .single();
+  const { data, error } = await db.insert("report_schedules", payload as any);
 
   if (error || !data) {
     logError("reportScheduleService.createReportSchedule", error);
@@ -103,7 +100,8 @@ export async function updateReportSchedule(
   updates: Partial<ReportSchedule>
 ): Promise<{ success: boolean; error?: string }> {
   const patch: Record<string, unknown> = {};
-  if (updates.reportDefinitionId !== undefined) patch.report_definition_id = updates.reportDefinitionId;
+  if (updates.reportDefinitionId !== undefined)
+    patch.report_definition_id = updates.reportDefinitionId;
   if (updates.name !== undefined) patch.name = updates.name;
   if (updates.description !== undefined) patch.description = updates.description;
   if (updates.frequency !== undefined) patch.frequency = updates.frequency;
@@ -124,7 +122,10 @@ export async function updateReportSchedule(
   if (updates.runCount !== undefined) patch.run_count = updates.runCount;
   if (updates.failureCount !== undefined) patch.failure_count = updates.failureCount;
 
-  const { error } = await supabase.from("report_schedules").update(patch).eq("id", scheduleId);
+  const { error } = await db.update("report_schedules", patch as any, {
+    column: "id",
+    value: scheduleId,
+  });
 
   if (error) {
     logError("reportScheduleService.updateReportSchedule", error);
@@ -137,7 +138,7 @@ export async function updateReportSchedule(
 export async function deleteReportSchedule(
   scheduleId: string
 ): Promise<{ success: boolean; error?: string }> {
-  const { error } = await supabase.from("report_schedules").delete().eq("id", scheduleId);
+  const { error } = await db.delete("report_schedules", { column: "id", value: scheduleId });
 
   if (error) {
     logError("reportScheduleService.deleteReportSchedule", error);

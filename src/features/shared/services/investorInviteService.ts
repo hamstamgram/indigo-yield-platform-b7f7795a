@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import { logWarn, logError } from "@/lib/logger";
 
 export interface InvestorInviteParams {
@@ -35,9 +36,8 @@ export async function createInvestorInvite(investor: InvestorInviteParams): Prom
   } = await supabase.auth.getUser();
 
   // Persist invite in database for audit trail
-  const { error: inviteDbError } = await supabase.from("platform_invites").insert({
+  const { error: inviteDbError } = await db.insert("platform_invites", {
     email: investor.email,
-    investor_id: investor.id,
     invite_code: inviteCode,
     expires_at: expiresAt.toISOString(),
     created_by: user?.id,

@@ -1,5 +1,5 @@
-import * as XLSX from 'xlsx';
-import * as fs from 'fs';
+import * as XLSX from "xlsx";
+import * as fs from "fs";
 
 export interface ExcelTransaction {
   date: string;
@@ -35,7 +35,7 @@ export interface AumSnapshot {
 export interface YieldEvent {
   date: string;
   grossYield: number;
-  purpose: 'transaction' | 'reporting';
+  purpose: "transaction" | "reporting";
   recordedAum: number;
 }
 
@@ -46,37 +46,49 @@ export class ExcelParser {
 
   async load(filePath: string | ArrayBuffer | Buffer): Promise<void> {
     let buffer: ArrayBuffer;
-    if (typeof filePath === 'string') {
+    if (typeof filePath === "string") {
       const fileBuffer = fs.readFileSync(filePath);
-      buffer = fileBuffer.buffer.slice(fileBuffer.byteOffset, fileBuffer.byteOffset + fileBuffer.byteLength) as ArrayBuffer;
+      buffer = fileBuffer.buffer.slice(
+        fileBuffer.byteOffset,
+        fileBuffer.byteOffset + fileBuffer.byteLength
+      ) as ArrayBuffer;
     } else if (Buffer.isBuffer(filePath)) {
-      buffer = filePath.buffer.slice(filePath.byteOffset, filePath.byteOffset + filePath.byteLength) as ArrayBuffer;
+      buffer = filePath.buffer.slice(
+        filePath.byteOffset,
+        filePath.byteOffset + filePath.byteLength
+      ) as ArrayBuffer;
     } else {
       buffer = filePath;
     }
-    this.workbook = XLSX.read(buffer, { type: 'array' });
+    this.workbook = XLSX.read(buffer, { type: "array" });
   }
 
   async parseAllFunds(): Promise<ParsedFundData[]> {
     if (!this.workbook) {
-      throw new Error('Workbook not loaded. Call load() first.');
+      throw new Error("Workbook not loaded. Call load() first.");
     }
 
-    const investmentsSheet = this.workbook.Sheets['Investments'];
+    const investmentsSheet = this.workbook.Sheets["Investments"];
     if (!investmentsSheet) {
-      throw new Error('Investments sheet not found in Excel file');
+      throw new Error("Investments sheet not found in Excel file");
     }
 
-    const jsonData = XLSX.utils.sheet_to_json(investmentsSheet, { defval: null }) as Record<string, unknown>[];
+    const jsonData = XLSX.utils.sheet_to_json(investmentsSheet, { defval: null }) as Record<
+      string,
+      unknown
+    >[];
 
-    const fundsMap = new Map<string, {
-      currency: string;
-      transactions: ExcelTransaction[];
-      investors: Map<string, { feePct: number; ibPct: number | null }>;
-    }>();
+    const fundsMap = new Map<
+      string,
+      {
+        currency: string;
+        transactions: ExcelTransaction[];
+        investors: Map<string, { feePct: number; ibPct: number | null }>;
+      }
+    >();
 
     for (const row of jsonData) {
-      const currency = row['Currency'] as string;
+      const currency = row["Currency"] as string;
       if (!currency) continue;
 
       if (!fundsMap.has(currency)) {
@@ -88,33 +100,35 @@ export class ExcelParser {
       }
 
       const fundData = fundsMap.get(currency)!;
-      
-      let dateStr = '';
-      const dateVal = row['Investment Date'];
-      if (typeof dateVal === 'number') {
+
+      let dateStr = "";
+      const dateVal = row["Investment Date"];
+      if (typeof dateVal === "number") {
         const date = new Date((dateVal - 25569) * 86400 * 1000);
-        dateStr = date.toISOString().split('T')[0];
+        dateStr = date.toISOString().split("T")[0];
       } else if (dateVal instanceof Date) {
-        dateStr = dateVal.toISOString().split('T')[0];
+        dateStr = dateVal.toISOString().split("T")[0];
       } else {
-        dateStr = String(dateVal || '');
+        dateStr = String(dateVal || "");
       }
 
       const transaction: ExcelTransaction = {
         date: dateStr,
-        investorName: String(row['Investor Name'] || ''),
+        investorName: String(row["Investor Name"] || ""),
         currency,
-        amount: Number(row['Amount'] || 0),
-        ibName: row['Intro Broker Name'] ? String(row['Intro Broker Name']) : null,
-        ibPercentage: row['IB Percentage'] !== null && row['IB Percentage'] !== undefined 
-          ? Number(row['IB Percentage']) 
-          : null,
-        feePercentage: row['Fee Percentage'] !== null && row['Fee Percentage'] !== undefined 
-          ? Number(row['Fee Percentage']) 
-          : null,
-        accountType: row['Account Type'] ? String(row['Account Type']) : undefined,
-        transactionType: row['Transaction Type'] ? String(row['Transaction Type']) : undefined,
-        referenceId: row['Reference ID'] ? String(row['Reference ID']) : undefined,
+        amount: Number(row["Amount"] || 0),
+        ibName: row["Intro Broker Name"] ? String(row["Intro Broker Name"]) : null,
+        ibPercentage:
+          row["IB Percentage"] !== null && row["IB Percentage"] !== undefined
+            ? Number(row["IB Percentage"])
+            : null,
+        feePercentage:
+          row["Fee Percentage"] !== null && row["Fee Percentage"] !== undefined
+            ? Number(row["Fee Percentage"])
+            : null,
+        accountType: row["Account Type"] ? String(row["Account Type"]) : undefined,
+        transactionType: row["Transaction Type"] ? String(row["Transaction Type"]) : undefined,
+        referenceId: row["Reference ID"] ? String(row["Reference ID"]) : undefined,
       };
 
       fundData.transactions.push(transaction);
@@ -136,11 +150,11 @@ export class ExcelParser {
     const fundsArray = Array.from(fundsMap.entries());
     for (const [currency, data] of fundsArray) {
       let fundName = `${currency} Yield Fund`;
-      if (currency === 'BTC TAC') fundName = 'BTC TAC Yield Fund';
-      else if (currency === 'ETH TAC') fundName = 'ETH TAC Yield Fund';
-      else if (currency === 'USDT') fundName = 'USDT Yield Fund';
-      else if (currency === 'SOL') fundName = 'SOL Yield Fund';
-      else if (currency === 'XRP') fundName = 'Ripple Yield Fund';
+      if (currency === "BTC TAC") fundName = "BTC TAC Yield Fund";
+      else if (currency === "ETH TAC") fundName = "ETH TAC Yield Fund";
+      else if (currency === "USDT") fundName = "USDT Yield Fund";
+      else if (currency === "SOL") fundName = "SOL Yield Fund";
+      else if (currency === "XRP") fundName = "Ripple Yield Fund";
 
       const investors = Array.from(data.investors.entries()).map(([name, { feePct, ibPct }]) => ({
         name,
@@ -151,8 +165,8 @@ export class ExcelParser {
       result.push({
         fundName,
         currency,
-        transactions: data.transactions.sort((a, b) => 
-          new Date(a.date).getTime() - new Date(b.date).getTime()
+        transactions: data.transactions.sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
         ),
         investors,
       });
@@ -161,19 +175,33 @@ export class ExcelParser {
     return result;
   }
 
-  async getExpectedFinalPositions(): Promise<Record<string, Record<string, { value: number; costBasis: number; shares: number }>>> {
+  async getExpectedFinalPositions(): Promise<
+    Record<string, Record<string, { value: number; costBasis: number; shares: number }>>
+  > {
     if (!this.workbook) {
-      throw new Error('Workbook not loaded. Call load() first.');
+      throw new Error("Workbook not loaded. Call load() first.");
     }
 
-    const result: Record<string, Record<string, { value: number; costBasis: number; shares: number }>> = {};
-    const fundSheets = ['BTC Yield Fund', 'USDT Yield Fund', 'ETH Yield Fund', 'SOL Yield Fund', 'XRP Yield Fund'];
+    const result: Record<
+      string,
+      Record<string, { value: number; costBasis: number; shares: number }>
+    > = {};
+    const fundSheets = [
+      "BTC Yield Fund",
+      "USDT Yield Fund",
+      "ETH Yield Fund",
+      "SOL Yield Fund",
+      "XRP Yield Fund",
+    ];
 
     for (const sheetName of fundSheets) {
       const sheet = this.workbook.Sheets[sheetName];
       if (!sheet) continue;
 
-      const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: null }) as Record<string, unknown>[];
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: null }) as Record<
+        string,
+        unknown
+      >[];
       const fundResults: Record<string, { value: number; costBasis: number; shares: number }> = {};
 
       for (let rowNum = 24; rowNum <= 38 && rowNum < jsonData.length; rowNum++) {
@@ -183,7 +211,14 @@ export class ExcelParser {
         let investorName: string | null = null;
         for (const key of Object.keys(row)) {
           const val = row[key];
-          if (typeof val === 'string' && (val.includes('Sam') || val.includes('Ryan') || val.includes('Indigo') || val.includes('Jose') || val.includes('Kyle'))) {
+          if (
+            typeof val === "string" &&
+            (val.includes("Sam") ||
+              val.includes("Ryan") ||
+              val.includes("Indigo") ||
+              val.includes("Jose") ||
+              val.includes("Kyle"))
+          ) {
             investorName = val.trim();
             break;
           }
@@ -191,12 +226,12 @@ export class ExcelParser {
 
         if (investorName) {
           let value = 0;
-          let costBasis = 0;
-          let shares = 0;
+          const costBasis = 0;
+          const shares = 0;
 
           const cols = Object.entries(row);
           for (const [col, val] of cols) {
-            if (typeof val === 'number' && !isNaN(val)) {
+            if (typeof val === "number" && !isNaN(val)) {
               value = val;
             }
           }
@@ -215,7 +250,7 @@ export class ExcelParser {
 
   async parseAumSnapshots(sheetName: string): Promise<AumSnapshot[]> {
     if (!this.workbook) {
-      throw new Error('Workbook not loaded. Call load() first.');
+      throw new Error("Workbook not loaded. Call load() first.");
     }
 
     const sheet = this.workbook.Sheets[sheetName];
@@ -243,7 +278,12 @@ export class ExcelParser {
 
       const date = this.excelSerialToDate(serialDate);
       const aum = this.parseNumericValue(aumBefore);
-      const commentList = comments ? String(comments).split('\n').map(c => c.trim()).filter(Boolean) : [];
+      const commentList = comments
+        ? String(comments)
+            .split("\n")
+            .map((c) => c.trim())
+            .filter(Boolean)
+        : [];
 
       snapshots.push({
         date,
@@ -261,13 +301,14 @@ export class ExcelParser {
 
     const yieldAmounts = this.getKnownYieldAmounts(sheetName);
     const monthEndDates = this.getMonthEndDates();
-    
+
     for (const snapshot of snapshots) {
       const knownYield = yieldAmounts.get(snapshot.date);
       if (knownYield !== undefined && knownYield > 0) {
-        const purpose: 'transaction' | 'reporting' = 
-          monthEndDates.has(snapshot.date) ? 'reporting' : 'transaction';
-        
+        const purpose: "transaction" | "reporting" = monthEndDates.has(snapshot.date)
+          ? "reporting"
+          : "transaction";
+
         events.push({
           date: snapshot.date,
           grossYield: knownYield,
@@ -282,73 +323,73 @@ export class ExcelParser {
 
   private getKnownYieldAmounts(sheetName: string): Map<string, number> {
     const yields = new Map<string, number>();
-    
-    if (sheetName === 'XRP Yield Fund') {
-      yields.set('2025-11-30', 355);
-      yields.set('2025-12-15', 487.8);
-      yields.set('2026-01-01', 1156.32);
-      yields.set('2026-02-01', 0.6);
+
+    if (sheetName === "XRP Yield Fund") {
+      yields.set("2025-11-30", 355);
+      yields.set("2025-12-15", 487.8);
+      yields.set("2026-01-01", 1156.32);
+      yields.set("2026-02-01", 0.6);
     }
-    
+
     return yields;
   }
 
   private getMonthEndDates(): Set<string> {
     return new Set([
-      '2025-11-30',
-      '2025-12-31',
-      '2026-01-01',
-      '2026-01-31',
-      '2026-02-01',
-      '2026-02-28',
+      "2025-11-30",
+      "2025-12-31",
+      "2026-01-01",
+      "2026-01-31",
+      "2026-02-01",
+      "2026-02-28",
     ]);
   }
 
   private excelSerialToDate(serial: unknown): string {
     let numValue: number;
-    
-    if (typeof serial === 'number') {
+
+    if (typeof serial === "number") {
       numValue = serial;
-    } else if (typeof serial === 'string') {
+    } else if (typeof serial === "string") {
       numValue = parseFloat(serial);
     } else {
-      return String(serial || '');
+      return String(serial || "");
     }
-    
+
     if (isNaN(numValue) || numValue < 1) {
-      return String(serial || '');
+      return String(serial || "");
     }
-    
+
     const date = new Date((numValue - 25569) * 86400 * 1000);
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }
 
   private parseNumericValue(val: unknown): number {
-    if (typeof val === 'number') {
+    if (typeof val === "number") {
       return val;
     }
-    if (typeof val === 'string') {
-      const parsed = parseFloat(val.replace(/,/g, ''));
+    if (typeof val === "string") {
+      const parsed = parseFloat(val.replace(/,/g, ""));
       return isNaN(parsed) ? 0 : parsed;
     }
     return 0;
   }
 
-  private determineYieldPurpose(dateStr: string): 'transaction' | 'reporting' {
+  private determineYieldPurpose(dateStr: string): "transaction" | "reporting" {
     const date = new Date(dateStr);
     const day = date.getDate();
     const month = date.getMonth();
-    
+
     if (day >= 28 || day <= 2) {
-      return 'reporting';
+      return "reporting";
     }
-    
-    return 'transaction';
+
+    return "transaction";
   }
 
   async getInvestorSnapshots(sheetName: string): Promise<Record<string, Record<string, number>>> {
     if (!this.workbook) {
-      throw new Error('Workbook not loaded. Call load() first.');
+      throw new Error("Workbook not loaded. Call load() first.");
     }
 
     const sheet = this.workbook.Sheets[sheetName];
@@ -368,8 +409,8 @@ export class ExcelParser {
       const row = jsonData[rowNum];
       if (!row || row.length < 1) continue;
 
-      const investorName = String(row[0] || '').trim();
-      if (!investorName || investorName === 'x' || investorName === 'Investors') continue;
+      const investorName = String(row[0] || "").trim();
+      if (!investorName || investorName === "x" || investorName === "Investors") continue;
 
       const snapshots: Record<string, number> = {};
       for (let i = 3; i < headerRow.length; i++) {

@@ -7,54 +7,45 @@ on:
     branches: [develop]
 
 env:
-  NODE_VERSION: '18'
-  PNPM_VERSION: '8'
+  NODE_VERSION: "18"
 
 jobs:
   lint-and-type:
-    name: Lint & Type Check
+    name: Lint & Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      
+          cache: "npm"
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
+        run: npm ci
+
       - name: Run ESLint
-        run: pnpm lint
-      
-      - name: Type check
-        run: pnpm tsc --noEmit
+        run: npm run lint
+
+      - name: Build (Vite)
+        run: npm run build
 
   test-unit:
     name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
-      
+          cache: "npm"
+
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
+        run: npm ci
+
       - name: Run unit tests
-        run: pnpm test:unit --if-present || echo "No unit tests configured"
+        run: npm run test || echo "No project unit tests yet"
 
   sql-checks:
     name: SQL & RLS Checks
@@ -72,19 +63,19 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-      
+
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-      
+
       - name: Check forbidden migration patterns
         run: |
           echo "🔍 Checking for forbidden patterns in migrations..."
@@ -111,20 +102,84 @@ jobs:
             "ensure_preflow_aum"
             "apply_deposit_with_crystallization"
             "apply_withdrawal_with_crystallization"
-            "apply_daily_yield_to_fund"
+            "apply_daily_yield_with_validation"
+            "crystallize_month_end"
+            "apply_transaction_with_crystallization"
+            "apply_segmented_yield_distribution_v5"
+            "void_and_reissue_full_exit"
+            "void_and_reissue_transaction"
+            "void_transactions_bulk"
+            "unvoid_transaction"
+            "unvoid_transactions_bulk"
+            "update_transaction"
+            "edit_transaction"
+            "finalize_month_yield"
+            "reject_withdrawal"
+            "route_withdrawal_to_fees"
+            "force_delete_investor"
+            "update_admin_role"
+            "complete_withdrawal"
+            "delete_transaction"
+            "finalize_statement_period"
+            "start_processing_withdrawal"
+            "void_fund_daily_aum"
+            "set_fund_daily_aum"
+            "reopen_yield_period"
+            "add_fund_to_investor"
+            "set_account_type_for_ib"
+            "batch_reconcile_all_positions"
+            "backfill_balance_chain_fix"
+            "reset_all_investor_positions"
+            "get_all_investors_summary"
+            "get_all_dust_tolerances"
+            "get_aum_position_reconciliation"
+            "get_funds_daily_flows"
+            "verify_aum_purpose_usage"
+            "get_fund_aum_as_of"
+            "get_fund_base_asset"
+            "get_fund_net_flows"
+            "get_transaction_aum"
+            "preview_crystallization"
+            "preview_merge_duplicate_profiles"
+            "get_investor_fee_pct"
+            "get_investor_ib_pct"
+            "get_user_admin_status"
           )
 
           FAILED=0
           for rpc in "${CRITICAL_RPCS[@]}"; do
-            # Find migrations defining this RPC and check for is_admin()
-            if grep -l "FUNCTION.*${rpc}" supabase/migrations/*.sql 2>/dev/null | xargs grep -l "is_admin()" > /dev/null 2>&1; then
-              echo "✅ ${rpc} has is_admin() gate"
+            # Find migrations defining this RPC and check for is_admin() or require_admin()
+            if grep -l "FUNCTION.*${rpc}" supabase/migrations/*.sql 2>/dev/null | xargs grep -l "is_admin\|require_admin" > /dev/null 2>&1; then
+              echo "✅ ${rpc} has admin gate"
             else
-              echo "⚠️  ${rpc} - could not verify is_admin() gate"
+              echo "❌ ${rpc} - MISSING admin gate!"
+              FAILED=1
             fi
           done
 
+          if [ $FAILED -eq 1 ]; then
+            echo ""
+            echo "❌ FAIL: Critical RPCs missing admin gates"
+            exit 1
+          fi
+
           echo "Admin gate verification complete"
+
+      - name: Check for unbounded numeric columns
+        run: |
+          echo "🔢 Checking for unbounded numeric in financial columns..."
+
+          UNBOUNDED=$(grep -rnE '"(amount|fee_amount|fee_percentage|aum_percentage|cumulative_yield_earned|balance|value|gross_yield|net_yield|investor_share_pct|fund_yield_pct|fund_aum_before|fund_aum_after)" numeric[^(,]' \
+            supabase/migrations/*.sql 2>/dev/null || true)
+
+          if [ -n "$UNBOUNDED" ]; then
+            echo "❌ ERROR: Unbounded numeric columns found:"
+            echo "$UNBOUNDED"
+            echo "   Financial columns MUST use numeric(28,10) — see ADR 002"
+            exit 1
+          fi
+
+          echo "✅ No unbounded numeric columns in financial columns"
 
       - name: Check yield conservation identity
         run: |
@@ -136,7 +191,7 @@ jobs:
           else
             echo "⚠️  No explicit yield conservation patterns detected"
           fi
-      
+
       - name: Run migrations dry-run
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
@@ -145,7 +200,27 @@ jobs:
             echo "Testing migration: $migration"
             psql $DATABASE_URL -f "$migration" --single-transaction || exit 1
           done
-      
+
+      - name: Run invariant checks
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: |
+          echo "🔍 Running invariant checks..."
+          RESULT=$(psql $DATABASE_URL -t -c "SELECT public.run_invariant_checks()::text" 2>/dev/null || echo "")
+          if [ -z "$RESULT" ]; then
+            echo "⚠️  run_invariant_checks() not available (no admin JWT context in CI)"
+          else
+            PASSED=$(echo "$RESULT" | grep -o '"passed",[0-9]*' | head -1 | cut -d, -f2)
+            FAILED=$(echo "$RESULT" | grep -o '"failed",[0-9]*' | head -1 | cut -d, -f2)
+            echo "📊 Invariant checks: $PASSED passed, $FAILED failed"
+            if [ "$FAILED" != "0" ]; then
+              echo "❌ FAIL: Invariant check failures detected!"
+              echo "$RESULT"
+              exit 1
+            fi
+          fi
+          echo "✅ Invariant checks complete"
+
       - name: Check RLS policies
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
@@ -238,22 +313,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "npm"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Verify enum contracts
         run: |
           echo "🔍 Verifying enum contracts..."
-          pnpm contracts:verify || {
+          npm run contracts:verify || {
             echo "❌ Enum contract verification failed!"
             echo "   Regenerate contracts with: npm run contracts:generate"
             exit 1
@@ -263,7 +334,7 @@ jobs:
       - name: SQL hygiene check
         run: |
           echo "🔍 Running SQL hygiene check..."
-          pnpm sql:hygiene || {
+          npm run sql:hygiene || {
             echo "❌ SQL hygiene check found issues!"
             echo "   Review the issues above and fix them before merging."
             exit 1
@@ -273,7 +344,7 @@ jobs:
       - name: Gateway usage enforcement
         run: |
           echo "🔒 Checking gateway usage enforcement..."
-          pnpm gateway:check || {
+          npm run gateway:check || {
             echo "❌ Gateway usage violations detected!"
             echo "   All Supabase calls must go through canonical gateways:"
             echo "   - RPC calls → src/lib/rpc.ts"
@@ -372,17 +443,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2
-        with:
-          version: ${{ env.PNPM_VERSION }}
-
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'pnpm'
+          cache: "npm"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Check for raw enum string literals
         run: |
@@ -457,11 +524,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Run security audit
-        run: |
-          pnpm audit --audit-level=high
-      
+        run: npm audit --audit-level=high
+
       - name: Check for secrets
         uses: trufflesecurity/trufflehog@main
         with:

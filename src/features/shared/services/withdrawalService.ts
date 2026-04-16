@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import { callRPC } from "@/lib/supabase/typedRPC";
 import { rpc } from "@/lib/rpc/index";
 import { parseFinancial } from "@/utils/financial";
@@ -304,7 +305,7 @@ export const withdrawalService = {
 
     log.info("Rejecting withdrawal", { withdrawalId, reason });
 
-    const { error } = await supabase.rpc("reject_withdrawal", {
+    const { error } = await rpc.call("reject_withdrawal", {
       p_request_id: withdrawalId,
       p_reason: reason,
       p_admin_notes: adminNotes ? `${adminNotes} [${corrId}]` : `[${corrId}]`,
@@ -447,9 +448,9 @@ export const withdrawalService = {
     if (params.settlementDate) {
       insertPayload.settlement_date = params.settlementDate;
     }
-    const { error } = await supabase.from("withdrawal_requests").insert(insertPayload as any);
+    const { error } = await db.insert("withdrawal_requests", insertPayload as any);
 
-    if (error) throw error;
+    if (error) throw new Error(error.message);
   },
 
   /**
@@ -460,7 +461,7 @@ export const withdrawalService = {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    const { error } = await supabase.rpc("route_withdrawal_to_fees", {
+    const { error } = await rpc.call("route_withdrawal_to_fees", {
       p_actor_id: user?.id,
       p_request_id: params.withdrawalId,
       p_reason: params.reason || "Routed to INDIGO FEES",
@@ -483,10 +484,10 @@ export const withdrawalService = {
       updatePayload.requested_amount = String(params.requestedAmount) as unknown as number;
     if (params.notes != null) updatePayload.notes = params.notes;
 
-    const { error } = await supabase
-      .from("withdrawal_requests")
-      .update(updatePayload as any)
-      .eq("id", params.withdrawalId);
+    const { error } = await db.update("withdrawal_requests", updatePayload as any, {
+      column: "id",
+      value: params.withdrawalId,
+    });
 
     if (error) throw error;
   },
@@ -613,13 +614,12 @@ export const withdrawalService = {
       status: "pending",
       notes,
     };
-    const { data, error: insertError } = await supabase
-      .from("withdrawal_requests")
-      .insert(insertPayload as any)
-      .select("id")
-      .single();
+    const { data, error: insertError } = await db.insert(
+      "withdrawal_requests",
+      insertPayload as any
+    );
 
-    if (insertError) throw insertError;
+    if (insertError) throw new Error(insertError.message);
 
     return (data as any)?.id as string;
   },
@@ -636,14 +636,12 @@ export const withdrawalService = {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    await supabase.from("audit_log").insert([
-      {
-        actor_user: user?.id ?? null,
-        action,
-        entity: "withdrawal_requests",
-        entity_id: withdrawalIds.join(","),
-        old_values: JSON.parse(JSON.stringify(details)),
-      },
-    ]);
+    await db.insert("audit_log", {
+      actor_user: user?.id ?? null,
+      action,
+      entity: "withdrawal_requests",
+      entity_id: withdrawalIds.join(","),
+      old_values: JSON.parse(JSON.stringify(details)),
+    });
   },
 };

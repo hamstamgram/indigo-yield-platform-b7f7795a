@@ -44,19 +44,14 @@ export function useInvestorTransactionAssets() {
 }
 
 export function useInvestorTransactionsList(
-  undefined?: string,
+  _unused?: string,
   assetFilter?: string,
   typeFilter?: string
 ) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: QUERY_KEYS.investorTransactions(
-      user?.id || "",
-      0,
-      assetFilter,
-      typeFilter
-    ),
+    queryKey: QUERY_KEYS.investorTransactions(user?.id || "", 0, assetFilter, typeFilter),
     queryFn: () => getInvestorTransactionsList(user?.id || "", undefined, assetFilter, typeFilter),
     enabled: !!user,
   });

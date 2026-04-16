@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 import { WizardFormData } from "@/features/admin/investors/components/wizard/types";
 import { addCsrfHeader } from "@/lib/security/csrf";
 import { logError, logWarn } from "@/lib/logger";
@@ -191,10 +192,10 @@ export async function createInvestorWithWizard(
       profileUpdate.ib_parent_id = ibParentId;
     }
 
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update(profileUpdate)
-      .eq("id", investorId);
+    const { error: profileError } = await db.update("profiles", profileUpdate, {
+      column: "id",
+      value: investorId,
+    });
 
     if (profileError) {
       logWarn("createInvestorWithWizard.profileUpdate", {
@@ -205,7 +206,7 @@ export async function createInvestorWithWizard(
     }
 
     // Step 4: Create fee schedule entry
-    const { error: feeError } = await supabase.from("investor_fee_schedule").insert({
+    const { error: feeError } = await db.insert("investor_fee_schedule", {
       investor_id: investorId,
       fee_pct: fees.investor_fee_pct,
       effective_date: getTodayString(),
@@ -217,7 +218,7 @@ export async function createInvestorWithWizard(
 
     // Step 4b: Create IB commission schedule entry if IB is linked
     if (ibParentId && fees.ib_commission_pct > 0) {
-      const { error: ibError } = await supabase.from("ib_commission_schedule").insert({
+      const { error: ibError } = await db.insert("ib_commission_schedule", {
         investor_id: investorId,
         ib_percentage: fees.ib_commission_pct,
         effective_date: getTodayString(),
@@ -237,7 +238,7 @@ export async function createInvestorWithWizard(
         verified: false,
       }));
 
-      const { error: emailError } = await supabase.from("investor_emails").insert(emailRecords);
+      const { error: emailError } = await db.insertMany("investor_emails", emailRecords);
 
       if (emailError) {
         logWarn("createInvestorWithWizard.reportEmails", { investorId, error: emailError.message });

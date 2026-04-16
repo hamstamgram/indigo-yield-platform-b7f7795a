@@ -26,8 +26,8 @@ export const RPC_FUNCTIONS = [
   "acquire_yield_lock",
   "add_fund_to_investor",
   "adjust_investor_position",
-  "apply_adb_yield_distribution_v3",
   "apply_daily_yield_with_validation",
+  "apply_segmented_yield_distribution_v5",
   "apply_deposit_with_crystallization",
   "apply_investor_transaction",
   "apply_transaction_with_crystallization",
@@ -36,8 +36,6 @@ export const RPC_FUNCTIONS = [
   "approve_withdrawal",
   "assert_integrity_or_raise",
   "backfill_balance_chain_fix",
-  "batch_crystallize_fund",
-  "batch_initialize_fund_aum",
   "batch_reconcile_all_positions",
   "build_error_response",
   "build_success_response",
@@ -62,7 +60,6 @@ export const RPC_FUNCTIONS = [
   "check_is_admin",
   "check_platform_data_integrity",
   "check_transaction_sources",
-  "cleanup_dormant_positions",
   "cleanup_duplicate_preflow_aum",
   "complete_withdrawal",
   "compute_jsonb_delta",
@@ -80,7 +77,6 @@ export const RPC_FUNCTIONS = [
   "edit_transaction",
   "ensure_admin",
   "ensure_preflow_aum",
-  "export_investor_data",
   "finalize_month_yield",
   "finalize_statement_period",
   "force_delete_investor",
@@ -133,13 +129,10 @@ export const RPC_FUNCTIONS = [
   "has_role",
   "has_super_admin_role",
   "initialize_all_hwm_values",
-  "initialize_crystallization_dates",
-  "initialize_fund_aum_from_positions",
   "insert_yield_transaction",
   "internal_route_to_fees",
   "is_admin",
-  "is_admin_for_jwt",
-  "is_admin_safe",
+
   "is_canonical_rpc",
   "is_crystallization_current",
   "is_import_enabled",
@@ -158,9 +151,7 @@ export const RPC_FUNCTIONS = [
   "nightly_aum_reconciliation",
   "parse_platform_error",
   "populate_investor_fund_performance",
-  "preview_adb_yield_distribution_v3",
   "preview_crystallization",
-  "preview_daily_yield_to_fund_v3",
   "preview_merge_duplicate_profiles",
   "preview_segmented_yield_distribution_v5",
   "process_yield_distribution",
@@ -190,7 +181,6 @@ export const RPC_FUNCTIONS = [
   "requeue_stale_sending",
   "require_admin",
   "require_super_admin",
-  "reset_all_data_keep_profiles",
   "reset_all_investor_positions",
   "retry_delivery",
   "route_withdrawal_to_fees",
@@ -199,6 +189,7 @@ export const RPC_FUNCTIONS = [
   "run_integrity_check",
   "run_integrity_pack",
   "run_invariant_checks",
+  "set_account_type_for_ib",
   "set_canonical_rpc",
   "set_fund_daily_aum",
   "start_processing_withdrawal",
@@ -310,14 +301,7 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_amount", "p_fund_id", "p_investor_id", "p_reason"] as const,
     optionalParams: ["p_admin_id", "p_tx_date"] as const,
   },
-  apply_adb_yield_distribution_v3: {
-    name: "apply_adb_yield_distribution_v3" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_fund_id", "p_gross_yield_amount", "p_period_end", "p_period_start"] as const,
-    optionalParams: ["p_admin_id", "p_distribution_date", "p_purpose", "p_recorded_aum"] as const,
-  },
+  /** @deprecated Use v5 functions instead */
   apply_daily_yield_with_validation: {
     name: "apply_daily_yield_with_validation" as const,
     returnType: "Json",
@@ -326,12 +310,27 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_created_by", "p_fund_id", "p_gross_yield_pct", "p_yield_date"] as const,
     optionalParams: ["p_purpose", "p_skip_validation"] as const,
   },
+  apply_segmented_yield_distribution_v5: {
+    name: "apply_segmented_yield_distribution_v5" as const,
+    returnType: "Json",
+    returnsSet: false,
+    securityDefiner: true,
+    requiredParams: ["p_fund_id", "p_period_end", "p_recorded_aum"] as const,
+    optionalParams: ["p_admin_id", "p_purpose", "p_distribution_date", "p_opening_aum"] as const,
+  },
   apply_deposit_with_crystallization: {
     name: "apply_deposit_with_crystallization" as const,
     returnType: "Json",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_amount", "p_closing_aum", "p_effective_date", "p_fund_id", "p_investor_id"] as const,
+    requiredParams: [
+      "p_admin_id",
+      "p_amount",
+      "p_closing_aum",
+      "p_effective_date",
+      "p_fund_id",
+      "p_investor_id",
+    ] as const,
     optionalParams: ["p_notes", "p_purpose", "p_tx_hash", "p_tx_subtype"] as const,
   },
   apply_investor_transaction: {
@@ -339,23 +338,56 @@ export const RPC_SIGNATURES = {
     returnType: "Json",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_amount", "p_fund_id", "p_investor_id", "p_reference_id", "p_tx_date", "p_tx_type"] as const,
-    optionalParams: ["p_admin_id", "p_distribution_id", "p_notes", "p_purpose", "p_new_total_aum"] as const,
+    requiredParams: [
+      "p_amount",
+      "p_fund_id",
+      "p_investor_id",
+      "p_reference_id",
+      "p_tx_date",
+      "p_tx_type",
+    ] as const,
+    optionalParams: [
+      "p_admin_id",
+      "p_distribution_id",
+      "p_notes",
+      "p_purpose",
+      "p_new_total_aum",
+    ] as const,
   },
   apply_transaction_with_crystallization: {
     name: "apply_transaction_with_crystallization" as const,
     returnType: "Json",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_amount", "p_fund_id", "p_investor_id", "p_reference_id", "p_tx_date", "p_tx_type"] as const,
-    optionalParams: ["p_admin_id", "p_distribution_id", "p_new_total_aum", "p_notes", "p_purpose"] as const,
+    requiredParams: [
+      "p_amount",
+      "p_fund_id",
+      "p_investor_id",
+      "p_reference_id",
+      "p_tx_date",
+      "p_tx_type",
+    ] as const,
+    optionalParams: [
+      "p_admin_id",
+      "p_distribution_id",
+      "p_new_total_aum",
+      "p_notes",
+      "p_purpose",
+    ] as const,
   },
   apply_withdrawal_with_crystallization: {
     name: "apply_withdrawal_with_crystallization" as const,
     returnType: "Json",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_amount", "p_fund_id", "p_investor_id", "p_new_total_aum", "p_tx_date"] as const,
+    requiredParams: [
+      "p_admin_id",
+      "p_amount",
+      "p_fund_id",
+      "p_investor_id",
+      "p_new_total_aum",
+      "p_tx_date",
+    ] as const,
     optionalParams: ["p_notes", "p_purpose", "p_tx_hash", "p_tx_subtype"] as const,
   },
   approve_and_complete_withdrawal: {
@@ -364,7 +396,13 @@ export const RPC_SIGNATURES = {
     returnsSet: false,
     securityDefiner: false,
     requiredParams: ["p_request_id"] as const,
-    optionalParams: ["p_admin_notes", "p_is_full_exit", "p_processed_amount", "p_send_precision", "p_tx_hash"] as const,
+    optionalParams: [
+      "p_admin_notes",
+      "p_is_full_exit",
+      "p_processed_amount",
+      "p_send_precision",
+      "p_tx_hash",
+    ] as const,
   },
   approve_withdrawal: {
     name: "approve_withdrawal" as const,
@@ -389,22 +427,6 @@ export const RPC_SIGNATURES = {
     securityDefiner: false,
     requiredParams: ["p_fund_id", "p_investor_id"] as const,
     optionalParams: [] as const,
-  },
-  batch_crystallize_fund: {
-    name: "batch_crystallize_fund" as const,
-    returnType: "undefined",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_effective_date", "p_force_override", "p_fund_id"] as const,
-    optionalParams: [] as const,
-  },
-  batch_initialize_fund_aum: {
-    name: "batch_initialize_fund_aum" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [] as const,
-    optionalParams: ["p_admin_id", "p_dry_run"] as const,
   },
   batch_reconcile_all_positions: {
     name: "batch_reconcile_all_positions" as const,
@@ -598,14 +620,6 @@ export const RPC_SIGNATURES = {
     requiredParams: [] as const,
     optionalParams: [] as const,
   },
-  cleanup_dormant_positions: {
-    name: "cleanup_dormant_positions" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [] as const,
-    optionalParams: ["p_dry_run"] as const,
-  },
   cleanup_duplicate_preflow_aum: {
     name: "cleanup_duplicate_preflow_aum" as const,
     returnType: "Json",
@@ -683,7 +697,14 @@ export const RPC_SIGNATURES = {
     returnType: "Json",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_closing_aum", "p_event_ts", "p_fund_id", "p_trigger_reference", "p_trigger_type"] as const,
+    requiredParams: [
+      "p_admin_id",
+      "p_closing_aum",
+      "p_event_ts",
+      "p_fund_id",
+      "p_trigger_reference",
+      "p_trigger_type",
+    ] as const,
     optionalParams: ["p_purpose"] as const,
   },
   current_user_is_admin_or_owner: {
@@ -740,14 +761,6 @@ export const RPC_SIGNATURES = {
     returnsSet: false,
     securityDefiner: false,
     requiredParams: ["p_admin_id", "p_date", "p_fund_id", "p_purpose", "p_total_aum"] as const,
-    optionalParams: [] as const,
-  },
-  export_investor_data: {
-    name: "export_investor_data" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_user_id"] as const,
     optionalParams: [] as const,
   },
   finalize_month_yield: {
@@ -1166,28 +1179,19 @@ export const RPC_SIGNATURES = {
     requiredParams: [] as const,
     optionalParams: [] as const,
   },
-  initialize_crystallization_dates: {
-    name: "initialize_crystallization_dates" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [] as const,
-    optionalParams: ["p_admin_id", "p_dry_run", "p_fund_id"] as const,
-  },
-  initialize_fund_aum_from_positions: {
-    name: "initialize_fund_aum_from_positions" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_fund_id"] as const,
-    optionalParams: ["p_admin_id", "p_aum_date"] as const,
-  },
   insert_yield_transaction: {
     name: "insert_yield_transaction" as const,
     returnType: "boolean",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_amount", "p_fund_code", "p_investor_name", "p_month", "p_tx_date"] as const,
+    requiredParams: [
+      "p_admin_id",
+      "p_amount",
+      "p_fund_code",
+      "p_investor_name",
+      "p_month",
+      "p_tx_date",
+    ] as const,
     optionalParams: [] as const,
   },
   internal_route_to_fees: {
@@ -1195,7 +1199,14 @@ export const RPC_SIGNATURES = {
     returnType: "{",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_amount", "p_effective_date", "p_from_investor_id", "p_fund_id", "p_reason"] as const,
+    requiredParams: [
+      "p_admin_id",
+      "p_amount",
+      "p_effective_date",
+      "p_from_investor_id",
+      "p_fund_id",
+      "p_reason",
+    ] as const,
     optionalParams: ["p_transfer_id"] as const,
   },
   is_admin: {
@@ -1204,22 +1215,6 @@ export const RPC_SIGNATURES = {
     returnsSet: false,
     securityDefiner: false,
     requiredParams: ["p_user_id"] as const,
-    optionalParams: [] as const,
-  },
-  is_admin_for_jwt: {
-    name: "is_admin_for_jwt" as const,
-    returnType: "boolean",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [] as const,
-    optionalParams: [] as const,
-  },
-  is_admin_safe: {
-    name: "is_admin_safe" as const,
-    returnType: "boolean",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: [] as const,
     optionalParams: [] as const,
   },
   is_canonical_rpc: {
@@ -1366,14 +1361,6 @@ export const RPC_SIGNATURES = {
     requiredParams: [] as const,
     optionalParams: ["p_investor_id"] as const,
   },
-  preview_adb_yield_distribution_v3: {
-    name: "preview_adb_yield_distribution_v3" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_fund_id", "p_gross_yield_amount", "p_period_end", "p_period_start"] as const,
-    optionalParams: ["p_purpose"] as const,
-  },
   preview_crystallization: {
     name: "preview_crystallization" as const,
     returnType: "Json",
@@ -1381,14 +1368,6 @@ export const RPC_SIGNATURES = {
     securityDefiner: false,
     requiredParams: ["p_fund_id", "p_investor_id"] as const,
     optionalParams: ["p_new_total_aum", "p_target_date"] as const,
-  },
-  preview_daily_yield_to_fund_v3: {
-    name: "preview_daily_yield_to_fund_v3" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_fund_id", "p_new_aum", "p_yield_date"] as const,
-    optionalParams: ["p_purpose"] as const,
   },
   preview_merge_duplicate_profiles: {
     name: "preview_merge_duplicate_profiles" as const,
@@ -1622,14 +1601,6 @@ export const RPC_SIGNATURES = {
     requiredParams: ["p_actor_id", "p_operation"] as const,
     optionalParams: [] as const,
   },
-  reset_all_data_keep_profiles: {
-    name: "reset_all_data_keep_profiles" as const,
-    returnType: "Json",
-    returnsSet: false,
-    securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_confirmation_code"] as const,
-    optionalParams: [] as const,
-  },
   reset_all_investor_positions: {
     name: "reset_all_investor_positions" as const,
     returnType: "Json",
@@ -1702,6 +1673,14 @@ export const RPC_SIGNATURES = {
     requiredParams: [] as const,
     optionalParams: ["enabled"] as const,
   },
+  set_account_type_for_ib: {
+    name: "set_account_type_for_ib" as const,
+    returnType: "Json",
+    returnsSet: false,
+    securityDefiner: true,
+    requiredParams: ["p_user_id", "p_account_type"] as const,
+    optionalParams: [] as const,
+  },
   set_fund_daily_aum: {
     name: "set_fund_daily_aum" as const,
     returnType: "Json",
@@ -1716,7 +1695,12 @@ export const RPC_SIGNATURES = {
     returnsSet: false,
     securityDefiner: false,
     requiredParams: ["p_request_id"] as const,
-    optionalParams: ["p_admin_notes", "p_processed_amount", "p_settlement_date", "p_tx_hash"] as const,
+    optionalParams: [
+      "p_admin_notes",
+      "p_processed_amount",
+      "p_settlement_date",
+      "p_tx_hash",
+    ] as const,
   },
   sync_all_fund_aum: {
     name: "sync_all_fund_aum" as const,
@@ -1843,7 +1827,13 @@ export const RPC_SIGNATURES = {
     returnType: "Json",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_actor_id", "p_aum_date", "p_fund_id", "p_purpose", "p_yield_amount"] as const,
+    requiredParams: [
+      "p_actor_id",
+      "p_aum_date",
+      "p_fund_id",
+      "p_purpose",
+      "p_yield_amount",
+    ] as const,
     optionalParams: [] as const,
   },
   validate_aum_against_positions: {
@@ -1963,7 +1953,13 @@ export const RPC_SIGNATURES = {
     returnType: "Json",
     returnsSet: false,
     securityDefiner: false,
-    requiredParams: ["p_admin_id", "p_new_amount", "p_new_date", "p_original_tx_id", "p_reason"] as const,
+    requiredParams: [
+      "p_admin_id",
+      "p_new_amount",
+      "p_new_date",
+      "p_original_tx_id",
+      "p_reason",
+    ] as const,
     optionalParams: ["p_closing_aum", "p_new_notes", "p_new_tx_hash"] as const,
   },
   void_completed_withdrawal: {
@@ -2021,16 +2017,14 @@ export const RPC_SIGNATURES = {
 // =============================================================================
 
 /** Get required parameters for an RPC function */
-export type RPCRequiredParams<T extends RPCFunctionName> = 
-  T extends keyof typeof RPC_SIGNATURES
-    ? typeof RPC_SIGNATURES[T]["requiredParams"][number]
-    : never;
+export type RPCRequiredParams<T extends RPCFunctionName> = T extends keyof typeof RPC_SIGNATURES
+  ? (typeof RPC_SIGNATURES)[T]["requiredParams"][number]
+  : never;
 
 /** Get optional parameters for an RPC function */
-export type RPCOptionalParams<T extends RPCFunctionName> = 
-  T extends keyof typeof RPC_SIGNATURES
-    ? typeof RPC_SIGNATURES[T]["optionalParams"][number]
-    : never;
+export type RPCOptionalParams<T extends RPCFunctionName> = T extends keyof typeof RPC_SIGNATURES
+  ? (typeof RPC_SIGNATURES)[T]["optionalParams"][number]
+  : never;
 
 /** Validate that an RPC function exists */
 export function isValidRPCFunction(name: string): name is RPCFunctionName {

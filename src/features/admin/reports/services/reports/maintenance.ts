@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
 
 /**
  * Delete a performance report record with audit trail
@@ -14,10 +15,10 @@ export async function deletePerformanceReport(id: string): Promise<void> {
     .eq("id", id)
     .maybeSingle();
 
-  const { error } = await supabase.from("investor_fund_performance").delete().eq("id", id);
-  if (error) throw error;
+  const { error } = await db.delete("investor_fund_performance", { column: "id", value: id });
+  if (error) throw new Error(error.message);
 
-  await supabase.from("audit_log").insert({
+  await db.insert("audit_log", {
     actor_user: user?.id ?? null,
     action: "PERFORMANCE_REPORT_DELETED",
     entity: "investor_fund_performance",
@@ -39,7 +40,7 @@ export async function deletePerformanceReport(id: string): Promise<void> {
 export async function deleteInvestorReport(investorId: string, periodId: string): Promise<void> {
   if (!investorId || !periodId) throw new Error("Missing required parameters");
 
-  // 1. Delete performance records (V2)
+  // 1. Delete performance records (V2) — compound filter, direct supabase
   const { error: perfError } = await supabase
     .from("investor_fund_performance")
     .delete()
@@ -48,7 +49,7 @@ export async function deleteInvestorReport(investorId: string, periodId: string)
 
   if (perfError) throw perfError;
 
-  // 2. Delete generated statement record (HTML/PDF)
+  // 2. Delete generated statement record — compound filter, direct supabase
   const { error: stmtError } = await supabase
     .from("generated_statements")
     .delete()
@@ -57,7 +58,7 @@ export async function deleteInvestorReport(investorId: string, periodId: string)
 
   if (stmtError) throw stmtError;
 
-  // 3. Delete delivery logs
+  // 3. Delete delivery logs — compound filter, direct supabase
   const { error: delError } = await supabase
     .from("statement_email_delivery")
     .delete()
@@ -70,7 +71,7 @@ export async function deleteInvestorReport(investorId: string, periodId: string)
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  await supabase.from("audit_log").insert({
+  await db.insert("audit_log", {
     actor_user: user?.id ?? null,
     action: "INVESTOR_REPORT_DELETED",
     entity: "generated_statements",

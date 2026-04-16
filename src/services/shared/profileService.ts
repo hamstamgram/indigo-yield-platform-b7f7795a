@@ -4,6 +4,8 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/lib/db";
+import { rpc } from "@/lib/rpc/index";
 import { batchProcess, batchMapProcess } from "@/utils/batchHelper";
 import { parseFinancial } from "@/utils/financial";
 
@@ -119,10 +121,10 @@ async function getCurrentProfileRaw() {
 
 async function toggleAdminStatus(userId: string, currentStatus: boolean): Promise<boolean> {
   // Route through update_admin_role RPC to avoid protect_profile_sensitive_fields trigger
-  const newRole = currentStatus ? 'admin' : 'admin'; // toggle: if currently admin, we'd remove; but this RPC only supports admin/super_admin
+  const newRole = currentStatus ? "admin" : "admin"; // toggle: if currently admin, we'd remove; but this RPC only supports admin/super_admin
   // For toggling admin on/off, we need to add or remove the admin role
   if (currentStatus) {
-    // Remove admin role — delete from user_roles
+    // Remove admin role — delete from user_roles (compound filter, direct supabase)
     const { error } = await supabase
       .from("user_roles")
       .delete()
@@ -131,7 +133,7 @@ async function toggleAdminStatus(userId: string, currentStatus: boolean): Promis
     if (error) throw error;
   } else {
     // Grant admin role via RPC
-    const { error } = await supabase.rpc("update_admin_role", {
+    const { error } = await rpc.call("update_admin_role", {
       p_target_user_id: userId,
       p_new_role: "admin",
     });
@@ -141,14 +143,12 @@ async function toggleAdminStatus(userId: string, currentStatus: boolean): Promis
 }
 
 async function updateProfile(userId: string, updates: Record<string, unknown>) {
-  const { data, error } = await supabase
-    .from("profiles")
-    .update(updates)
-    .eq("id", userId)
-    .select()
-    .single();
+  const { data, error } = await db.update("profiles", updates as any, {
+    column: "id",
+    value: userId,
+  });
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
   return data;
 }
 
@@ -213,7 +213,7 @@ async function getActiveInvestors(
  * Returns only eligible accounts (has positions + performance data, not already generated).
  */
 async function getReportingEligibleInvestors(periodId: string): Promise<ProfileSummary[]> {
-  const { data, error } = await supabase.rpc("get_reporting_eligible_investors", {
+  const { data, error } = await rpc.call("get_reporting_eligible_investors", {
     p_period_id: periodId,
   });
 
@@ -322,7 +322,8 @@ async function updateFeePercentage(investorId: string, feePercentage: number): P
   // profiles.fee_pct was dropped; write to investor_fee_schedule instead
   // First Principles: ALWAYS clear end_date to prevent silent expiration
   const today = new Date().toISOString().slice(0, 10);
-  const { error } = await supabase.from("investor_fee_schedule").upsert(
+  const { error } = await db.upsert(
+    "investor_fee_schedule",
     {
       investor_id: investorId,
       fee_pct: feePercentage,
@@ -333,7 +334,7 @@ async function updateFeePercentage(investorId: string, feePercentage: number): P
     { onConflict: "investor_id,effective_date" }
   );
 
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 }
 
 async function getUsersForDeposits(): Promise<
@@ -379,7 +380,7 @@ async function updateProfileSecure(params: {
   phone?: string | null;
   status?: string | null;
 }): Promise<void> {
-  const { error } = await supabase.rpc("update_user_profile_secure", {
+  const { error } = await rpc.call("update_user_profile_secure", {
     p_user_id: params.userId,
     p_first_name: params.firstName ?? null,
     p_last_name: params.lastName ?? null,
