@@ -103,37 +103,15 @@ export interface AppConfig {
 // Environment Variable Helpers
 // ============================================================================
 
-/**
- * Safely get environment variable with fallback
- * Supports both Vite (import.meta.env) and Node.js (process.env)
- */
+const SUPABASE_URL_FALLBACK = "https://nkfimvovosdehmyyjubn.supabase.co";
+const SUPABASE_ANON_KEY_FALLBACK =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rZmltdm92b3NkZWhteXlqdWJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY0NTQ1OTgsImV4cCI6MjA2MjAzMDU5OH0.pZrIyCCd7dlvvNMGdW8-71BxSVfoKhxs9a5Ezbkmjgg";
+
 function getEnv(key: string, fallback = ""): string {
-  // Try Vite environment first (client-side)
-  if (typeof import.meta !== "undefined" && import.meta.env?.[key]) {
+  if (import.meta.env[key]) {
     return import.meta.env[key] as string;
   }
-
-  // Try Node.js environment (server-side)
-  if (typeof process !== "undefined" && process.env?.[key]) {
-    return process.env[key] as string;
-  }
-
   return fallback;
-}
-
-/**
- * Get required environment variable or throw error
- */
-function getRequiredEnv(key: string): string {
-  const value = getEnv(key);
-  if (!value) {
-    throw new Error(
-      `Missing required environment variable: ${key}\n` +
-        `Please check your .env file or deployment configuration.\n` +
-        `See .env.example for required variables.`
-    );
-  }
-  return value;
 }
 
 /**
@@ -173,16 +151,17 @@ const IS_TEST = APP_ENV === "test" || NODE_ENV === "test";
 // ============================================================================
 
 function getSupabaseConfig(): SupabaseConfig {
-  const url = getEnv("VITE_SUPABASE_URL") || getEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const url =
+    getEnv("VITE_SUPABASE_URL") || getEnv("NEXT_PUBLIC_SUPABASE_URL") || SUPABASE_URL_FALLBACK;
 
   const anonKey =
     getEnv("VITE_SUPABASE_ANON_KEY") ||
     getEnv("VITE_SUPABASE_PUBLISHABLE_KEY") ||
-    getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+    getEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY") ||
+    SUPABASE_ANON_KEY_FALLBACK;
 
   const projectId = getEnv("VITE_SUPABASE_PROJECT_ID", "");
 
-  // Service role key (server-side only, optional for client)
   const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY", "");
 
   if (!url || !anonKey) {
