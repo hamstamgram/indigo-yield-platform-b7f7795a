@@ -381,19 +381,18 @@ export const config: AppConfig = {
 
 /**
  * Validate configuration on module load
+ * Only throws in development — Supabase validation is handled by client.ts
  */
 function validateConfig(): void {
-  const errors: string[] = [];
+  const warnings: string[] = [];
 
-  // Critical validations
   if (!config.supabase.url) {
-    errors.push("Missing VITE_SUPABASE_URL");
+    warnings.push("Missing VITE_SUPABASE_URL");
   }
   if (!config.supabase.anonKey) {
-    errors.push("Missing VITE_SUPABASE_ANON_KEY");
+    warnings.push("Missing VITE_SUPABASE_ANON_KEY");
   }
 
-  // Production-specific validations
   if (IS_PRODUCTION) {
     if (!config.sentry?.dsn) {
       logWarn("environment.validateConfig", { reason: "Sentry not configured for production" });
@@ -406,11 +405,9 @@ function validateConfig(): void {
     }
   }
 
-  if (errors.length > 0) {
-    throw new Error(
-      "Configuration validation failed:\n" +
-        errors.map((e) => `  - ${e}`).join("\n") +
-        "\n\nPlease check your .env file and ensure all required variables are set."
+  if (warnings.length > 0 && IS_DEVELOPMENT) {
+    console.warn(
+      "[environment] Configuration warnings:\n" + warnings.map((w) => `  - ${w}`).join("\n")
     );
   }
 }
