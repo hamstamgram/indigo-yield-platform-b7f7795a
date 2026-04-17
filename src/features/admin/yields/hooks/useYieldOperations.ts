@@ -4,7 +4,10 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getActiveFundsWithAUM, getFundInvestorCompositionWithYield as getFundInvestorComposition } from "@/features/admin/yields/services/yields/yieldHistoryService";
+import {
+  getActiveFundsWithAUM,
+  getFundInvestorCompositionWithYield as getFundInvestorComposition,
+} from "@/features/admin/yields/services/yields/yieldHistoryService";
 import { applyYieldDistribution } from "@/features/admin/yields/services/yields";
 import type { YieldCalculationInput } from "@/features/admin/yields/services/yields/yieldDistributionService";
 import { useAuth } from "@/services/auth";
@@ -43,7 +46,7 @@ export function useApplyYieldDistribution() {
   return useMutation({
     mutationFn: async ({
       input,
-      purpose = "reporting",
+      purpose = "transaction",
     }: {
       input: YieldCalculationInput;
       purpose?: "reporting" | "transaction";

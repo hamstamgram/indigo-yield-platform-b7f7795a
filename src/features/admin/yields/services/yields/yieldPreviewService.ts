@@ -40,7 +40,7 @@ function isValidUUID(value: string): boolean {
 export async function previewYieldDistribution(
   input: YieldCalculationInput
 ): Promise<YieldCalculationResult> {
-  const { fundId, targetDate, newTotalAUM, baseAUM, purpose = "reporting" } = input;
+  const { fundId, targetDate, newTotalAUM, baseAUM, purpose = "transaction" } = input;
 
   // Validate fundId is a valid UUID
   if (!fundId || !isValidUUID(fundId)) {
@@ -64,9 +64,10 @@ export async function previewYieldDistribution(
   // Call V5 preview RPC (now serving V6 unified flat math beneath the hood)
   // Use .toString() for financial precision - PostgreSQL NUMERIC handles string input correctly
   const parsedOpeningAum = baseAUM ? parseFinancial(baseAUM) : null;
-  const openingAumValue = parsedOpeningAum && !parsedOpeningAum.isNaN() && parsedOpeningAum.gt(0)
-    ? (parsedOpeningAum.toString() as unknown as number)
-    : undefined;
+  const openingAumValue =
+    parsedOpeningAum && !parsedOpeningAum.isNaN() && parsedOpeningAum.gt(0)
+      ? (parsedOpeningAum.toString() as unknown as number)
+      : undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (callRPC as any)("preview_segmented_yield_distribution_v5", {
     p_fund_id: fundId,
@@ -120,7 +121,9 @@ export async function previewYieldDistribution(
     (d: V5AllocationItem) => {
       const liveBalance = balanceMap.get(d.investor_id) || 0;
       const ibParentName = d.ib_parent_id ? ibParentNameMap.get(d.ib_parent_id) || null : null;
-      const investorBalance = parseFinancial((d as any).current_value || d.opening_balance || liveBalance).toNumber();
+      const investorBalance = parseFinancial(
+        (d as any).current_value || d.opening_balance || liveBalance
+      ).toNumber();
       const allocationPercentage =
         totalOpeningAum > 0
           ? parseFinancial(investorBalance)

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toNum } from "@/utils/numeric";
 import { FormProvider, Controller } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,6 +21,8 @@ import { useFunds, useInvestorsForTransaction } from "@/hooks";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import Decimal from "decimal.js";
+import { formatAssetAmount } from "@/utils/assets";
 
 // Refactored imports
 import { useTransactionForm, TransactionFormData } from "./hooks/useTransactionForm";
@@ -55,7 +57,7 @@ export function AddTransactionDialog({
   const [investorError, setInvestorError] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
-  const { data: funds, isLoading: fundsLoading } = useFunds({ status: 'active' });
+  const { data: funds, isLoading: fundsLoading } = useFunds({ status: "active" });
   const { data: investors = [], isLoading: isLoadingInvestors } = useInvestorsForTransaction(open);
 
   const { form, isFirstInvestment, hasExistingPosition, isCheckingBalance, currentBalance } =
@@ -108,6 +110,28 @@ export function AddTransactionDialog({
 
   const selectedFund = funds?.find((f) => f.id === selectedFundId);
   const isDeposit = txnType === "FIRST_INVESTMENT" || txnType === "DEPOSIT";
+  const fullExit = watch("full_withdrawal");
+  const asset = selectedFund?.asset || "UNITS";
+
+  const dustPreview = useMemo(() => {
+    if (txnType !== "WITHDRAWAL" || !fullExit || currentBalance == null) return null;
+    const balance = new Decimal(currentBalance);
+    const sendAmount = new Decimal(amount || 0);
+    const dust = balance.minus(sendAmount);
+    return {
+      sendAmount: sendAmount.toString(),
+      dustAmount: dust.isNegative() ? "0" : dust.toString(),
+      fullBalance: balance.toString(),
+    };
+  }, [txnType, fullExit, currentBalance, amount]);
+
+  const isDustLarge = useMemo(() => {
+    if (!dustPreview) return false;
+    const dust = new Decimal(dustPreview.dustAmount);
+    const thresholds: Record<string, number> = { BTC: 0.001, ETH: 0.01, USDT: 1, USDC: 1, EURC: 1 };
+    const threshold = thresholds[asset.toUpperCase()] ?? 0.01;
+    return dust.gt(threshold);
+  }, [dustPreview, asset]);
 
   // Set initial fund and asset when dialog opens or fundId prop changes
   useEffect(() => {
@@ -227,7 +251,7 @@ export function AddTransactionDialog({
                             Full Exit
                           </Label>
                           <span className="text-[11px] text-muted-foreground">
-                            Route remaining decimals to Indigo Fees
+                            Route remaining balance to Indigo Fees
                           </span>
                         </div>
                         <Switch
@@ -236,7 +260,6 @@ export function AddTransactionDialog({
                           onCheckedChange={(checked) => {
                             field.onChange(checked);
                             if (checked && currentBalance) {
-                              // Use full precision for full exit
                               setValue("amount", currentBalance.toString(), {
                                 shouldValidate: true,
                               });
@@ -247,6 +270,42 @@ export function AddTransactionDialog({
                     )}
                   />
                 )}
+
+              {/* Dust Preview when Full Exit is toggled */}
+              {fullExit && dustPreview && (
+                <div className="space-y-2 p-3 rounded-lg border border-indigo-500/30 bg-indigo-950/20">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Position balance</span>
+                    <span className="font-mono text-white">
+                      {formatAssetAmount(dustPreview.fullBalance, asset)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Send to investor</span>
+                    <span className="font-mono text-yield">
+                      {formatAssetAmount(dustPreview.sendAmount, asset)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-slate-400">Dust to INDIGO Fees</span>
+                    <span className="font-mono text-amber-400">
+                      {formatAssetAmount(dustPreview.dustAmount, asset)}
+                    </span>
+                  </div>
+                  {new Decimal(dustPreview.dustAmount).isZero() && (
+                    <p className="text-xs text-slate-500">No dust — amount equals full balance</p>
+                  )}
+                  {isDustLarge && (
+                    <Alert className="border-amber-500/50 bg-amber-950/30 mt-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-500" />
+                      <AlertDescription className="text-amber-300 text-xs">
+                        Dust amount is unusually large. Verify the position balance before
+                        proceeding.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              )}
 
               {/* Transaction Date */}
               <TransactionDateInput />
@@ -265,8 +324,7 @@ export function AddTransactionDialog({
                     <p className="text-sm text-amber-700 dark:text-amber-300">
                       You are depositing{" "}
                       <strong>
-                        {toNum(pendingLargeDeposit.amount).toLocaleString()}{" "}
-                        {selectedFund?.asset}
+                        {toNum(pendingLargeDeposit.amount).toLocaleString()} {selectedFund?.asset}
                       </strong>
                     </p>
                     <div className="flex gap-2">

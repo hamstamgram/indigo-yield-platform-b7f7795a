@@ -266,6 +266,7 @@ export const withdrawalService = {
 
     if (isFullExit) {
       params.p_is_full_exit = true;
+      params.p_send_precision = 10;
     }
 
     const { error } = await rpc.call(

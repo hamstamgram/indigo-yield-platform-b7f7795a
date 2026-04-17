@@ -58,7 +58,23 @@ Frontend → `apply_transaction_with_crystallization` → sets canonical_rpc →
 - **Dead functions dropped**: 13 zero-caller functions removed in `20260416190000_dead_code_cleanup.sql`
 - **DEPRECATED markers**: 7 sync functions + `force_delete_investor` marked in `20260416191000_deprecated_markers.sql`
 
+- **can_access_investor**: Now includes `canonical_rpc` bypass — SECDEF batch functions that set `indigo.canonical_rpc = 'true'` bypass per-investor access checks (already verified admin via is_admin())
+
 ## Migration History
+- **2026-04-17**: P0 — `20260417000000_fix_can_access_investor_canonical_bypass.sql` (added canonical_rpc bypass to can_access_investor for SECDEF batch functions)
+- **2026-04-17**: P0 — `20260417010000_fix_yield_distribution_restore_baseline.sql` (restored apply_segmented_yield_distribution_v5 from baseline — Tier 1 version had 4 broken schema references: investor_ib_schedule, fee_percentage, account_type on investor_positions, status on investor_fee_schedule)
+- **2026-04-17**: P0 — `20260417020000_fix_preview_yield_admin_gate.sql` (added is_admin() gate + canonical_rpc to preview_segmented_yield_distribution_v5)
+- **2026-04-17**: P0 — `20260417030000_fix_withdrawal_full_exit_honor_amount.sql` (approve_and_complete_withdrawal honors p_processed_amount for full exits; dust tolerance for position deactivation; crystallization errors logged instead of swallowed)
+- **2026-04-17**: P1 — `20260417040000_fix_void_and_reissue_full_exit.sql` (added source/asset columns, removed double-credit to fees account, added dust tolerance for position deactivation)
+- **2026-04-17**: P2 — `20260417050000_fix_recalculate_fund_aum_admin_gate.sql` (added is_admin() gate to recalculate_fund_aum_for_date)
+- **2026-04-17**: P0 — `20260417070000_fix_void_transaction_baseline_restore.sql` (restored void_transaction from baseline — fixed 4 column/table reference bugs: ib_commission_ledger.credit_transaction_id→transaction_id, platform_fees→platform_fee_ledger, investor_yield_events.transaction_id→trigger_transaction_id/reference_id, yield_distributions.credit_transaction_id→distribution_id from v_tx; removed updated_at=NOW() on 3 tables that lack the column; fixed run_invariant_checks Check 9 ib_commission_ledger.credit_transaction_id→transaction_id)
+- **2026-04-17**: P0 — `20260417060000_fix_missing_void_columns.sql` (squash baseline used CREATE TABLE IF NOT EXISTS which doesn't ALTER existing tables — added 15+ missing columns on remote: voided_at/voided_by/voided_by_profile_id/void_reason on yield_allocations, credit_transaction_id/debit_transaction_id/voided_by_profile_id/void_reason on fee_allocations, void columns on ib_commission_ledger, investor_yield_events, platform_fee_ledger, yield_distributions, is_full_exit on withdrawal_requests, etc.)
+- **2026-04-17**: P2 — `20260417050000_fix_recalculate_fund_aum_admin_gate.sql` (added is_admin() gate to recalculate_fund_aum_for_date)
+- **2026-04-17**: P1 — `20260417040000_fix_void_and_reissue_full_exit.sql` (added source/asset columns, removed double-credit to fees account, added dust tolerance for position deactivation)
+- **2026-04-17**: P0 — `20260417030000_fix_withdrawal_full_exit_honor_amount.sql` (approve_and_complete_withdrawal honors p_processed_amount for full exits; dust tolerance for position deactivation; crystallization errors logged instead of swallowed)
+- **2026-04-17**: P0 — `20260417020000_fix_preview_yield_admin_gate.sql` (added is_admin() gate + canonical_rpc to preview_segmented_yield_distribution_v5)
+- **2026-04-17**: P0 — `20260417010000_fix_yield_distribution_restore_baseline.sql` (restored apply_segmented_yield_distribution_v5 from baseline — Tier 1 version had 4 broken schema references)
+- **2026-04-17**: P0 — `20260417000000_fix_can_access_investor_canonical_bypass.sql` (added canonical_rpc bypass to can_access_investor for SECDEF batch functions)
 - **2026-04-16**: Lovable P0/P1 — `20260416200000_fix_profiles_rls_escalation.sql` (profiles self-update restricted via trigger)
 - **2026-04-16**: Lovable P0 — `20260416210000_fix_fund_aum_events_public_read.sql` (USING(true) → authenticated only)
 - **2026-04-16**: Lovable P1 — `20260416220000_fix_statements_storage_access.sql` (investor SELECT on own PDFs)
