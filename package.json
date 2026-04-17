@@ -143,6 +143,7 @@
     "@axe-core/playwright": "^4.10.2",
     "@eslint/js": "^9.9.0",
     "@lhci/cli": "^0.15.1",
+    "@playwright/mcp": "^0.0.70",
     "@playwright/test": "^1.55.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
