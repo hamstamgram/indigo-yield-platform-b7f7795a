@@ -60,17 +60,7 @@
     "perf:analyze": "node scripts/bundle-analyzer.mjs",
     "perf:images": "node scripts/optimize-images.mjs",
     "perf:db": "psql $DATABASE_URL -f scripts/optimize-database.sql",
-    "perf:all": "npm run perf:images && npm run build && npm run perf:analyze",
-    "test:qa:contracts": "npx tsx tests/qa/ci/contract-drift-check.ts",
-    "test:qa:gateway": "npx tsx tests/qa/ci/gateway-bypass-check.ts",
-    "test:qa:integrity": "npx tsx tests/qa/ci/integrity-check.ts",
-    "test:qa:phase0": "npx tsx tests/qa/phase0-runtime-truth.ts",
-    "test:qa:phase1": "npx tsx tests/qa/phase1-enum-audit.ts",
-    "test:qa:scenarios": "npx tsx tests/qa/scenarios/runner.ts",
-    "test:qa:invariants": "npx tsx tests/qa/invariants/db-invariants.ts",
-    "test:qa:e2e": "npx playwright test --project=qa",
-    "test:qa:ci": "npm run test:qa:contracts && npm run test:qa:gateway",
-    "test:qa:full": "npm run test:qa:phase0 && npm run test:qa:phase1 && npm run test:qa:scenarios && npm run test:qa:invariants && npm run test:qa:e2e"
+    "perf:all": "npm run perf:images && npm run build && npm run perf:analyze"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
