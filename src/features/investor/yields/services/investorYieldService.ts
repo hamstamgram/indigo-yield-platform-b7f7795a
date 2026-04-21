@@ -8,23 +8,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDateForDB } from "@/utils/dateUtils";
 import { parseFinancial } from "@/utils/financial";
 
-/**
- * A single yield (or fee) ledger entry visible to the investor,
- * mapped from the `transactions_v2` table.
- */
 export interface InvestorYieldEvent {
   id: string;
   investor_id: string;
   fund_id: string;
-  event_date: string; // tx_date from ledger
-  trigger_type: string; // equals tx_type: 'YIELD' | 'FEE'
-  /** Balance at time of event (from position snapshot — not tracked per tx, so 0 for now) */
+  event_date: string;
+  trigger_type: string;
   investor_balance: number;
   investor_share_pct: number;
   fund_yield_pct: number;
   gross_yield_amount: number;
   fee_pct: number;
   fee_amount: number;
+  ib_pct: number;
+  ib_amount: number;
   net_yield_amount: number;
   period_start: string;
   period_end: string;
@@ -44,6 +41,7 @@ export interface InvestorYieldSummary {
   fundAsset: string;
   totalGrossYield: number;
   totalFees: number;
+  totalIB: number;
   totalNetYield: number;
   eventCount: number;
 }
@@ -52,6 +50,9 @@ export interface CumulativeYieldByFund {
   fundId: string;
   fundName: string;
   fundAsset: string;
+  totalGrossYield: number;
+  totalFees: number;
+  totalIB: number;
   totalNetYield: number;
 }
 
@@ -61,8 +62,9 @@ export interface CumulativeYieldResult {
 }
 
 /**
- * Get visible yield events (YIELD and FEE ledger entries) for an investor.
- * Sources from `transactions_v2` — the single source of truth in V6.
+ * Get visible yield events for an investor with full fee breakdown.
+ * Primary source: yield_allocations (has gross, fee%, fee amount, IB, net).
+ * Enriched with distribution date and fund details from yield_distributions + funds.
  */
 export async function getInvestorVisibleYield(
   investorId: string,
@@ -74,42 +76,34 @@ export async function getInvestorVisibleYield(
   }
 ): Promise<InvestorYieldEvent[]> {
   let query = supabase
-    .from("transactions_v2")
+    .from("yield_allocations")
     .select(
       `
       id,
       investor_id,
       fund_id,
-      tx_date,
-      type,
-      amount,
-      notes,
-      reference_id,
+      distribution_id,
+      gross_amount,
+      fee_pct,
+      fee_amount,
+      ib_pct,
+      ib_amount,
+      net_amount,
       created_at,
-      fund:funds(name, asset, code)
+      distribution:yield_distributions!distribution_id (
+        effective_date,
+        purpose,
+        fund_id,
+        fund:funds!fund_id (name, asset, code)
+      )
     `
     )
     .eq("investor_id", investorId)
-    .in("type", ["YIELD", "FEE_CREDIT"])
     .eq("is_voided", false)
-    .order("tx_date", { ascending: false });
+    .order("created_at", { ascending: false });
 
   if (options?.fundId) {
     query = query.eq("fund_id", options.fundId);
-  }
-
-  if (options?.year) {
-    if (options?.month) {
-      const start = new Date(options.year, options.month - 1, 1);
-      const end = new Date(options.year, options.month, 0);
-      query = query.gte("tx_date", formatDateForDB(start)).lte("tx_date", formatDateForDB(end));
-    } else {
-      const yearStart = new Date(options.year, 0, 1);
-      const yearEnd = new Date(options.year, 11, 31);
-      query = query
-        .gte("tx_date", formatDateForDB(yearStart))
-        .lte("tx_date", formatDateForDB(yearEnd));
-    }
   }
 
   query = query.limit(options?.limit || 500);
@@ -117,35 +111,46 @@ export async function getInvestorVisibleYield(
   const { data, error } = await query;
   if (error) throw error;
 
-  // Map flat ledger rows to the InvestorYieldEvent shape
-  return (data || []).map((row: any) => {
-    const amount = parseFinancial(row.amount).toNumber();
-    const isYield = row.type === "YIELD";
-    const isFee = row.type === "FEE_CREDIT";
+  let results = (data || []).map((row: any) => {
+    const dist = row.distribution || {};
+    const fund = dist.fund || {};
+    const eventDate = dist.effective_date || row.created_at;
 
     return {
       id: row.id,
       investor_id: row.investor_id,
       fund_id: row.fund_id,
-      event_date: row.tx_date,
-      trigger_type: row.type,
-      investor_balance: 0, // not stored per-tx in V6 ledger
-      investor_share_pct: 0, // not stored per-tx in V6 ledger
-      fund_yield_pct: 0, // not stored per-tx in V6 ledger
-      gross_yield_amount: isYield ? amount : 0,
-      fee_pct: 0, // not stored per-tx in V6 ledger
-      fee_amount: isFee ? Math.abs(amount) : 0,
-      net_yield_amount: amount, // YIELD positive, FEE negative — net effect
-      period_start: row.tx_date,
-      period_end: row.tx_date,
+      event_date: eventDate,
+      trigger_type: dist.purpose || "reporting",
+      investor_balance: 0,
+      investor_share_pct: 0,
+      fund_yield_pct: 0,
+      gross_yield_amount: parseFinancial(row.gross_amount || 0).toNumber(),
+      fee_pct: parseFinancial(row.fee_pct || 0).toNumber(),
+      fee_amount: parseFinancial(row.fee_amount || 0).toNumber(),
+      ib_pct: parseFinancial(row.ib_pct || 0).toNumber(),
+      ib_amount: parseFinancial(row.ib_amount || 0).toNumber(),
+      net_yield_amount: parseFinancial(row.net_amount || 0).toNumber(),
+      period_start: eventDate,
+      period_end: eventDate,
       days_in_period: 0,
       made_visible_at: row.created_at,
       created_at: row.created_at,
-      fund: row.fund
-        ? { name: row.fund.name, asset: row.fund.asset, code: row.fund.code }
-        : undefined,
+      fund: fund.name ? { name: fund.name, asset: fund.asset, code: fund.code } : undefined,
     };
   });
+
+  if (options?.year) {
+    results = results.filter((r) => {
+      const d = new Date(r.event_date);
+      if (options.month) {
+        return d.getFullYear() === options.year && d.getMonth() + 1 === options.month;
+      }
+      return d.getFullYear() === options.year;
+    });
+  }
+
+  return results;
 }
 
 /**
@@ -170,6 +175,9 @@ export async function getInvestorYieldSummaryByFund(
       existing.totalFees = parseFinancial(existing.totalFees)
         .plus(parseFinancial(e.fee_amount))
         .toNumber();
+      existing.totalIB = parseFinancial(existing.totalIB)
+        .plus(parseFinancial(e.ib_amount))
+        .toNumber();
       existing.totalNetYield = parseFinancial(existing.totalNetYield)
         .plus(parseFinancial(e.net_yield_amount))
         .toNumber();
@@ -181,6 +189,7 @@ export async function getInvestorYieldSummaryByFund(
         fundAsset: e.fund?.asset || "USD",
         totalGrossYield: e.gross_yield_amount,
         totalFees: e.fee_amount,
+        totalIB: e.ib_amount,
         totalNetYield: e.net_yield_amount,
         eventCount: 1,
       });
@@ -202,9 +211,23 @@ export async function getInvestorCumulativeYield(
   const fundMap = new Map<string, CumulativeYieldByFund & { count: number }>();
 
   for (const e of events) {
-    if (e.trigger_type !== "YIELD") continue;
+    if (
+      e.trigger_type !== "YIELD" &&
+      e.trigger_type !== "reporting" &&
+      e.trigger_type !== "transaction"
+    )
+      continue;
     const existing = fundMap.get(e.fund_id);
     if (existing) {
+      existing.totalGrossYield = parseFinancial(existing.totalGrossYield)
+        .plus(parseFinancial(e.gross_yield_amount))
+        .toNumber();
+      existing.totalFees = parseFinancial(existing.totalFees)
+        .plus(parseFinancial(e.fee_amount))
+        .toNumber();
+      existing.totalIB = parseFinancial(existing.totalIB)
+        .plus(parseFinancial(e.ib_amount))
+        .toNumber();
       existing.totalNetYield = parseFinancial(existing.totalNetYield)
         .plus(parseFinancial(e.net_yield_amount))
         .toNumber();
@@ -214,6 +237,9 @@ export async function getInvestorCumulativeYield(
         fundId: e.fund_id,
         fundName: e.fund?.name || "Unknown",
         fundAsset: e.fund?.asset || "USD",
+        totalGrossYield: e.gross_yield_amount,
+        totalFees: e.fee_amount,
+        totalIB: e.ib_amount,
         totalNetYield: e.net_yield_amount,
         count: 1,
       });

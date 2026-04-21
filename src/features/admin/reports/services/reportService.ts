@@ -158,6 +158,7 @@ export const reportService = {
       .select("*")
       .eq("investor_id", investorId)
       .eq("period_id", periodId)
+      .eq("purpose", "reporting")
       .limit(100);
 
     if (error) throw error;
@@ -206,6 +207,7 @@ export const reportService = {
       .from("investor_positions")
       .select("*, funds!fk_investor_positions_fund_id(name, code, asset)")
       .eq("investor_id", investorId)
+      .eq("is_active", true)
       .limit(100);
 
     if (error) throw error;
@@ -361,25 +363,36 @@ export const reportService = {
                 .maybeSingle();
 
               if (!existing) {
-                const { error: insertError } = await supabase
-                  .from("investor_fund_performance")
-                  .insert({
-                    investor_id: investorId,
-                    period_id: periodId,
-                    fund_name: assetCode,
-                    mtd_beginning_balance: 0,
-                    mtd_ending_balance: 0,
-                    mtd_additions: 0,
-                    mtd_redemptions: 0,
-                    mtd_net_income: 0,
-                  });
+                const { data: hasPosition } = await supabase
+                  .from("investor_positions")
+                  .select("id")
+                  .eq("investor_id", investorId)
+                  .eq("is_active", true)
+                  .limit(1)
+                  .maybeSingle();
 
-                if (insertError) {
-                  errors.push(
-                    `Failed to create template for ${investorId}/${assetCode}/${month}: ${insertError.message}`
-                  );
-                } else {
-                  generated++;
+                if (hasPosition) {
+                  const { error: insertError } = await supabase
+                    .from("investor_fund_performance")
+                    .insert({
+                      investor_id: investorId,
+                      period_id: periodId,
+                      fund_name: assetCode,
+                      purpose: "reporting",
+                      mtd_beginning_balance: 0,
+                      mtd_ending_balance: 0,
+                      mtd_additions: 0,
+                      mtd_redemptions: 0,
+                      mtd_net_income: 0,
+                    });
+
+                  if (insertError) {
+                    errors.push(
+                      `Failed to create template for ${investorId}/${assetCode}/${month}: ${insertError.message}`
+                    );
+                  } else {
+                    generated++;
+                  }
                 }
               }
             }

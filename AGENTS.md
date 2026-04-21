@@ -94,4 +94,20 @@ Frontend → `apply_transaction_with_crystallization` → sets canonical_rpc →
 - **2026-04-15**: Full squash — 131 migrations consolidated into single canonical baseline
 - All pre-squash migrations archived to `supabase/archived_migrations/_pre_squash_20260415/`
 - Dead directories removed: `migrations_bak/`, `migrations_essential/`
-- Dead directories archived: `migrations_broken/`, `migrations_fixes/`, `patches/`
+- **2026-04-17**: P0 — `20260417110000_fix_voided_yield_distribution_status.sql` (voided distributions retained status='applied' blocking unique index re-insert — set status='voided')
+- **2026-04-17**: P0 — `20260417120000_fix_void_yield_distribution_set_status.sql` (fixed void_yield_distribution to set status='voided' when voiding — prevented unique index conflicts)
+- **2026-04-17**: P0 — `20260417130000_fix_yield_distribution_tx_type_cast.sql` (removed ::tx_type casts on apply_investor_transaction calls in apply_segmented_yield_distribution_v5 — caused function signature mismatch since p_tx_type is text not tx_type; also changed v_tx_result/v_fee_tx_result/v_ib_tx_result from json to jsonb to match apply_investor_transaction return type)
+- **XRP E2E Verified**: Sam Johnson +284/+298.31, Ryan +14.20/+14.93, INDIGO Fees +56.80/+59.76 ✅
+- **SOL E2E Verified**: INDIGO LP +2/+11.65, Paul Johnson +1.85, Alex Jacobs +0.0327, INDIGO Fees +0.2942 ✅
+- **Key IDs**: XRP Fund `2c123c4f`, SOL Fund `7574bc81`, INDIGO LP `711bfdc9`, Sam Johnson `c7b18014`, Paul Johnson `96fbdf46`, Alex Jacobs `4ca7a856`, Ryan Van Der Wall `40c33d59`, INDIGO Fees `b464a3f7`, Admin `e438bfff`
+- **Dead directories archived**: `migrations_broken/`, `migrations_fixes/`, `patches/`
+- **2026-04-17**: P0 — `20260417140000_fix_btc_fees_account_position.sql` (recomputed INDIGO Fees BTC position from 2.0 to 0)
+- **2026-04-17**: P0 — `20260417150000_fix_void_transaction_recompute_position.sql` (added recompute_investor_position safety net to void_transaction — dual path with trg_ledger_sync)
+- **2026-04-17**: P0 — `20260417160000_fix_void_yield_distribution_recompute_fees.sql` (void_yield_distribution always recomputes fees_account position + per-void recompute)
+- **2026-04-17**: P2 — `20260417170000_fix_stale_aum_and_hwm.sql` (recalculated stale AUM + reset HWM where > current_value + 1)
+- **2026-04-17**: Data — `20260417180000_fix_hwm_and_orphaned_withdrawals.sql` (reset drifted HWM + cancelled orphaned BTC withdrawals)
+- **2026-04-17**: CRITICAL — `20260417190000_canonical_fund_performance_rpc.sql` (update_investor_fund_performance RPC: admin gate, balance equation validation, audit log)
+- **Frontend**: investorYieldService sources from yield_allocations for fee transparency (gross, fee%, fee, IB, net)
+- **Frontend**: YieldHistoryPage shows full fee breakdown columns + per-fund totals
+- **Frontend**: investorPerformanceService uses canonical RPC for performance updates
+- **Frontend**: reportService filters is_active=true + purpose=reporting

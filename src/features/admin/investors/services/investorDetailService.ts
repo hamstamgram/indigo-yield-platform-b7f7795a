@@ -4,8 +4,10 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc/index";
 import { batchMapProcess } from "@/utils/batchHelper";
 import { parseFinancial } from "@/utils/financial";
+import { toNum } from "@/utils/numeric";
 
 export interface InvestorDetailData {
   id: string;
@@ -143,38 +145,28 @@ export async function loadOpsIndicators(
 /**
  * Fetch investor positions with fund details and computed totals
  * Used by admin investor detail views
- * Filters out zero-value positions
+ * Sources from the transaction ledger (source of truth) via RPC
  */
 export async function fetchInvestorPositionsWithTotals(
   investorId: string
 ): Promise<InvestorPositionsData> {
-  const { data: positions, error } = await supabase
-    .from("investor_positions")
-    .select(
-      `
-      fund_id,
-      current_value,
-      cost_basis,
-      unrealized_pnl,
-      realized_pnl,
-      funds!fk_investor_positions_fund_id(name, code, asset)
-    `
-    )
-    .eq("investor_id", investorId)
-    .or("current_value.gt.0,cost_basis.gt.0")
-    .limit(100);
+  const { data, error, success } = await rpc.call("get_investor_all_ledger_balances", {
+    p_investor_id: investorId,
+  });
 
-  if (error) throw error;
+  if (!success || error) {
+    throw new Error(error?.userMessage || "Failed to fetch investor ledger balances");
+  }
 
-  const mappedPositions: InvestorPosition[] = (positions || []).map((p: any) => ({
-    fund_id: p.fund_id,
-    fund_name: p.funds?.name || "Unknown",
-    fund_code: p.funds?.code || "",
-    asset: p.funds?.asset || "",
-    current_value: parseFinancial(p.current_value || 0).toNumber(),
-    cost_basis: parseFinancial(p.cost_basis || 0).toNumber(),
-    unrealized_pnl: parseFinancial(p.unrealized_pnl || 0).toNumber(),
-    realized_pnl: parseFinancial(p.realized_pnl || 0).toNumber(),
+  const mappedPositions: InvestorPosition[] = (data || []).map((row: any) => ({
+    fund_id: row.fund_id,
+    fund_name: row.fund_name || "Unknown",
+    fund_code: row.fund_code || "",
+    asset: row.asset || "",
+    current_value: toNum(row.balance),
+    cost_basis: toNum(row.cost_basis),
+    unrealized_pnl: 0,
+    realized_pnl: 0,
   }));
 
   const totalValue = mappedPositions.reduce((sum, p) => sum + p.current_value, 0);
@@ -186,37 +178,27 @@ export async function fetchInvestorPositionsWithTotals(
 }
 
 /**
- * Fetch investor active positions (positions with current_value > 0)
- * Used for delete confirmation
+ * Fetch investor active positions (positions with balance > 0)
+ * Sources from the transaction ledger (source of truth) via RPC
  */
 export async function fetchActivePositions(investorId: string): Promise<InvestorPosition[]> {
-  const { data: positions, error } = await supabase
-    .from("investor_positions")
-    .select(
-      `
-      fund_id,
-      current_value,
-      cost_basis,
-      unrealized_pnl,
-      realized_pnl,
-      funds!fk_investor_positions_fund_id(name, code, asset)
-    `
-    )
-    .eq("investor_id", investorId)
-    .gt("current_value", 0)
-    .limit(100);
+  const { data, error, success } = await rpc.call("get_investor_all_ledger_balances", {
+    p_investor_id: investorId,
+  });
 
-  if (error) throw error;
+  if (!success || error) {
+    throw new Error(error?.userMessage || "Failed to fetch investor ledger balances");
+  }
 
-  return (positions || []).map((p: any) => ({
-    fund_id: p.fund_id,
-    fund_name: p.funds?.name || "Unknown",
-    fund_code: p.funds?.code || "",
-    asset: p.funds?.asset || "",
-    current_value: parseFinancial(p.current_value || 0).toNumber(),
-    cost_basis: parseFinancial(p.cost_basis || 0).toNumber(),
-    unrealized_pnl: parseFinancial(p.unrealized_pnl || 0).toNumber(),
-    realized_pnl: parseFinancial(p.realized_pnl || 0).toNumber(),
+  return (data || []).map((row: any) => ({
+    fund_id: row.fund_id,
+    fund_name: row.fund_name || "Unknown",
+    fund_code: row.fund_code || "",
+    asset: row.asset || "",
+    current_value: toNum(row.balance),
+    cost_basis: toNum(row.cost_basis),
+    unrealized_pnl: 0,
+    realized_pnl: 0,
   }));
 }
 

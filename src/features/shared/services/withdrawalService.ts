@@ -391,7 +391,6 @@ export const withdrawalService = {
    * Authorization: Self-access or admin required
    */
   async fetchPositionsForWithdrawal(investorId: string): Promise<WithdrawalInvestorPosition[]> {
-    // Verify caller has access to this investor's data
     const auth = await verifyResourceAccess(investorId);
     if (!auth.authorized) {
       throw new Error("Not authorized to view these positions");
@@ -417,12 +416,33 @@ export const withdrawalService = {
 
     if (error) throw error;
 
-    return (data || []).map((p: any) => ({
+    const positions = (data || []).map((p: any) => ({
       fund_id: p.fund_id,
       current_value: String(p.current_value || 0),
       shares: String(p.shares || 0),
       fund: p.funds || { name: "Unknown", code: "UNK", asset: "N/A" },
     }));
+
+    const validated = await Promise.all(
+      positions.map(async (pos) => {
+        const { data: ledgerBalance } = await supabase.rpc("get_investor_ledger_balance", {
+          p_investor_id: investorId,
+          p_fund_id: pos.fund_id,
+        });
+        const posVal = parseFinancial(pos.current_value);
+        const ledgerVal = parseFinancial(ledgerBalance ?? 0);
+        const delta = posVal.minus(ledgerVal).abs();
+        if (delta.gt("0.0001")) {
+          return {
+            ...pos,
+            current_value: ledgerVal.toString(),
+          };
+        }
+        return pos;
+      })
+    );
+
+    return validated;
   },
 
   /**

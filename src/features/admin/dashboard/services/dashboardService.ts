@@ -4,45 +4,34 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc/index";
 import { format } from "date-fns";
+import { toNum } from "@/utils/numeric";
 import type { FundWithAUM, ActivityItem, PendingItem } from "@/types/domains";
 
 /**
- * Fetch funds with their current AUM calculated from investor positions
+ * Fetch funds with their current AUM calculated from the transaction ledger
+ * (source of truth) via the get_funds_with_aum RPC.
  */
 export async function fetchFundsWithAUM(fundIds: string[]): Promise<FundWithAUM[]> {
   if (!fundIds || fundIds.length === 0) return [];
 
-  // Get fund details
-  const { data: funds, error: fundsError } = await supabase
-    .from("funds")
-    .select("id, name, asset")
-    .in("id", fundIds);
+  const { data, error, success } = await rpc.callNoArgs("get_funds_with_aum");
 
-  if (fundsError) throw fundsError;
-  if (!funds) return [];
+  if (!success || error) {
+    throw new Error(error?.userMessage || "Failed to fetch funds with AUM");
+  }
 
-  // Get all positions for these funds
-  const { data: positions, error: positionsError } = await supabase
-    .from("investor_positions")
-    .select("fund_id, current_value")
-    .in("fund_id", fundIds);
+  const idSet = new Set(fundIds);
 
-  if (positionsError) throw positionsError;
-
-  // Calculate AUM per fund
-  const aumByFund = new Map<string, number>();
-  positions?.forEach((p) => {
-    const current = aumByFund.get(p.fund_id) || 0;
-    aumByFund.set(p.fund_id, current + (p.current_value || 0));
-  });
-
-  return funds.map((fund) => ({
-    id: fund.id,
-    name: fund.name,
-    asset: fund.asset,
-    currentAUM: aumByFund.get(fund.id) || 0,
-  }));
+  return (data || [])
+    .filter((f: any) => idSet.has(f.fund_id))
+    .map((f: any) => ({
+      id: f.fund_id,
+      name: f.fund_name,
+      asset: f.asset,
+      currentAUM: toNum(f.total_aum),
+    }));
 }
 
 /**
@@ -196,13 +185,14 @@ export async function fetchPendingItems(): Promise<PendingItem[]> {
   const currentMonth = format(new Date(), "yyyy-MM");
   const [yearStr, monthStr] = currentMonth.split("-");
 
-  // Get investors with active positions (eligible for reports)
-  const { data: eligibleInvestors } = await supabase
-    .from("investor_positions")
-    .select("investor_id")
-    .gt("current_value", 0);
+  // Get investors with active ledger balances (eligible for reports)
+  const { data: eligibleInvestorsResult } = await supabase.rpc(
+    "get_funds_with_aum"
+  );
 
-  const eligibleCount = new Set(eligibleInvestors?.map((p) => p.investor_id) || []).size;
+  const totalInvestorCount = eligibleInvestorsResult?.reduce(
+    (sum: number, f: any) => sum + (Number(f.investor_count) || 0), 0
+  ) || 0;
 
   const { data: periods } = await supabase
     .from("statement_periods")
@@ -211,7 +201,7 @@ export async function fetchPendingItems(): Promise<PendingItem[]> {
     .eq("month", parseInt(monthStr))
     .maybeSingle();
 
-  if (periods && eligibleCount > 0) {
+  if (periods && totalInvestorCount > 0) {
     // Count unique investors with reports for this period
     const { data: reportData } = await supabase
       .from("investor_fund_performance")
@@ -219,7 +209,7 @@ export async function fetchPendingItems(): Promise<PendingItem[]> {
       .eq("period_id", periods.id);
 
     const reportedInvestors = new Set(reportData?.map((r) => r.investor_id) || []).size;
-    const missingReports = eligibleCount - reportedInvestors;
+    const missingReports = totalInvestorCount - reportedInvestors;
 
     if (missingReports > 0) {
       pendingItems.push({

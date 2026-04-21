@@ -131,12 +131,65 @@ const getFundDisplayName = (fundName: string): string => {
   return `${asset} YIELD FUND`;
 };
 
+interface BalanceEquationViolation {
+  fundName: string;
+  period: string;
+  expected: number;
+  actual: number;
+  delta: number;
+}
+
+function validateBalanceEquation(data: StatementData): BalanceEquationViolation[] {
+  const violations: BalanceEquationViolation[] = [];
+  const threshold = 0.01;
+
+  const periods: Array<{ label: string; prefix: string }> = [
+    { label: "MTD", prefix: "mtd" },
+    { label: "QTD", prefix: "qtd" },
+    { label: "YTD", prefix: "ytd" },
+    { label: "ITD", prefix: "itd" },
+  ];
+
+  for (const fund of data.funds) {
+    for (const period of periods) {
+      const prefix = period.prefix as keyof FundPerformanceData;
+      const beginning =
+        Number(fund[`${prefix}_beginning_balance` as keyof FundPerformanceData]) || 0;
+      const additions = Number(fund[`${prefix}_additions` as keyof FundPerformanceData]) || 0;
+      const redemptions = Number(fund[`${prefix}_redemptions` as keyof FundPerformanceData]) || 0;
+      const netIncome = Number(fund[`${prefix}_net_income` as keyof FundPerformanceData]) || 0;
+      const ending = Number(fund[`${prefix}_ending_balance` as keyof FundPerformanceData]) || 0;
+      const expected = beginning + additions - redemptions + netIncome;
+      const delta = Math.abs(ending - expected);
+
+      if (delta > threshold) {
+        violations.push({
+          fundName: fund.fund_name,
+          period: `${period.label} (${fund.asset_code})`,
+          expected,
+          actual: ending,
+          delta,
+        });
+      }
+    }
+  }
+
+  return violations;
+}
+
 export const generatePDF = async (data: LegacyStatementData | StatementData): Promise<Blob> => {
-  // Check if this is the new format with funds array
   if ("funds" in data && Array.isArray(data.funds)) {
+    const violations = validateBalanceEquation(data as StatementData);
+    if (violations.length > 0) {
+      logWarn("statementGenerator.balanceEquation", {
+        violations: violations.map(
+          (v) =>
+            `${v.fundName} ${v.period}: expected ${v.expected}, got ${v.actual}, delta ${v.delta}`
+        ),
+      });
+    }
     return generateModernPDF(data as StatementData);
   }
-  // Fall back to legacy format
   return generateLegacyPDF(data as LegacyStatementData);
 };
 

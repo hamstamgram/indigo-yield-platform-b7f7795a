@@ -4,9 +4,11 @@
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc/index";
 import { INDIGO_FEES_ACCOUNT_ID } from "@/constants/fees";
 import { getActiveFunds } from "@/features/admin/funds/services/fundService";
 import { parseFinancial } from "@/utils/financial";
+import { toNum } from "@/utils/numeric";
 
 // ==================== Types ====================
 
@@ -221,46 +223,27 @@ export function calculateFeeSummaries(fees: FeeRecord[]): FeeSummary[] {
 
 /**
  * Get INDIGO FEES account balances by asset
+ * Sources from the transaction ledger (source of truth) via RPC
  */
 export async function getIndigoFeesBalance(): Promise<Record<string, string>> {
-  // First get positions for INDIGO FEES account
-  const { data: indigoPositions, error: posError } = await supabase
-    .from("investor_positions")
-    .select("fund_id, current_value")
-    .eq("investor_id", INDIGO_FEES_ACCOUNT_ID)
-    .limit(100);
+  const { data, error, success } = await rpc.call("get_investor_all_ledger_balances", {
+    p_investor_id: INDIGO_FEES_ACCOUNT_ID,
+  });
 
-  if (posError) throw posError;
-
-  if (!indigoPositions || indigoPositions.length === 0) {
-    return {};
+  if (!success || error) {
+    throw new Error(error?.userMessage || "Failed to fetch INDIGO FEES ledger balances");
   }
 
-  // Get fund assets separately to avoid FK ambiguity
-  const fundIds = indigoPositions.map((p) => p.fund_id);
-  const { data: fundsData, error: fundsError } = await supabase
-    .from("funds")
-    .select("id, asset")
-    .in("id", fundIds)
-    .limit(100);
-
-  if (fundsError) throw fundsError;
-
-  const fundAssetMap = new Map((fundsData || []).map((f) => [f.id, f.asset]));
-
-  const balances: Record<string, ReturnType<typeof parseFinancial>> = {};
-  indigoPositions.forEach((p) => {
-    const asset = fundAssetMap.get(p.fund_id);
+  const result: Record<string, string> = {};
+  (data || []).forEach((row: any) => {
+    const asset = row.asset;
     if (asset) {
-      const current = balances[asset] || parseFinancial(0);
-      balances[asset] = current.plus(parseFinancial(p.current_value || 0));
+      const existing = result[asset];
+      const current = existing ? parseFinancial(existing) : parseFinancial(0);
+      result[asset] = current.plus(parseFinancial(toNum(row.balance))).toFixed(10);
     }
   });
 
-  const result: Record<string, string> = {};
-  for (const [asset, value] of Object.entries(balances)) {
-    result[asset] = value.toFixed(10);
-  }
   return result;
 }
 

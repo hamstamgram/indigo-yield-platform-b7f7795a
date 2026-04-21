@@ -287,8 +287,14 @@ async function buildPerformanceHistoryFromTxs(
         month.deposits = month.deposits.plus(amt.abs());
       } else if (evt.type === "WITHDRAWAL") {
         month.withdrawals = month.withdrawals.plus(amt.abs());
-      } else if (evt.type === "YIELD" || evt.type === "FEE") {
-        // FEE is stored as negative in ledger, adds to net income correctly
+      } else if (
+        evt.type === "YIELD" ||
+        evt.type === "FEE" ||
+        evt.type === "FEE_CREDIT" ||
+        evt.type === "IB_CREDIT"
+      ) {
+        // FEE is stored as negative in ledger, FEE_CREDIT/IB_CREDIT are positive but admin-only
+        // YIELD is net of fees (investor-visible)
         month.yields = month.yields.plus(amt);
       } else if (evt.type === "ADJUSTMENT") {
         if (amt.gte(0)) month.deposits = month.deposits.plus(amt);
@@ -523,7 +529,7 @@ export const performanceService = {
             additions: parseFinancial(r.mtd_additions).toNumber(),
             redemptions: parseFinancial(r.mtd_redemptions).toNumber(),
             netIncome: parseFinancial(r.mtd_net_income).toNumber(),
-            endingBalance: liveBalance,
+            endingBalance: parseFinancial(r.mtd_ending_balance).toNumber() || liveBalance,
             rateOfReturn: parseFinancial(r.mtd_rate_of_return).toNumber(),
           },
           qtd: {
