@@ -930,6 +930,50 @@ git commit -m "test(verification): log Phase 2 smoke pass"
 
 ## Phase 3 — Admin surface full matrix
 
+### Cross-cutting spec requirements (applies to all 5 net-new specs)
+
+Every spec in Phase 3, 4, and 5 MUST include tests for these three states in addition to the happy-path flow:
+
+**Error states** — each spec must verify:
+- API/network failure produces a user-visible error message (not a blank page or silent failure)
+- Permission-denied responses (e.g., non-admin accessing admin page) show appropriate feedback
+- Form validation errors display inline (not just console errors)
+
+**Empty states** — each spec must verify:
+- When no data exists (empty transactions, no yield history, no documents), the UI shows an empty-state message (not a blank table or spinner forever)
+- Empty-state messages are actionable (e.g., "No transactions yet. Create one →")
+
+**Loading states** — each spec must verify:
+- Skeleton/spinner is visible while data fetches
+- No layout shift or flash of empty content (FOEC) when data arrives
+
+Add these as a `test.describe('Error/empty/loading states', () => { ... })` block at the end of each spec file. Use Playwright's `page.route()` to intercept API responses and simulate failures/delays:
+
+```typescript
+test.describe('Error/empty/loading states', () => {
+  test('shows error message on API failure', async ({ page }) => {
+    await page.route('**/rest/v1/**', route => route.abort('failed'));
+    await page.goto('/admin/dashboard');
+    await expect(page.getByText(/error|failed|try again/i)).toBeVisible({ timeout: 10000 });
+  });
+
+  test('shows empty state when no data', async ({ page }) => {
+    await page.route('**/rest/v1/**', route => route.fulfill({ json: [] }));
+    await page.goto('/admin/transactions');
+    await expect(page.getByText(/no transactions|nothing here|empty/i)).toBeVisible();
+  });
+
+  test('shows loading spinner while fetching', async ({ page }) => {
+    await page.route('**/rest/v1/**', async route => {
+      await new Promise(r => setTimeout(r, 2000));
+      route.continue();
+    });
+    await page.goto('/admin/dashboard');
+    await expect(page.getByTestId('loading') || page.getByText(/loading/i)).toBeVisible();
+  });
+});
+```
+
 ### Task 3.1: `ui-admin-investor-lifecycle-full.spec.ts` (TDD)
 
 **Files:**
@@ -1383,6 +1427,86 @@ git commit -m "test(verification): log Phase 4 investor portal pass"
 
 ---
 
+### Task 4.3: Concurrent admin action tests (NEW)
+
+The plan's specs test single-user flows. In production, two admins (or an admin + an automated yield job) can act on the same fund simultaneously. The canonical_rpc flag, advisory locks in yield distribution, and position recomputation triggers must all handle this without data corruption.
+
+- [ ] **Step 1: Write `tests/e2e/ui-admin-concurrent-actions.spec.ts`**
+
+Create `tests/e2e/ui-admin-concurrent-actions.spec.ts`:
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.use({ storageState: 'tests/.auth/admin.json' });
+
+test.describe('Concurrent admin actions', () => {
+  test('two yield distributions on the same fund in the same period — second must fail or be idempotent', async ({ browser }) => {
+    const ctx1 = await browser.newContext({ storageState: 'tests/.auth/admin.json' });
+    const ctx2 = await browser.newContext({ storageState: 'tests/.auth/admin.json' });
+    const page1 = await ctx1.newPage();
+    const page2 = await ctx2.newPage();
+
+    // Both navigate to yield distribution
+    await page1.goto('/admin/yields');
+    await page2.goto('/admin/yields');
+
+    // Page 1 submits yield
+    await page1.getByRole('button', { name: /new distribution/i }).click();
+    await page1.selectOption('select[name="fund_id"]', { label: /XRP/ });
+    await page1.fill('input[name="yield_rate"]', '0.01');
+    await page1.fill('input[name="yield_date"]', '2026-04-22');
+    await page1.getByRole('button', { name: /apply/i }).click();
+
+    // Page 2 tries same period
+    await page2.getByRole('button', { name: /new distribution/i }).click();
+    await page2.selectOption('select[name="fund_id"]', { label: /XRP/ });
+    await page2.fill('input[name="yield_rate"]', '0.01');
+    await page2.fill('input[name="yield_date"]', '2026-04-22');
+    await page2.getByRole('button', { name: /apply/i }).click();
+
+    // One must succeed, the other must be rejected or idempotent (no double-yield)
+    const results = await Promise.allSettled([
+      page1.getByText(/applied|duplicate|already exists/i).waitFor({ timeout: 30000 }),
+      page2.getByText(/applied|duplicate|already exists|period locked/i).waitFor({ timeout: 30000 }),
+    ]);
+    // At least one must indicate success, at most one
+    const appliedCount = results.filter(r => r.status === 'fulfilled').length;
+    expect(appliedCount).toBeGreaterThanOrEqual(1);
+
+    await ctx1.close();
+    await ctx2.close();
+  });
+
+  test('void + reissue on same transaction — reissue must wait for void to complete', async ({ page }) => {
+    await page.goto('/admin/transactions');
+    const firstRow = page.getByRole('row').nth(1);
+    await firstRow.getByRole('button', { name: /void/i }).click();
+    await page.getByRole('button', { name: /confirm/i }).click();
+    await expect(page.getByText(/voided/i)).toBeVisible({ timeout: 15000 });
+
+    // Now reissue — should work after void completes
+    await page.getByRole('button', { name: /reissue/i }).first().click();
+    await expect(page.getByText(/reissued|created/i)).toBeVisible({ timeout: 15000 });
+  });
+});
+```
+
+- [ ] **Step 2: Run**
+
+```bash
+npx playwright test tests/e2e/ui-admin-concurrent-actions.spec.ts --project=chromium-desktop
+```
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add tests/e2e/ui-admin-concurrent-actions.spec.ts
+git commit -m "test(e2e): concurrent admin action specs — yield idempotency + void/reissue ordering"
+```
+
+---
+
 ## Phase 5 — Trigger matrix + invariant sweep
 
 ### Task 5.1: Discover the canonical `transactions_v2.source` allowlist
@@ -1726,14 +1850,72 @@ git commit -m "test(verification): final Phase 7 artifacts — Playwright green 
 
 ---
 
-### Task 7.3: Go/no-go checklist
+### Task 7.3: PITR restore drill (NEW — pre go/no-go gate)
+
+The rollback runbook (Task 1.6) relies on PITR as the primary recovery path, yet PITR has never been tested on this project. A go/no-go decision cannot be sound if the recovery mechanism is unverified.
+
+- [ ] **Step 1: Create a development branch via Supabase dashboard**
+
+Supabase Pro supports branching. Create a branch from production to use as the restore target. If branching is unavailable, use a fresh staging project.
+
+- [ ] **Step 2: Perform a PITR restore to the branch**
+
+Restore to a timestamp ~1 hour before the current time (any recent point works). Use the Supabase dashboard: Database → Backups → Point-in-time Recovery. Select the branch as the restore target.
+
+- [ ] **Step 3: Verify restored data integrity**
+
+On the restored branch, run:
+
+```bash
+psql "$BRANCH_DATABASE_URL" -c "SELECT public.run_invariant_checks();"
+```
+
+Expected: same pass/fail counts as the production run (or better). Record results.
+
+- [ ] **Step 4: Verify schema completeness**
+
+```bash
+psql "$BRANCH_DATABASE_URL" -c "
+  SELECT count(*) FROM information_schema.tables
+  WHERE table_schema = 'public' AND table_type = 'BASE TABLE';
+"
+```
+
+Compare table count against production. Must match.
+
+- [ ] **Step 5: Record drill results**
+
+```bash
+cat > docs/verification/golive-2026-04-20/pitr-drill.md << 'DRILL'
+# PITR Restore Drill — $(date -u +%Y-%m-%d)
+
+- Restore timestamp: [fill in]
+- Branch/project ID: [fill in]
+- Invariant result: [paste]
+- Table count: [fill in]
+- Schema match: [yes/no]
+- Verdict: [PASS/FAIL]
+DRILL
+```
+
+- [ ] **Step 6: Decision gate**
+
+If PITR drill PASS → proceed to Task 7.4 (go/no-go checklist).
+If PITR drill FAIL → go/no-go is NO-GO. The rollback runbook's primary recovery path is unreliable. Must fix before launch.
+
+---
+
+### Task 7.4: Go/no-go checklist (per-fund gates)
 
 Copy this into `docs/verification/golive-2026-04-20/go-no-go.md`, tick each box:
 
 ```markdown
 # Go / No-Go — 2026-04-20
 
+## Platform-wide gates
+
 - [ ] 20/20 invariants pass on final sweep (see invariant-checks-final.txt)
+- [ ] PITR restore drill PASS (see pitr-drill.md)
 - [ ] 5 net-new Playwright specs green on desktop + mobile + webkit
 - [ ] Existing E2E smoke + lifecycle specs green on all 3 projects
 - [ ] Trigger matrix: 100% pass (see trigger-matrix.log)
@@ -1743,13 +1925,34 @@ Copy this into `docs/verification/golive-2026-04-20/go-no-go.md`, tick each box:
 - [ ] Anon EXECUTE sweep: 0 rows
 - [ ] RLS smoke: 0 table leaks
 - [ ] SECDEF gate: all 2026-04-16/17 migrations green
-- [ ] BTC verified baseline established + logged to AGENTS.md
+- [ ] pg_cron invariant monitoring scheduled and verified
+
+## Per-fund gates
+
+### XRP Fund
+- [ ] Verified baseline matches (Sam +284/+298.31 · Ryan +14.20/+14.93 · Fees +56.80/+59.76)
+- [ ] Deposit → yield → withdrawal → void cycle clean
+- [ ] Position = ledger for all investors
+- [ ] AUM = SUM(positions)
+
+### SOL Fund
+- [ ] Verified baseline matches (LP +2/+11.65 · Paul +1.85 · Alex +0.0327 · Fees +0.2942)
+- [ ] Deposit → yield → withdrawal → void cycle clean
+- [ ] Position = ledger for all investors
+- [ ] AUM = SUM(positions)
+
+### BTC Fund
+- [ ] Verified baseline established + logged to AGENTS.md
+- [ ] Deposit → yield → fee → IB → withdrawal → void → reissue cycle clean
+- [ ] Position = ledger for all investors
+- [ ] AUM = SUM(positions)
 ```
 
 - [ ] **Step 1: Decision**
 
-If every box ticked → **GO** → Task 7.4.
-If any box unchecked → **NO-GO** → triage and re-run the failing phase.
+If every box in every section ticked → **GO** → Task 7.5.
+If any platform-wide box unchecked → **NO-GO** → triage and re-run the failing phase.
+If all platform-wide boxes pass but any per-fund gate fails → **PARTIAL GO** (that fund stays disabled, others can launch).
 
 - [ ] **Step 2: Commit decision artifact**
 
@@ -1760,7 +1963,7 @@ git commit -m "docs: go/no-go decision artifact for 2026-04-20"
 
 ---
 
-### Task 7.4: Tag and announce (only if GO)
+### Task 7.5: Tag and announce (only if GO)
 
 - [ ] **Step 1: Tag**
 
@@ -1790,7 +1993,6 @@ git commit -m "docs: log go-live tag timestamp"
 
 ## Post-launch follow-ups (tracked, not today)
 
-- Execute a real PITR restore to a scratch branch (full DR drill)
 - Perf baseline at N=50 / N=100 / N=200 investors
 - Scaffold `tests/qa/` properly or remove it permanently
 - Wire CI to run nightly E2E with storage-state reuse
@@ -1804,7 +2006,7 @@ git commit -m "docs: log go-live tag timestamp"
   - [x] Section 3 hybrid data strategy → Task 2.1 + BTC phase0 in Task 3.2
   - [x] Section 4 identity → Task 2.2 + 2.3
   - [x] Section 5 Phases 1–7 → Tasks 1.x–7.x one-to-one
-  - [x] Section 6 gate checklist → Task 7.3
+  - [x] Section 6 gate checklist → Task 7.3 (PITR drill) + Task 7.4 (per-fund go/no-go)
   - [x] Section 7 DR + rollback → Task 1.2 + 1.6 + 6.4
   - [x] Section 8 security closure → Tasks 6.1 + 6.2 + 6.3
   - [x] Section 9 architecture constraints → enforced per task (canonical_rpc, is_admin, migrations-only)
