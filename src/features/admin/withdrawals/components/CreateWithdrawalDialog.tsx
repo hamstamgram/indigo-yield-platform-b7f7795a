@@ -154,9 +154,11 @@ export function CreateWithdrawalDialog({
   const prevWithdrawalTypeRef = useRef(withdrawalType);
   useEffect(() => {
     if (withdrawalType === "full" && prevWithdrawalTypeRef.current !== "full" && selectedFundId) {
+      // Prefer the ledger-based availableBalance; fall back to the position's
+      // current_value (already ledger-overridden by fetchPositionsForWithdrawal).
       const maxAmount = availableBalanceData?.availableBalance ?? selectedPosition?.current_value;
       if (maxAmount != null) {
-        setValue("amount", String(maxAmount), { shouldValidate: true });
+        setValue("amount", parseFinancial(maxAmount).toFixed(), { shouldValidate: true });
       }
     }
     prevWithdrawalTypeRef.current = withdrawalType;
@@ -182,25 +184,30 @@ export function CreateWithdrawalDialog({
     }
     setFundError(null);
 
-    const amount = parseFinancial(data.amount).toNumber();
+    // Decimal-native arithmetic — never Number() / parseFloat() on money fields.
+    const amount = parseFinancial(data.amount);
 
-    // Check if amount exceeds AVAILABLE balance (position minus pending withdrawals)
+    // Check if amount exceeds AVAILABLE balance (ledger minus pending withdrawals)
     const maxAmountRaw =
-      availableBalanceData?.availableBalance ?? selectedPosition?.current_value ?? 0;
-    const maxAmount = parseFinancial(String(maxAmountRaw)).toNumber();
-    if (amount > maxAmount) {
-      const hasPending = availableBalanceData && availableBalanceData.pendingWithdrawals > 0;
+      availableBalanceData?.availableBalance ?? selectedPosition?.current_value ?? "0";
+    const maxAmount = parseFinancial(maxAmountRaw);
+    if (amount.gt(maxAmount)) {
+      const hasPending =
+        !!availableBalanceData && parseFinancial(availableBalanceData.pendingWithdrawals).gt(0);
       toast.error(
         hasPending
           ? `Amount exceeds available balance. Position: ${formatAssetAmount(
-              availableBalanceData.positionValue,
+              availableBalanceData!.positionValue,
               selectedPosition?.fund.asset || "USD"
             )}, Pending: ${formatAssetAmount(
-              availableBalanceData.pendingWithdrawals,
+              availableBalanceData!.pendingWithdrawals,
               selectedPosition?.fund.asset || "USD"
-            )}, Available: ${formatAssetAmount(maxAmount, selectedPosition?.fund.asset || "USD")}`
+            )}, Available: ${formatAssetAmount(
+              maxAmount.toFixed(),
+              selectedPosition?.fund.asset || "USD"
+            )}`
           : `Amount exceeds available balance: ${formatAssetAmount(
-              maxAmount,
+              maxAmount.toFixed(),
               selectedPosition?.fund.asset || "USD"
             )}`
       );
@@ -213,7 +220,7 @@ export function CreateWithdrawalDialog({
       {
         investorId: selectedInvestorId,
         fundId: selectedFundId,
-        amount: String(amount),
+        amount: amount.toFixed(),
         withdrawalType: data.withdrawal_type,
         settlementDate: data.settlement_date,
         notes: data.notes,

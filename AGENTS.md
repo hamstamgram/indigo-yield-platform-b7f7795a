@@ -1,113 +1,144 @@
 # AGENTS.md — Indigo Yield Platform
 
 ## Project Overview
-Financial crypto yield management platform. React/TypeScript/Vite frontend + Supabase PostgreSQL backend.
+Financial crypto yield management platform. React 18 + TypeScript + Vite frontend, Supabase PostgreSQL + RLS + Edge Functions backend. Supabase project: `nkfimvovosdehmyyjubn`.
 
 ## Key Commands
-- `npm run dev` — Start dev server
-- `npm run build` — Production build
-- `npx tsc --noEmit` — Type check
-- `npm run lint` — Lint
-- `npm run test` — Run tests
-- `npx supabase db reset` — Reset local DB from migrations
-- `npx supabase db diff --linked` — Diff local vs remote schema
-- `npx supabase gen types typescript --linked > src/integrations/supabase/types.ts` — Regenerate DB types
+```
+npm run dev              # Dev server (port 8080, not 5173)
+npm run build            # Production build
+npx tsc --noEmit         # Type check (uses --max-old-space-size=8192)
+npm run lint             # ESLint (max-warnings=0)
+npm run test             # Vitest unit tests
+npm run test:coverage    # Vitest with coverage
+npm run test:e2e         # Playwright E2E
+npm run test:integration # Vitest integration (vitest.integration.config.ts)
+npm run contracts:verify # Verify enum/DB contracts
+npm run contracts:scan   # Scan frontend queries vs DB schema
+npm run integrity:check  # contracts:verify + sql:hygiene + gateway:check
+npx supabase db reset    # Reset local DB from migrations
+npx supabase db diff --linked  # Diff local vs remote schema
+npx supabase gen types typescript --linked > src/integrations/supabase/types.ts
+```
 
 ## Architecture
-- **Frontend**: React 18 + TypeScript + Vite + TanStack Query + Shadcn/UI
+- **Frontend**: React 18 + TypeScript + Vite + TanStack Query + Shadcn/UI + Decimal.js
 - **Backend**: Supabase (PostgreSQL + RLS + Edge Functions)
 - **State**: TanStack Query (server state), React Context (client state)
-- **Money**: All financial values use `numeric(28,10)` in DB, Decimal.js in frontend
-- **Auth**: Supabase Auth + RLS policies (is_admin(), is_super_admin())
+- **Money**: All financial values use `numeric(28,10)` in DB, `Decimal.js` in frontend
+- **Auth**: Supabase Auth + RLS policies (`is_admin()`, `is_super_admin()`)
+- **Path alias**: `@` → `./src` (defined in `vite.config.ts`)
+- **Supabase types**: Auto-generated at `src/integrations/supabase/types.ts`
 
 ## Database Conventions
-- **Migrations**: `supabase/migrations/` — ONLY directory for schema changes
+- **Migrations**: `supabase/migrations/` — ONLY directory for schema changes. Never use Dashboard SQL Editor
 - **Naming**: `<timestamp>_<snake_case_description>.sql`
-- **Never use Dashboard SQL Editor** for schema changes
-- **SECURITY DEFINER functions** MUST have `is_admin()` or `require_admin()` gate
+- **Squash history**: 131 migrations consolidated on 2026-04-15. Pre-squash archived to `supabase/archived_migrations/_pre_squash_20260415/`
+- **SECURITY DEFINER functions** MUST have `is_admin()` or `require_admin()` gate. Pre-commit hook blocks commits without it
 - **Core mutation functions** MUST set `canonical_rpc` flag via `set_config('indigo.canonical_rpc', 'true', true)`
-- **Financial columns**: `numeric(28,10)` — never unbounded `numeric`
-- **Source column allowlist**: transactions_v2.source must be in trigger allowlist
+- **Financial columns**: `numeric(28,10)` — never unbounded `numeric` (pre-commit hook blocks this)
+- **Source column allowlist**: `transactions_v2.source` must be in trigger allowlist
+- **`get_system_mode`** is intentionally ungated (internal triggers call it). `anon` EXECUTE revoked
 
 ## Critical Function Chain
-Frontend → `apply_transaction_with_crystallization` → sets canonical_rpc → calls type-specific function → triggers enforce_transaction_via_rpc checks source allowlist
+Frontend → `apply_transaction_with_crystallization` → sets `canonical_rpc` → calls type-specific function → triggers `enforce_transaction_via_rpc` checks source allowlist
+
+## Frontend Conventions
+
+### Money (CRITICAL — agents WILL get this wrong without guidance)
+- **NEVER** use `.toNumber()` for financial display. Use `parseFinancial(x).toString()` or `toDisplayString()`
+- All money fields in TypeScript interfaces are `string` type (not `number`)
+- Use `parseFinancial()` from `src/utils/financial.ts` to parse numeric values
+- Use `Decimal.js` `.gt()`, `.lt()`, `.eq()` for comparisons — never `Number()` or `parseFloat()`
+- Replace `.toNumber().toFixed(N)` with `parseFinancial(x).toFixed(N)`
+- Replace `Number(x) > 0` with `parseFinancial(x).gt(0)`
+- See `.opencode/plans/sprint-financial-integrity-security.md` for full Decimal.js migration plan
+
+### Balance Reads (withdrawals, full-exit, AUM decisions)
+`investor_positions.current_value` is a **derived/cached** column that can drift from the transaction ledger. For any financial decision (withdrawal amounts, full-exit previews, available-balance checks), read from the authoritative ledger via `get_investor_ledger_balance(p_investor_id, p_fund_id)` RPC — never directly from `investor_positions.current_value`.
+- UI path: `fetchPositionsForWithdrawal` applies a ledger-override when drift > 0.0001
+- Hook path: `useAvailableBalance` calls the RPC directly
+- Both paths MUST agree. See migration `20260417210000_ledger_balance_rpc.sql` for rationale.
+
+### Gateway Pattern (CI-enforced)
+Supabase calls MUST go through canonical gateways:
+- **RPC calls** → `src/lib/rpc.ts` — all `supabase.rpc()` calls go through this module
+- **Database mutations** → `src/lib/db.ts` — all `.insert()`, `.update()`, `.delete()` go through this module
+- **CI blocks** direct mutations on protected tables: `transactions_v2`, `yield_distributions`, `fund_aum_events`, `fund_daily_aum`
+- **CI blocks** `.select('id')` on `investor_positions` (composite PK: `investor_id, fund_id`)
+
+### Contracts System
+- `src/contracts/dbEnums.ts` — source of truth for enum values (auto-generated)
+- `src/contracts/dbSchema.ts` — DB schema types (auto-generated)
+- `src/contracts/rpcSignatures.ts` — RPC function signatures (auto-generated)
+- Run `npm run contracts:generate` after any DB schema change
+- Run `npm run contracts:verify` in CI to check enum/DB alignment
+- `FIRST_INVESTMENT` is UI-only — must map to `DEPOSIT` for DB via `mapUITypeToDb()`
+
+### Void System
+- `void_transaction`, `void_yield_distribution`, `void_and_reissue_transaction` all set `canonical_rpc`
+- Each void cascade updates: transactions_v2, yield distributions, fee allocations, IB ledger, platform fee ledger, investor yield events, investor positions, fund_daily_aum
+- `voided_by_profile_id` and `void_reason` columns being added to all void-capable tables (see `docs/superpowers/plans/2026-04-15-void-system-standardization.md`)
+- `void_yield_distribution` sets `status='voided'` on distributions (required for unique index re-insert)
+
+## Testing
+
+### Test Structure
+```
+tests/
+  e2e/                          # Playwright E2E specs
+  migrations/                   # Raw SQL test files (run via psql)
+  validation/                   # Disabled/pending specs
+  *-phase0_setup.sql            # Seed data for E2E scenarios
+  global-setup.ts               # Playwright auth setup
+```
+- **No `tests/unit/` or `tests/qa/` directories exist** — package.json references them but they haven't been created
+- **Vitest config is inside `vite.config.ts`** (no separate vitest.config), excludes `tests/e2e/**`
+
+### E2E Auth
+- Playwright `globalSetup` in `tests/e2e/global-setup.ts`
+- Uses `QA_EMAIL` and `QA_PASSWORD` environment variables
+- Storage states saved to `tests/.auth/` (gitignored)
+
+### Running SQL Tests
+```bash
+psql "$DATABASE_URL" -f tests/migrations/<file>.sql   # Run against remote
+```
+
+### Key Fixture IDs (for E2E tests)
+| Entity | UUID prefix |
+|--------|------------|
+| XRP Fund | `2c123c4f` |
+| SOL Fund | `7574bc81` |
+| INDIGO LP | `711bfdc9` |
+| Sam Johnson | `c7b18014` |
+| Paul Johnson | `96fbdf46` |
+| Alex Jacobs | `4ca7a856` |
+| Ryan Van Der Wall | `40c33d59` |
+| INDIGO Fees | `b464a3f7` |
+| Admin | `e438bfff` |
+
+## Security
+- No hardcoded secrets — env vars only. No PII in logs
+- All RPC mutations require admin check
+- RLS enabled on all tables
+- Pre-commit hook checks: migration naming, SECDEF admin gates, unbounded numeric, console.log warning
+- CI checks: SECDEF admin gates, financial column precision, yield conservation, protected table mutation enforcement, composite PK misuse, FIRST_INVESTMENT enum, contract verification, SQL hygiene, gateway usage
+- `can_access_investor` includes `canonical_rpc` bypass — SECDEF batch functions bypass per-investor access checks
+- `enforce_profiles_safe_columns` trigger blocks non-admin changes to 15 sensitive profile columns
+- See `docs/superpowers/plans/2026-04-20-go-live-hardening.md` Phase 6 for SECDEF/anon sweeps
+
+## Active Plans & Technical Debt
+- **Go-live hardening**: `docs/superpowers/plans/2026-04-20-go-live-hardening.md` — E2E harness, trigger matrix, security sweep
+- **Position sync phase 2**: `docs/superpowers/plans/2026-04-21-position-sync-phase-2.md` — Invariant definitions, validation consolidation, repair isolation
+- **Financial architecture hardening**: `docs/superpowers/plans/2026-05-05-financial-architecture-hardening.md` — Void/unvoid isolation, yield cleanup, reporting hardening
+- **Void system standardization**: `docs/superpowers/plans/2026-04-15-void-system-standardization.md` — `voided_by_profile_id` + `void_reason` on all void-capable tables
+- **Financial integrity sprint**: `.opencode/plans/sprint-financial-integrity-security.md` — Decimal.js enforcement, stale closure fix, is_active/is_voided filters
+- **P0: void_and_reissue migration needs remote apply**: `docs/POST_LAUNCH_TECH_DEBT.md`
+- **Remaining work**: `docs/PLAN_REMAINING_WORK.md`
 
 ## File Limits
 - Max 400 lines typical, 800 hard max
 - Functions <50 lines
 - No deep nesting (>4 levels)
 - Immutability: always return new objects, never mutate
-
-## Testing
-- Min 80% coverage
-- TDD: Red → Green → Improve
-- `tests/migrations/` — SQL-based migration tests
-- `tests/e2e/` — Playwright E2E specs
-- `tests/qa/` — invariants, scenarios
-
-## Security
-- No hardcoded secrets — env vars only
-- No PII in logs
-- All RPC mutations require admin check
-- RLS enabled on all tables
-- **Tier 3+3.5+4**: 20 SECDEF read functions gated — 5 cross-tenant, 6 fund-scoped, 2 investor-scoped (can_access_investor), 2 _resolve helpers (can_access_investor), 1 get_user_admin_status (self-or-admin). Plus 4 anon EXECUTE revocations. Total gated: 114 of 282 (40% + 13 dead dropped = 269)
-- **Anon EXECUTE revocation (Tier 5)**: 100+ SECDEF functions had EXECUTE granted to anon/PUBLIC. Migration `20260417080000` revoked ALL from PUBLIC and explicitly from anon, then granted EXECUTE to authenticated+service_role only. Total gated: 114 of 282 (40%) + 100+ anon-revoked (now only authenticated+service_role can call)
-- **Lovable Security Fixes**: Profiles RLS escalation fixed (trigger `enforce_profiles_safe_columns` blocks non-admin changes to is_admin, role, kyc_status, fee_pct, ib_percentage, ib_parent_id, status, totp_enabled, totp_verified, is_system_account, include_in_reporting, ib_commission_source, account_type, email, onboarding_date); fund_aum_events public read replaced with authenticated-only; statements storage investor access added; search_path set on apply_yield_distribution_v5_with_lock
-- `get_system_mode` is intentionally ungated — internal triggers (`enforce_economic_date`, `enforce_yield_event_date`) call it during non-admin sessions. `anon` EXECUTE revoked.
-- **Pre-commit**: SECDEF gate is BLOCKING (`exit 1`) — all new SECURITY DEFINER functions must have `is_admin`/`require_admin`
-- **CI sql-checks**: Runs `run_invariant_checks()` post-migration (20 checks)
-- **Dead functions dropped**: 13 zero-caller functions removed in `20260416190000_dead_code_cleanup.sql`
-- **DEPRECATED markers**: 7 sync functions + `force_delete_investor` marked in `20260416191000_deprecated_markers.sql`
-
-- **can_access_investor**: Now includes `canonical_rpc` bypass — SECDEF batch functions that set `indigo.canonical_rpc = 'true'` bypass per-investor access checks (already verified admin via is_admin())
-
-## Migration History
-- **2026-04-17**: P0 — `20260417000000_fix_can_access_investor_canonical_bypass.sql` (added canonical_rpc bypass to can_access_investor for SECDEF batch functions)
-- **2026-04-17**: P0 — `20260417010000_fix_yield_distribution_restore_baseline.sql` (restored apply_segmented_yield_distribution_v5 from baseline — Tier 1 version had 4 broken schema references: investor_ib_schedule, fee_percentage, account_type on investor_positions, status on investor_fee_schedule)
-- **2026-04-17**: P0 — `20260417020000_fix_preview_yield_admin_gate.sql` (added is_admin() gate + canonical_rpc to preview_segmented_yield_distribution_v5)
-- **2026-04-17**: P0 — `20260417030000_fix_withdrawal_full_exit_honor_amount.sql` (approve_and_complete_withdrawal honors p_processed_amount for full exits; dust tolerance for position deactivation; crystallization errors logged instead of swallowed)
-- **2026-04-17**: P1 — `20260417040000_fix_void_and_reissue_full_exit.sql` (added source/asset columns, removed double-credit to fees account, added dust tolerance for position deactivation)
-- **2026-04-17**: P2 — `20260417050000_fix_recalculate_fund_aum_admin_gate.sql` (added is_admin() gate to recalculate_fund_aum_for_date)
-- **2026-04-17**: P0 — `20260417080000_fix_invariant_checks_and_revoke_anon.sql` (fixed run_invariant_checks: yield_allocations.net_yield_amount→net_amount, ib_allocations.ib_id→ib_investor_id/ib_fee_amount, FEE_DEBIT→FEE; revoked anon EXECUTE on 100+ ungated SECDEF functions — now only authenticated+service_role can call)
-- **2026-04-17**: P2 — `20260417090000_fix_dust_sweep_handler_and_disable_redundant_trigger.sql` (added explicit DUST_SWEEP/FEE/IB_DEBIT/DUST handlers to fn_ledger_drives_position; disabled redundant trg_recompute_position_on_tx)
-- **2026-04-17**: Data fix — `20260417100000_fix_stale_aum_records.sql` (fixed 3 stale fund_daily_aum records where total_aum didn't match position sum after withdrawals; temporarily disabled trg_enforce_canonical_daily_aum for the fix)
-- **2026-04-17**: P0 — `20260417070000_fix_void_transaction_baseline_restore.sql` (restored void_transaction from baseline — fixed 4 column/table reference bugs: ib_commission_ledger.credit_transaction_id→transaction_id, platform_fees→platform_fee_ledger, investor_yield_events.transaction_id→trigger_transaction_id/reference_id, yield_distributions.credit_transaction_id→distribution_id from v_tx; removed updated_at=NOW() on 3 tables that lack the column; fixed run_invariant_checks Check 9 ib_commission_ledger.credit_transaction_id→transaction_id)
-- **2026-04-17**: P0 — `20260417060000_fix_missing_void_columns.sql` (squash baseline used CREATE TABLE IF NOT EXISTS which doesn't ALTER existing tables — added 15+ missing columns on remote: voided_at/voided_by/voided_by_profile_id/void_reason on yield_allocations, credit_transaction_id/debit_transaction_id/voided_by_profile_id/void_reason on fee_allocations, void columns on ib_commission_ledger, investor_yield_events, platform_fee_ledger, yield_distributions, is_full_exit on withdrawal_requests, etc.)
-- **2026-04-17**: P2 — `20260417050000_fix_recalculate_fund_aum_admin_gate.sql` (added is_admin() gate to recalculate_fund_aum_for_date)
-- **2026-04-17**: P1 — `20260417040000_fix_void_and_reissue_full_exit.sql` (added source/asset columns, removed double-credit to fees account, added dust tolerance for position deactivation)
-- **2026-04-17**: P0 — `20260417030000_fix_withdrawal_full_exit_honor_amount.sql` (approve_and_complete_withdrawal honors p_processed_amount for full exits; dust tolerance for position deactivation; crystallization errors logged instead of swallowed)
-- **2026-04-17**: P0 — `20260417020000_fix_preview_yield_admin_gate.sql` (added is_admin() gate + canonical_rpc to preview_segmented_yield_distribution_v5)
-- **2026-04-17**: P0 — `20260417010000_fix_yield_distribution_restore_baseline.sql` (restored apply_segmented_yield_distribution_v5 from baseline — Tier 1 version had 4 broken schema references)
-- **2026-04-17**: P0 — `20260417000000_fix_can_access_investor_canonical_bypass.sql` (added canonical_rpc bypass to can_access_investor for SECDEF batch functions)
-- **2026-04-16**: Lovable P0/P1 — `20260416200000_fix_profiles_rls_escalation.sql` (profiles self-update restricted via trigger)
-- **2026-04-16**: Lovable P0 — `20260416210000_fix_fund_aum_events_public_read.sql` (USING(true) → authenticated only)
-- **2026-04-16**: Lovable P1 — `20260416220000_fix_statements_storage_access.sql` (investor SELECT on own PDFs)
-- **2026-04-16**: Lovable P1 — `20260416230000_fix_search_path_mutable.sql` (search_path on apply_yield_distribution_v5_with_lock)
-- **2026-04-16**: Consolidation — `20260416240000_consolidate_profiles_triggers.sql` (merged enforce_profiles_safe_columns into protect_profile_sensitive_fields)
-- **2026-04-16**: P1 — `20260416190000_dead_code_cleanup.sql` (13 dead functions + rate_limit_config table)
-- **2026-04-16**: P1 — `20260416191000_deprecated_markers.sql` (7 sync functions + force_delete_investor DEPRECATED)
-- **2026-04-16**: P0 — `20260416180000_invariant_checks_hardening.sql` (Check 2 fix + Checks 17-20)
-- **2026-04-16**: Tier 4 hotfix — `20260416170000_security_tier4_fix_system_mode.sql` (reverted is_admin gate on get_system_mode — breaks triggers)
-- **2026-04-16**: Tier 4 — `20260416160000_security_tier4_read_gates.sql` (5 ungated SECDEF read function gates)
-- **2026-04-16**: Tier 3.5 — `20260416150000_security_tier35_cross_tenant_gaps.sql` (3 cross-tenant read gap fixes)
-- **2026-04-16**: Tier 3 — `20260416140000_security_tier3_read_gates.sql` (11 read function admin gates)
-- **2026-04-15**: Full squash — 131 migrations consolidated into single canonical baseline
-- All pre-squash migrations archived to `supabase/archived_migrations/_pre_squash_20260415/`
-- Dead directories removed: `migrations_bak/`, `migrations_essential/`
-- **2026-04-17**: P0 — `20260417110000_fix_voided_yield_distribution_status.sql` (voided distributions retained status='applied' blocking unique index re-insert — set status='voided')
-- **2026-04-17**: P0 — `20260417120000_fix_void_yield_distribution_set_status.sql` (fixed void_yield_distribution to set status='voided' when voiding — prevented unique index conflicts)
-- **2026-04-17**: P0 — `20260417130000_fix_yield_distribution_tx_type_cast.sql` (removed ::tx_type casts on apply_investor_transaction calls in apply_segmented_yield_distribution_v5 — caused function signature mismatch since p_tx_type is text not tx_type; also changed v_tx_result/v_fee_tx_result/v_ib_tx_result from json to jsonb to match apply_investor_transaction return type)
-- **XRP E2E Verified**: Sam Johnson +284/+298.31, Ryan +14.20/+14.93, INDIGO Fees +56.80/+59.76 ✅
-- **SOL E2E Verified**: INDIGO LP +2/+11.65, Paul Johnson +1.85, Alex Jacobs +0.0327, INDIGO Fees +0.2942 ✅
-- **Key IDs**: XRP Fund `2c123c4f`, SOL Fund `7574bc81`, INDIGO LP `711bfdc9`, Sam Johnson `c7b18014`, Paul Johnson `96fbdf46`, Alex Jacobs `4ca7a856`, Ryan Van Der Wall `40c33d59`, INDIGO Fees `b464a3f7`, Admin `e438bfff`
-- **Dead directories archived**: `migrations_broken/`, `migrations_fixes/`, `patches/`
-- **2026-04-17**: P0 — `20260417140000_fix_btc_fees_account_position.sql` (recomputed INDIGO Fees BTC position from 2.0 to 0)
-- **2026-04-17**: P0 — `20260417150000_fix_void_transaction_recompute_position.sql` (added recompute_investor_position safety net to void_transaction — dual path with trg_ledger_sync)
-- **2026-04-17**: P0 — `20260417160000_fix_void_yield_distribution_recompute_fees.sql` (void_yield_distribution always recomputes fees_account position + per-void recompute)
-- **2026-04-17**: P2 — `20260417170000_fix_stale_aum_and_hwm.sql` (recalculated stale AUM + reset HWM where > current_value + 1)
-- **2026-04-17**: Data — `20260417180000_fix_hwm_and_orphaned_withdrawals.sql` (reset drifted HWM + cancelled orphaned BTC withdrawals)
-- **2026-04-17**: CRITICAL — `20260417190000_canonical_fund_performance_rpc.sql` (update_investor_fund_performance RPC: admin gate, balance equation validation, audit log)
-- **Frontend**: investorYieldService sources from yield_allocations for fee transparency (gross, fee%, fee, IB, net)
-- **Frontend**: YieldHistoryPage shows full fee breakdown columns + per-fund totals
-- **Frontend**: investorPerformanceService uses canonical RPC for performance updates
-- **Frontend**: reportService filters is_active=true + purpose=reporting
