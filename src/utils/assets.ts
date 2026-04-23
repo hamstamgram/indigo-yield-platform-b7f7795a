@@ -4,7 +4,7 @@
  */
 
 import { getAssetConfig, INVESTOR_DISPLAY_DECIMALS } from "@/types/asset";
-import { toNum } from "@/utils/numeric";
+import { parseFinancial } from "@/utils/financial";
 import { formatPercentage } from "./formatters";
 
 // Re-export formatPercentage for backward compatibility
@@ -39,7 +39,7 @@ export function formatAssetAmount(
   symbol: string,
   maxDecimals?: number
 ): string {
-  const numAmount = toNum(amount);
+  const dec = parseFinancial(amount);
   const safeSymbol = symbol || "ASSET";
   const config = getAssetConfig(safeSymbol);
   const decimals = config?.decimals || 8;
@@ -73,10 +73,13 @@ export function formatAssetAmount(
     }
   }
 
-  const formattedValue = numAmount.toLocaleString("en-US", {
-    minimumFractionDigits: maxDecimals !== undefined ? maxDecimals : 2,
-    maximumFractionDigits: displayDecimals,
-  });
+  // Use Decimal for precision, then format with commas manually
+  const minDecimals = maxDecimals !== undefined ? maxDecimals : 2;
+  const fixed = dec.toFixed(Math.max(displayDecimals, minDecimals));
+  const [whole, fraction = ""] = fixed.split(".");
+  const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const paddedFraction = fraction.padEnd(minDecimals, "0").slice(0, displayDecimals);
+  const formattedValue = paddedFraction ? `${formattedWhole}.${paddedFraction}` : formattedWhole;
 
   return `${formattedValue} ${normalized}`;
 }
@@ -92,10 +95,10 @@ export function formatSignedAssetAmount(
   symbol: string,
   maxDecimals?: number
 ): string {
-  const numAmount = toNum(amount);
-  const formatted = formatAssetAmount(Math.abs(numAmount), symbol, maxDecimals);
-  if (numAmount < 0) return `-${formatted}`;
-  if (numAmount > 0) return `+${formatted}`;
+  const dec = parseFinancial(amount);
+  const formatted = formatAssetAmount(dec.abs().toString(), symbol, maxDecimals);
+  if (dec.isNegative()) return `-${formatted}`;
+  if (dec.gt(0)) return `+${formatted}`;
   return formatted;
 }
 /**
@@ -118,13 +121,13 @@ export function formatSignedAdminAmount(amount: string | number, symbol: string)
  * Format a number for admin display (full precision) WITHOUT the asset symbol.
  */
 export function formatAdminNumber(amount: string | number, symbol: string): string {
-  const numAmount = toNum(amount);
+  const dec = parseFinancial(amount);
   const config = getAssetConfig(symbol);
   const precision = config.decimals;
-  return numAmount.toLocaleString("en-US", {
-    minimumFractionDigits: precision,
-    maximumFractionDigits: precision,
-  });
+  const fixed = dec.toFixed(precision);
+  const [whole, fraction = ""] = fixed.split(".");
+  const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fraction ? `${formattedWhole}.${fraction}` : formattedWhole;
 }
 
 /**
@@ -152,9 +155,9 @@ export function formatSignedInvestorAmount(amount: string | number, symbol: stri
  * Admin portal should NOT use this - they see full precision.
  */
 export function formatInvestorNumber(amount: string | number): string {
-  const numAmount = toNum(amount);
-  return numAmount.toLocaleString("en-US", {
-    minimumFractionDigits: INVESTOR_DISPLAY_DECIMALS,
-    maximumFractionDigits: INVESTOR_DISPLAY_DECIMALS,
-  });
+  const dec = parseFinancial(amount);
+  const fixed = dec.toFixed(INVESTOR_DISPLAY_DECIMALS);
+  const [whole, fraction = ""] = fixed.split(".");
+  const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fraction ? `${formattedWhole}.${fraction}` : formattedWhole;
 }
