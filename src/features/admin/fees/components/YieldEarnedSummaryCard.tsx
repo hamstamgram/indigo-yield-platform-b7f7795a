@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { DollarSign, Info } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { formatFeeAmount } from "./utils/feeUtils";
-import { toNumber } from "@/utils/numeric";
+import { parseFinancial } from "@/utils/financial";
+import Decimal from "decimal.js";
 import type { YieldEarned } from "@/features/admin/fees/hooks/useFees";
 interface YieldEarnedSummaryCardProps {
   yields: YieldEarned[];
@@ -15,9 +16,9 @@ interface YieldEarnedSummaryCardProps {
 
 export function YieldEarnedSummaryCard({ yields }: YieldEarnedSummaryCardProps) {
   // Group by asset (multiple funds may share the same asset)
-  const byAsset = yields.reduce<Record<string, { total: number; count: number }>>((acc, y) => {
-    const existing = acc[y.asset] || { total: 0, count: 0 };
-    existing.total += toNumber(y.totalYieldEarned);
+  const byAsset = yields.reduce<Record<string, { total: Decimal; count: number }>>((acc, y) => {
+    const existing = acc[y.asset] || { total: parseFinancial(0), count: 0 };
+    existing.total = existing.total.plus(parseFinancial(y.totalYieldEarned));
     existing.count += y.transactionCount;
     acc[y.asset] = existing;
     return acc;

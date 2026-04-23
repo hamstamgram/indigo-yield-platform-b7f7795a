@@ -5,14 +5,15 @@
 
 import { format } from "date-fns";
 import { logError } from "@/lib/logger";
-import { toNumber } from "@/utils/numeric";
+import { parseFinancial } from "@/utils/financial";
+import Decimal from "decimal.js";
 
 /**
  * Format amount based on asset type
  * Accepts string or number for NUMERIC precision compatibility
  */
-export function formatFeeAmount(amount: string | number, asset: string): string {
-  const num = toNumber(amount);
+export function formatFeeAmount(amount: string | number | Decimal, asset: string): string {
+  const num = (amount instanceof Decimal ? amount : parseFinancial(amount)).toNumber();
   if (asset === "BTC") {
     return num.toLocaleString("en-US", { minimumFractionDigits: 6, maximumFractionDigits: 8 });
   }

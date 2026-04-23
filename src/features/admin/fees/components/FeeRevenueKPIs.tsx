@@ -16,7 +16,7 @@ interface FeeRevenueKPIsProps {
 
 interface AssetTotal {
   asset: string;
-  amount: number;
+  amount: Decimal;
 }
 
 function computeAssetTotals(fees: FeeRecord[]): AssetTotal[] {
@@ -26,8 +26,8 @@ function computeAssetTotals(fees: FeeRecord[]): AssetTotal[] {
     map.set(fee.asset, prev.plus(new Decimal(fee.amount || 0)));
   }
   return Array.from(map.entries())
-    .map(([asset, dec]) => ({ asset, amount: dec.toNumber() }))
-    .sort((a, b) => b.amount - a.amount);
+    .map(([asset, dec]) => ({ asset, amount: dec }))
+    .sort((a, b) => b.amount.comparedTo(a.amount));
 }
 
 function KPICard({ title, totals }: { title: string; totals: AssetTotal[] }) {
