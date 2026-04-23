@@ -18,6 +18,7 @@ import { Loader2, X, ExternalLink, Copy, CheckCircle, XCircle, ArrowRightLeft } 
 import { WithdrawalAuditTimeline } from "./WithdrawalAuditTimeline";
 import { RouteToFeesDialog } from "./RouteToFeesDialog";
 import { toast } from "sonner";
+import { formatAssetAmount } from "@/utils/assets";
 import { useWithdrawalById } from "@/features/admin/withdrawals/hooks/useAdminWithdrawals";
 interface WithdrawalDetailsDrawerProps {
   withdrawalId: string | null;
@@ -106,7 +107,7 @@ export function WithdrawalDetailsDrawer({
                       symbol={withdrawal.asset || withdrawal.fund_class || "ASSET"}
                       className="h-6 w-6"
                     />
-                    {withdrawal.requested_amount.toLocaleString()}{" "}
+                    {formatAssetAmount(withdrawal.requested_amount, withdrawal.asset || withdrawal.fund_class || "ASSET")}{" "}
                     <span className="text-muted-foreground text-lg font-normal">
                       {(withdrawal.asset ?? withdrawal.fund_class ?? "UNITS").toUpperCase()}
                     </span>
@@ -116,7 +117,7 @@ export function WithdrawalDetailsDrawer({
                 {withdrawal.processed_amount &&
                   withdrawal.processed_amount !== withdrawal.requested_amount && (
                     <p className="text-sm text-muted-foreground">
-                      Processed amount: {withdrawal.processed_amount.toLocaleString()}{" "}
+                      Processed amount: {formatAssetAmount(withdrawal.processed_amount, withdrawal.asset || "")}{" "}
                       {(withdrawal.asset ?? "").toUpperCase()}
                     </p>
                   )}
