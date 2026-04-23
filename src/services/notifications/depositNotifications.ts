@@ -1,5 +1,6 @@
 import { db } from "@/lib/db/index";
 import { logError } from "@/lib/logger";
+import { formatAssetAmount } from "@/utils/assets";
 
 type DepositNotificationEvent = "pending" | "confirmed" | "failed";
 
@@ -36,11 +37,11 @@ const eventBodyTemplates: Record<
   (data: DepositNotificationData) => string
 > = {
   pending: (data) =>
-    `Your deposit of ${data.amount.toLocaleString()} ${data.asset}${data.fundName ? ` to ${data.fundName}` : ""} has been received and is pending confirmation.`,
+    `Your deposit of ${formatAssetAmount(data.amount, data.asset)}${data.fundName ? ` to ${data.fundName}` : ""} has been received and is pending confirmation.`,
   confirmed: (data) =>
-    `Your deposit of ${data.amount.toLocaleString()} ${data.asset}${data.fundName ? ` to ${data.fundName}` : ""} has been confirmed and credited to your account.`,
+    `Your deposit of ${formatAssetAmount(data.amount, data.asset)}${data.fundName ? ` to ${data.fundName}` : ""} has been confirmed and credited to your account.`,
   failed: (data) =>
-    `Your deposit of ${data.amount.toLocaleString()} ${data.asset} could not be processed.${data.reason ? ` Reason: ${data.reason}` : ""} Please contact support.`,
+    `Your deposit of ${formatAssetAmount(data.amount, data.asset)} could not be processed.${data.reason ? ` Reason: ${data.reason}` : ""} Please contact support.`,
 };
 
 /**
