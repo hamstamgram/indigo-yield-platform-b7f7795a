@@ -41,6 +41,7 @@ function buildCSPPolicy() {
     "font-src": "'self' data: https://fonts.gstatic.com",
     "object-src": "'none'",
     "media-src": "'self'",
+    "worker-src": "'self' blob:",
     "frame-src": "'none'",
     "base-uri": "'self'",
     "form-action": "'self'",
