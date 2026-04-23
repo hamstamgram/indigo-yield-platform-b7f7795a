@@ -160,7 +160,7 @@ export function CreateWithdrawalDialog({
       // and overrides current_value when drift > 0.0001.
       const maxAmount = selectedPosition?.current_value ?? availableBalanceData?.availableBalance;
       if (maxAmount != null) {
-        setValue("amount", parseFinancial(maxAmount).toFixed(), { shouldValidate: true });
+        setValue("amount", String(maxAmount), { shouldValidate: true });
       }
     }
     prevWithdrawalTypeRef.current = withdrawalType;
