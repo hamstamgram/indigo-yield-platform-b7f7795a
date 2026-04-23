@@ -13,8 +13,9 @@ import { FileText, Calendar, TrendingUp, Info, AlertCircle, Download, Loader2 } 
 import { PageHeader } from "@/components/layout";
 import { PageShell } from "@/components/layout/PageShell";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { formatInvestorAmount, getAssetName } from "@/utils/assets";
+import { formatAssetAmount, getAssetName } from "@/utils/assets";
 import { toNum } from "@/utils/numeric";
+import { parseFinancial } from "@/utils/financial";
 import { useToast } from "@/hooks";
 import { useMonthlyStatements, useStatementYears, useStatementAssets } from "@/features/investor/transactions/hooks/useInvestorPortal";
 import { type MonthlyStatement } from "@/features/investor/transactions/hooks/useInvestorPortal";
@@ -54,11 +55,11 @@ const StatementsPage = () => {
       const periodStart = new Date(statement.period_year, statement.period_month - 1, 1);
       const periodEnd = new Date(statement.period_year, statement.period_month, 0);
 
-      const mtdBeginBalance = toNum(statement.begin_balance);
-      const mtdAdditions = toNum(statement.additions);
-      const mtdRedemptions = toNum(statement.redemptions);
-      const mtdNetIncome = toNum(statement.net_income);
-      const mtdEndBalance = toNum(statement.end_balance);
+      const mtdBeginBalance = parseFinancial(statement.begin_balance).toNumber();
+      const mtdAdditions = parseFinancial(statement.additions).toNumber();
+      const mtdRedemptions = parseFinancial(statement.redemptions).toNumber();
+      const mtdNetIncome = parseFinancial(statement.net_income).toNumber();
+      const mtdEndBalance = parseFinancial(statement.end_balance).toNumber();
       const mtdRateOfReturn = toNum(statement.rate_of_return_mtd);
 
       // Lazy load PDF generator to keep bundle small
@@ -88,23 +89,23 @@ const StatementsPage = () => {
             mtd_net_income: mtdNetIncome,
             mtd_ending_balance: mtdEndBalance,
             mtd_rate_of_return: mtdRateOfReturn,
-            qtd_beginning_balance: toNum(statement.qtd_beginning_balance),
-            qtd_additions: toNum(statement.qtd_additions),
-            qtd_redemptions: toNum(statement.qtd_redemptions),
-            qtd_net_income: toNum(statement.qtd_net_income),
-            qtd_ending_balance: toNum(statement.qtd_ending_balance),
+            qtd_beginning_balance: parseFinancial(statement.qtd_beginning_balance).toNumber(),
+            qtd_additions: parseFinancial(statement.qtd_additions).toNumber(),
+            qtd_redemptions: parseFinancial(statement.qtd_redemptions).toNumber(),
+            qtd_net_income: parseFinancial(statement.qtd_net_income).toNumber(),
+            qtd_ending_balance: parseFinancial(statement.qtd_ending_balance).toNumber(),
             qtd_rate_of_return: toNum(statement.qtd_rate_of_return),
-            ytd_beginning_balance: toNum(statement.ytd_beginning_balance),
-            ytd_additions: toNum(statement.ytd_additions),
-            ytd_redemptions: toNum(statement.ytd_redemptions),
-            ytd_net_income: toNum(statement.ytd_net_income),
-            ytd_ending_balance: toNum(statement.ytd_ending_balance),
+            ytd_beginning_balance: parseFinancial(statement.ytd_beginning_balance).toNumber(),
+            ytd_additions: parseFinancial(statement.ytd_additions).toNumber(),
+            ytd_redemptions: parseFinancial(statement.ytd_redemptions).toNumber(),
+            ytd_net_income: parseFinancial(statement.ytd_net_income).toNumber(),
+            ytd_ending_balance: parseFinancial(statement.ytd_ending_balance).toNumber(),
             ytd_rate_of_return: toNum(statement.ytd_rate_of_return),
-            itd_beginning_balance: toNum(statement.itd_beginning_balance),
-            itd_additions: toNum(statement.itd_additions),
-            itd_redemptions: toNum(statement.itd_redemptions),
-            itd_net_income: toNum(statement.itd_net_income),
-            itd_ending_balance: toNum(statement.itd_ending_balance),
+            itd_beginning_balance: parseFinancial(statement.itd_beginning_balance).toNumber(),
+            itd_additions: parseFinancial(statement.itd_additions).toNumber(),
+            itd_redemptions: parseFinancial(statement.itd_redemptions).toNumber(),
+            itd_net_income: parseFinancial(statement.itd_net_income).toNumber(),
+            itd_ending_balance: parseFinancial(statement.itd_ending_balance).toNumber(),
             itd_rate_of_return: toNum(statement.itd_rate_of_return),
           },
         ],
@@ -234,8 +235,8 @@ const StatementsPage = () => {
                 <div>
                   <p className="text-xs text-muted-foreground uppercase">Beginning Balance</p>
                   <p className="text-sm font-mono font-medium text-white">
-                    {formatInvestorAmount(
-                      toNum(statement.begin_balance),
+                    {formatAssetAmount(
+                      statement.begin_balance,
                       statement.asset_code
                     )}
                   </p>
@@ -244,8 +245,8 @@ const StatementsPage = () => {
                   <p className="text-xs text-muted-foreground uppercase">Additions</p>
                   <p className="text-sm font-mono font-medium text-yield">
                     +
-                    {formatInvestorAmount(
-                      toNum(statement.additions),
+                    {formatAssetAmount(
+                      statement.additions,
                       statement.asset_code
                     )}
                   </p>
@@ -254,8 +255,8 @@ const StatementsPage = () => {
                   <p className="text-xs text-muted-foreground uppercase">Net Income</p>
                   <p className="text-sm font-mono font-medium text-indigo-400">
                     +
-                    {formatInvestorAmount(
-                      toNum(statement.net_income),
+                    {formatAssetAmount(
+                      statement.net_income,
                       statement.asset_code
                     )}
                   </p>
@@ -263,8 +264,8 @@ const StatementsPage = () => {
                 <div>
                   <p className="text-xs text-muted-foreground uppercase">Ending Balance</p>
                   <p className="text-sm font-mono font-semibold text-white">
-                    {formatInvestorAmount(
-                      toNum(statement.end_balance),
+                    {formatAssetAmount(
+                      statement.end_balance,
                       statement.asset_code
                     )}
                   </p>
