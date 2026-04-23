@@ -34,10 +34,10 @@ export interface FinancialMetrics {
 
 export interface FlowData {
   fund_id: string;
-  daily_inflows: number;
-  daily_outflows: number;
-  net_flow_24h: number;
-  aum: number;
+  daily_inflows: string;
+  daily_outflows: string;
+  net_flow_24h: string;
+  aum: string;
 }
 
 /** RPC result from get_historical_nav */
@@ -68,7 +68,7 @@ interface PositionWithProfile {
 export interface InvestorComposition {
   investor_name: string;
   email: string;
-  balance: number;
+  balance: string;
   ownership_pct: number;
   account_type: string;
 }
@@ -192,10 +192,10 @@ export async function getHistoricalFlowData(targetDate: Date): Promise<Map<strin
     const fundFlow = flows[row.fund_id] || {};
     flowMap.set(row.fund_id, {
       fund_id: row.fund_id,
-      daily_inflows: parseFinancial(fundFlow.daily_inflows || 0).toNumber(),
-      daily_outflows: parseFinancial(fundFlow.daily_outflows || 0).toNumber(),
-      net_flow_24h: parseFinancial(fundFlow.net_flow_24h || 0).toNumber(),
-      aum: parseFinancial(row.aum_value || 0).toNumber(),
+      daily_inflows: parseFinancial(fundFlow.daily_inflows || 0).toString(),
+      daily_outflows: parseFinancial(fundFlow.daily_outflows || 0).toString(),
+      net_flow_24h: parseFinancial(fundFlow.net_flow_24h || 0).toString(),
+      aum: parseFinancial(row.aum_value || 0).toString(),
     });
   }
 
@@ -226,15 +226,15 @@ export async function getFundInvestorComposition(fundId: string): Promise<Invest
   const totalValue = totalValueDec.toNumber();
 
   return allPositions.map((p) => {
-    const val = parseFinancial(p.current_value).toNumber();
+    const val = parseFinancial(p.current_value);
     return {
       investor_name:
         `${p.profile?.first_name || ""} ${p.profile?.last_name || ""}`.trim() ||
         p.profile?.email ||
         "Unknown",
       email: p.profile?.email || "",
-      balance: val,
-      ownership_pct: totalValue > 0 ? (val / totalValue) * 100 : 0,
+      balance: val.toString(),
+      ownership_pct: totalValue > 0 ? (val.toNumber() / totalValue) * 100 : 0,
       account_type: p.profile?.account_type || "investor",
     };
   });
