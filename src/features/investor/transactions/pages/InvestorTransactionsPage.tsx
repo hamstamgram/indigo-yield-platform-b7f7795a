@@ -14,8 +14,8 @@ import {
   SortableTableHead,
 } from "@/components/ui";
 import { Search, Receipt, Filter, Download } from "lucide-react";
-import { formatInvestorAmount } from "@/utils/assets";
-import { toNum } from "@/utils/numeric";
+import { formatAssetAmount } from "@/utils/assets";
+import { parseFinancial } from "@/utils/numeric";
 import { format } from "date-fns";
 import { useInvestorTransactionAssets, useInvestorTransactionsList } from "@/features/investor/transactions/hooks/useInvestorPortal";
 import { useSortableColumns } from "@/hooks";
@@ -106,16 +106,16 @@ export default function InvestorTransactionsPage() {
         </SortableTableHead>
       ),
       cell: (item: Record<string, unknown>) => {
-        const amount = toNum(item.amount as string | number);
+        const amount = parseFinancial(item.amount as string | number);
         return (
           <span
             className={cn(
               "font-mono font-bold text-lg",
-              amount >= 0 ? "text-yield" : "text-rose-400"
+              amount.gte(0) ? "text-yield" : "text-rose-400"
             )}
           >
-            {amount >= 0 ? "+" : ""}
-            {formatInvestorAmount(amount, String(item.asset))}
+            {amount.gte(0) ? "+" : ""}
+            {formatAssetAmount(amount.toString(), String(item.asset))}
           </span>
         );
       },
