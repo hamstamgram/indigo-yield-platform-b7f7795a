@@ -56,12 +56,13 @@ export function formatAssetWithSymbol(amount: number, symbol: string): string {
  */
 export function formatAssetValue(amount: number | string, symbol: string): string {
   const decimals = getAssetDecimals(symbol);
-  const numericAmount = typeof amount === "string" ? parseFinancial(amount).toNumber() : amount;
+  const dec = typeof amount === "string" ? parseFinancial(amount) : new Decimal(amount);
 
-  return numericAmount.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
+  // Use Decimal to get the exact fixed string, then add commas
+  const fixed = dec.toFixed(decimals);
+  const [whole, fraction = ""] = fixed.split(".");
+  const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fraction ? `${formattedWhole}.${fraction}` : formattedWhole;
 }
 
 /**
