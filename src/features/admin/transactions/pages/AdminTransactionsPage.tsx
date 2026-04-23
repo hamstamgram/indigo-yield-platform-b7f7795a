@@ -69,7 +69,6 @@ import { cn } from "@/lib/utils";
 import type { TransactionType, TransactionViewModel } from "@/types/domains/transaction";
 import { formatAssetValue } from "@/utils/formatters";
 import { parseFinancial } from "@/utils/financial";
-import { toNum } from "@/utils/numeric";
 import { ExportButton } from "@/components/common";
 import type { ExportColumn } from "@/utils/export/csv-export";
 
@@ -242,10 +241,10 @@ function TransactionHistoryContent({ embedded = false }: { embedded?: boolean })
   );
 
   const formatAmount = (amount: number | string, asset: string, type: string) => {
-    const numAmount = toNum(amount);
-    const isNegative = type === "WITHDRAWAL" || type === "FEE" || numAmount < 0;
+    const decAmount = parseFinancial(amount);
+    const isNegative = type === "WITHDRAWAL" || type === "FEE" || decAmount.lt(0);
     const sign = isNegative ? "-" : "+";
-    const formatted = formatAssetValue(Math.abs(numAmount), asset);
+    const formatted = formatAssetValue(decAmount.abs().toString(), asset);
     return `${sign}${formatted}`;
   };
 
