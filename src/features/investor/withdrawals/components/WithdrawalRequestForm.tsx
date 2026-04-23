@@ -7,7 +7,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { withdrawalRequestSchema, type WithdrawalRequestInput } from "@/lib/validation/schemas";
-import { toDecimal } from "@/utils/financial";
+import { toDecimal, parseFinancial } from "@/utils/financial";
 import { formatInvestorAmount } from "@/utils/assets";
 import {
   Button,
@@ -66,12 +66,12 @@ export function WithdrawalRequestForm({
 
   const availableBalance = positions.find((p) => p.asset_symbol === selectedAsset);
 
-  const hasValidAmount =
-    requestedAmount && !isNaN(Number(requestedAmount)) && Number(requestedAmount) > 0;
+  const reqAmt = parseFinancial(requestedAmount);
+  const hasValidAmount = requestedAmount && reqAmt.gt(0);
 
   const isAmountValid =
     availableBalance && hasValidAmount
-      ? toDecimal(requestedAmount).lessThanOrEqualTo(toDecimal(availableBalance.amount))
+      ? reqAmt.lte(parseFinancial(availableBalance.amount))
       : false;
 
   const isFullWithdrawal =
