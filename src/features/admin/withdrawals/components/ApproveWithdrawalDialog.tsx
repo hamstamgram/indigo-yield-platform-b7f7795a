@@ -25,7 +25,6 @@ import { Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Decimal from "decimal.js";
 import { parseFinancial } from "@/utils/financial";
-import { toNum } from "@/utils/numeric";
 
 interface ApproveWithdrawalDialogProps {
   open: boolean;
@@ -155,8 +154,8 @@ export function ApproveWithdrawalDialog({
       return;
     }
 
-    const amount = toNum(processedAmount);
-    if (isNaN(amount) || amount <= 0) {
+    const amount = parseFinancial(processedAmount);
+    if (amount.isNaN() || amount.lte(0)) {
       toast.error("Please enter a valid amount");
       return;
     }
