@@ -21,7 +21,6 @@ import {
 import { AlertTriangle, Loader2, Info, ChevronDown, ChevronRight } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { formatAssetValue } from "@/utils/formatters";
-import { parseFinancial } from "@/utils/financial";
 import type { TransactionViewModel } from "@/types/domains/transaction";
 import type { SelectionSummary } from "../hooks/useTransactionSelection";
 
@@ -37,7 +36,7 @@ interface BulkVoidDialogProps {
 function formatAmountBreakdown(amountsByAsset: Record<string, string>): string {
   return Object.entries(amountsByAsset)
     .map(
-      ([asset, amount]) => `${formatAssetValue(parseFinancial(amount).toNumber(), asset)} ${asset}`
+      ([asset, amount]) => `${formatAssetValue(amount, asset)} ${asset}`
     )
     .join(" + ");
 }
@@ -145,7 +144,7 @@ export function BulkVoidDialog({
                         <td className="px-3 py-1 max-w-[120px] truncate">{tx.investorName}</td>
                         <td className="px-3 py-1">{tx.displayType}</td>
                         <td className="px-3 py-1 text-right font-mono">
-                          {formatAssetValue(parseFinancial(tx.amount).toNumber(), tx.asset)}{" "}
+                          {formatAssetValue(tx.amount, tx.asset)}{" "}
                           {tx.asset}
                         </td>
                       </tr>
