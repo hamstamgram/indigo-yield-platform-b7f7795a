@@ -94,3 +94,4 @@ ios/
 **/setup-test-users*
 **/create-test-users*
 coverage/
+.gstack/
