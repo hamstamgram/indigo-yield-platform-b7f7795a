@@ -145,8 +145,8 @@ export function transformYieldDistributionRecord(
 export function toYieldDistributionInsert(
   record: Partial<YieldDistributionRecord>
 ): Partial<YieldDistributionInsert> {
-  const toNumOrUndefined = (v: string | null | undefined) =>
-    v != null ? parseFinancial(v).toNumber() : undefined;
+  const toStrOrUndefined = (v: string | null | undefined) =>
+    v != null ? parseFinancial(v).toString() : undefined;
   return {
     fund_id: record.fundId,
     effective_date: record.effectiveDate,
@@ -154,14 +154,14 @@ export function toYieldDistributionInsert(
     period_end: record.periodEnd,
     purpose: record.purpose,
     distribution_type: record.distributionType,
-    opening_aum: toNumOrUndefined(record.openingAum),
-    previous_aum: toNumOrUndefined(record.previousAum),
-    recorded_aum: toNumOrUndefined(record.recordedAum),
-    gross_yield: toNumOrUndefined(record.grossYield),
-    net_yield: toNumOrUndefined(record.netYield),
-    total_fees: toNumOrUndefined(record.totalFees),
-    total_ib: toNumOrUndefined(record.totalIb),
-    yield_percentage: toNumOrUndefined(record.yieldPercentage),
+    opening_aum: toStrOrUndefined(record.openingAum),
+    previous_aum: toStrOrUndefined(record.previousAum),
+    recorded_aum: toStrOrUndefined(record.recordedAum),
+    gross_yield: toStrOrUndefined(record.grossYield),
+    net_yield: toStrOrUndefined(record.netYield),
+    total_fees: toStrOrUndefined(record.totalFees),
+    total_ib: toStrOrUndefined(record.totalIb),
+    yield_percentage: record.yieldPercentage != null ? parseFinancial(record.yieldPercentage).toNumber() : undefined,
     investor_count: record.investorCount,
     is_month_end: record.isMonthEnd,
     reference_id: record.referenceId,

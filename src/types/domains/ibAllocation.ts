@@ -236,10 +236,10 @@ export function toIBAllocationInsert(
     purpose: allocation.purpose,
     source: allocation.source,
     source_net_income: allocation.sourceNetIncome
-      ? parseFinancial(allocation.sourceNetIncome).toNumber()
+      ? parseFinancial(allocation.sourceNetIncome).toString()
       : undefined,
     ib_percentage: allocation.ibPercentage ? parseFinancial(allocation.ibPercentage).toNumber() : undefined,
-    ib_fee_amount: allocation.ibFeeAmount ? parseFinancial(allocation.ibFeeAmount).toNumber() : undefined,
+    ib_fee_amount: allocation.ibFeeAmount ? parseFinancial(allocation.ibFeeAmount).toString() : undefined,
     payout_status: allocation.payoutStatus,
   };
 }
