@@ -36,13 +36,15 @@ export interface NumericInputProps extends Omit<InputProps, "value" | "onChange"
  * Format a number string with thousand separators
  */
 function formatWithCommas(value: string | number, decimals: number): string {
-  const num = typeof value === "string" ? toNum(value) : value;
-  if (isNaN(num)) return "";
+  const strValue = typeof value === "number" ? String(value) : value;
+  const dec = new Decimal(strValue || 0);
+  if (dec.isNaN()) return "";
 
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: decimals,
-  }).format(num);
+  // Use Decimal to get fixed string, then format with commas manually
+  const fixed = dec.toFixed(decimals);
+  const [whole, fraction = ""] = fixed.split(".");
+  const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return fraction ? `${formattedWhole}.${fraction}` : formattedWhole;
 }
 
 /**
