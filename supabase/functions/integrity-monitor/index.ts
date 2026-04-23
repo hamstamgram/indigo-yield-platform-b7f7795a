@@ -56,6 +56,25 @@ const INTEGRITY_CHECKS: IntegrityCheck[] = [
     severity: "warning",
     description: "Introducing broker allocations with consistency issues",
   },
+  // Void completeness checks (P0)
+  {
+    name: "Void Completeness",
+    query: `
+      WITH counts AS (
+        SELECT 'yield_allocations' as table_name, count(*) as c FROM yield_allocations WHERE is_voided = true AND voided_at IS NULL
+        UNION ALL SELECT 'ib_allocations', count(*) FROM ib_allocations WHERE is_voided = true AND voided_at IS NULL
+        UNION ALL SELECT 'ib_commission_ledger', count(*) FROM ib_commission_ledger WHERE is_voided = true AND voided_at IS NULL
+        UNION ALL SELECT 'investor_yield_events', count(*) FROM investor_yield_events WHERE is_voided = true AND voided_at IS NULL
+        UNION ALL SELECT 'platform_fee_ledger', count(*) FROM platform_fee_ledger WHERE is_voided = true AND voided_at IS NULL
+        UNION ALL SELECT 'fee_allocations', count(*) FROM fee_allocations WHERE is_voided = true AND voided_at IS NULL
+        UNION ALL SELECT 'fund_daily_aum', count(*) FROM fund_daily_aum WHERE is_voided = true AND voided_at IS NULL
+        UNION ALL SELECT 'transactions_v2', count(*) FROM transactions_v2 WHERE is_voided = true AND voided_at IS NULL
+      )
+      SELECT * FROM counts WHERE c > 0
+    `,
+    severity: "critical",
+    description: "Records marked voided but missing voided_at timestamp (half-voided state)",
+  },
   // Crystallization checks (P0)
   {
     name: "Crystallization Gaps",
