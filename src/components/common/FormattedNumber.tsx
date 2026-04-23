@@ -6,7 +6,7 @@
  */
 
 import { cn } from "@/lib/utils";
-import { toNum } from "@/utils/numeric";
+import { parseFinancial } from "@/utils/financial";
 import {
   formatAUM,
   formatAUMCompact,
@@ -54,20 +54,23 @@ export function FormattedNumber({
     return <span className={cn("text-muted-foreground", className)}>{placeholder}</span>;
   }
 
-  // Parse to number
-  const numValue = toNum(value);
+  // Parse to Decimal for precision
+  const dec = parseFinancial(value);
 
-  if (isNaN(numValue)) {
+  if (dec.isNaN()) {
     return <span className={cn("text-muted-foreground", className)}>{placeholder}</span>;
   }
 
   // Determine text color based on sign
   const getColorClass = () => {
     if (!colorize) return "";
-    if (numValue > 0) return "text-emerald-400";
-    if (numValue < 0) return "text-rose-400";
+    if (dec.gt(0)) return "text-emerald-400";
+    if (dec.isNegative()) return "text-rose-400";
     return "";
   };
+
+  // For display-only formatters (aum, token, percentage), native number is acceptable
+  const numValue = dec.toNumber();
 
   // Format based on type
   const formatValue = (): string => {
@@ -89,18 +92,21 @@ export function FormattedNumber({
         return formatPercentage(numValue, percentageDecimals, showSign);
 
       case "number":
-      default:
-        // Basic number formatting with thousand separators
-        const formatted = new Intl.NumberFormat("en-US", {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 8,
-        }).format(Math.abs(numValue));
+      default: {
+        // Basic number formatting with thousand separators — use Decimal for precision
+        const dec = parseFinancial(value);
+        const fixed = dec.abs().toFixed(8);
+        const [whole, fraction = ""] = fixed.split(".");
+        const formattedWhole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        const trimmedFraction = fraction.replace(/0+$/, "");
+        const formatted = trimmedFraction ? `${formattedWhole}.${trimmedFraction}` : formattedWhole;
 
-        const sign = showSign && colorize && numValue > 0 ? "+" : "";
-        const negSign = numValue < 0 ? "-" : "";
+        const sign = showSign && colorize && dec.gt(0) ? "+" : "";
+        const negSign = dec.isNegative() ? "-" : "";
         const suffix = showAsset && asset ? ` ${asset}` : "";
 
         return `${negSign}${sign}${formatted}${suffix}`;
+      }
     }
   };
 
