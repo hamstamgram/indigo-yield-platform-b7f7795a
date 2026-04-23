@@ -15,7 +15,7 @@ import { withdrawalService } from "@/services/investor";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { logError } from "@/lib/logger";
-import { toNum } from "@/utils/numeric";
+import { formatAssetAmount } from "@/utils/assets";
 
 interface RejectWithdrawalDialogProps {
   open: boolean;
@@ -75,10 +75,7 @@ export function RejectWithdrawalDialog({
             <div>
               <Label className="text-sm font-medium">Requested Amount</Label>
               <p className="text-sm text-muted-foreground">
-                {toNum(withdrawal.requested_amount).toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 8,
-                })}{" "}
+                {formatAssetAmount(withdrawal.requested_amount, withdrawal.asset || "")}{" "}
                 {withdrawal.asset || "tokens"}
               </p>
             </div>
