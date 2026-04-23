@@ -2,23 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui";
 import { WithdrawalStats } from "@/types/domains";
 import { CheckCircle2, Clock, Coins, XCircle } from "lucide-react";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { toNum } from "@/utils/numeric";
+import { formatAssetAmount } from "@/utils/assets";
 
 interface WithdrawalStatsProps {
   stats: WithdrawalStats;
   isLoading: boolean;
 }
 
-// Format amount based on asset type (4 decimals for crypto, 2 for stablecoins)
-function formatAssetAmount(amount: string | number, asset: string): string {
-  const numAmount = toNum(amount);
-  const stablecoins = ["USDT", "USDC", "EURC"];
-  const decimals = stablecoins.includes(asset.toUpperCase()) ? 2 : 4;
-  return numAmount.toLocaleString(undefined, {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-}
 
 export function WithdrawalStatsComponent({ stats, isLoading }: WithdrawalStatsProps) {
   const statCards = [

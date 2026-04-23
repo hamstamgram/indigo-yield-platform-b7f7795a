@@ -193,10 +193,10 @@ export function mapFundToDb(fund: Partial<Fund>): Record<string, unknown> {
     result.perf_fee_bps = fund.perf_fee_bps != null ? Number(fund.perf_fee_bps) : null;
   }
   if ("min_investment" in fund) {
-    result.min_investment = fund.min_investment != null ? Number(fund.min_investment) : null;
+    result.min_investment = fund.min_investment != null ? String(fund.min_investment) : null;
   }
   if ("high_water_mark" in fund) {
-    result.high_water_mark = fund.high_water_mark != null ? Number(fund.high_water_mark) : null;
+    result.high_water_mark = fund.high_water_mark != null ? String(fund.high_water_mark) : null;
   }
   if ("lock_period_days" in fund) {
     result.lock_period_days = fund.lock_period_days;

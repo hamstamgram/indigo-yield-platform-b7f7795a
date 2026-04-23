@@ -17,6 +17,7 @@ import {
 } from "@/components/ui";
 import { Loader2, Trash2, AlertTriangle } from "lucide-react";
 import { useWithdrawalMutations } from "@/features/admin/withdrawals/hooks/useWithdrawalMutations";
+import { formatAssetAmount } from "@/utils/assets";
 
 interface DeleteWithdrawalDialogProps {
   open: boolean;
@@ -98,7 +99,7 @@ export function DeleteWithdrawalDialog({
                     <p>
                       <span className="text-muted-foreground">Amount:</span>{" "}
                       <span className="font-medium text-foreground">
-                        {amount.toLocaleString()} {asset.toUpperCase()}
+                        {formatAssetAmount(amount, asset)} {asset.toUpperCase()}
                       </span>
                     </p>
                     <p>

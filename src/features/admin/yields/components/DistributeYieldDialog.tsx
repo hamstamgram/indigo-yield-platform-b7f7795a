@@ -157,7 +157,7 @@ export function DistributeYieldDialog({
                     className="text-xl font-bold tabular-nums tracking-tight"
                     style={{ color: "hsl(var(--yield-neon))" }}
                   >
-                    +{formatValue(toNum(grossYield), asset)} {asset}
+                    +{formatValue(grossYield, asset)} {asset}
                   </span>
                 </div>
                 {netYield && (
@@ -165,7 +165,7 @@ export function DistributeYieldDialog({
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground font-medium">Net Yield</span>
                       <span className="text-sm font-mono font-bold text-white">
-                        {formatValue(toNum(netYield), asset)} {asset}
+                        {formatValue(netYield, asset)} {asset}
                       </span>
                     </div>
                     {/* Math Reconciliation breakdown */}
@@ -176,7 +176,7 @@ export function DistributeYieldDialog({
                             + IB Fees
                           </span>
                           <span className="text-[11px] font-mono text-purple-400">
-                            {formatValue(toNum(totalIbFees), asset)} {asset}
+                            {formatValue(totalIbFees, asset)} {asset}
                           </span>
                         </div>
                       )}
@@ -186,7 +186,7 @@ export function DistributeYieldDialog({
                             + INDIGO Fees
                           </span>
                           <span className="text-[11px] font-mono text-indigo-400">
-                            {formatValue(toNum(totalFees), asset)} {asset}
+                            {formatValue(totalFees, asset)} {asset}
                           </span>
                         </div>
                       )}
@@ -196,25 +196,25 @@ export function DistributeYieldDialog({
                           = Gross Yield
                         </span>
                         <span className="text-[11px] font-mono font-bold text-indigo-300">
-                          {formatValue(toNum(grossYield), asset)} {asset}
+                          {formatValue(grossYield, asset)} {asset}
                         </span>
                       </div>
                     </div>
                   </div>
                 )}
-                {totalFees && toNum(totalFees) > 0 && (
+                {totalFees && parseFinancial(totalFees).gt(0) && (
                   <div className="flex items-center justify-between px-4 py-2.5">
                     <span className="text-sm text-muted-foreground">INDIGO Fees Credit</span>
                     <span className="text-sm font-mono text-slate-300">
-                      {formatValue(toNum(totalFees), asset)} {asset}
+                      {formatValue(totalFees, asset)} {asset}
                     </span>
                   </div>
                 )}
-                {totalIbFees && toNum(totalIbFees) > 0 && (
+                {totalIbFees && parseFinancial(totalIbFees).gt(0) && (
                   <div className="flex items-center justify-between px-4 py-2.5">
                     <span className="text-sm text-muted-foreground">IB Fees</span>
                     <span className="text-sm font-mono text-purple-400">
-                      {formatValue(toNum(totalIbFees), asset)} {asset}
+                      {formatValue(totalIbFees, asset)} {asset}
                     </span>
                   </div>
                 )}
@@ -255,7 +255,7 @@ export function DistributeYieldDialog({
                 <div className="flex items-center justify-between px-4 py-3 bg-indigo-500/10 border-t border-indigo-500/20">
                   <span className="text-sm font-semibold text-white">Ending Balance</span>
                   <span className="text-lg font-bold text-white tabular-nums">
-                    {formatValue(Number(new Decimal(asOfAum || 0).plus(new Decimal(grossYield || 0)).toString()), asset)} {asset}
+                    {formatValue(new Decimal(asOfAum || 0).plus(new Decimal(grossYield || 0)).toString(), asset)} {asset}
                   </span>
                 </div>
               </div>
@@ -366,7 +366,7 @@ export function DistributeYieldDialog({
               <div className="text-center">
                 <p className="text-white font-semibold text-lg">Distribution complete</p>
                 <p className="text-muted-foreground text-sm mt-1">
-                  {formatValue(toNum(grossYield), asset)} {asset} distributed to {investorCount} investor
+                  {formatValue(grossYield, asset)} {asset} distributed to {investorCount} investor
                   {investorCount !== 1 ? "s" : ""}
                 </p>
               </div>

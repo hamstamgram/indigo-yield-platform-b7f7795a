@@ -5,7 +5,6 @@ import { format } from "date-fns";
 import { applyYieldDistribution } from "@/features/admin/yields/services/yields";
 import { QUERY_KEYS, YIELD_RELATED_KEYS } from "@/constants/queryKeys";
 import { formatAUM } from "@/utils/formatters";
-import { parseFinancial } from "@/utils/financial";
 import type { YieldPurpose } from "./useYieldPeriod";
 
 export function useYieldSubmission() {
@@ -73,14 +72,11 @@ export function useYieldSubmission() {
         );
 
         const asset = selectedFund.asset;
-        const grossYieldNum =
-          typeof applyResult.grossYield === "string"
-            ? parseFinancial(applyResult.grossYield).toNumber()
-            : applyResult.grossYield;
+        const grossYieldStr = String(applyResult.grossYield ?? 0);
         const appliedInvestorCount = applyResult.investorCount ?? yieldPreview.investorCount;
 
         toast.success(
-          `Distributed ${formatAUM(grossYieldNum, asset)} ${asset} to ${appliedInvestorCount} investors (${yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`
+          `Distributed ${formatAUM(grossYieldStr, asset)} ${asset} to ${appliedInvestorCount} investors (${yieldPurpose === "reporting" ? "Reporting" : "Transaction"} purpose).`
         );
 
         // Update preview with actual result so the dialog success phase shows correct numbers

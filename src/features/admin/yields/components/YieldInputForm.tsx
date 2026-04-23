@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
 import { toNum } from "@/utils/numeric";
+import { parseFinancial } from "@/utils/financial";
 import { type YieldPurpose, type Fund } from "@/features/admin/yields/hooks/useYieldOperationsState";
 
 interface ReconciliationData {
@@ -49,7 +50,7 @@ interface YieldInputFormProps {
   handlePreviewYield: () => void;
   previewLoading: boolean;
   hasPreview: boolean;
-  formatValue: (value: number, asset: string) => string;
+  formatValue: (value: string | number, asset: string) => string;
   reconciliation?: ReconciliationData | null;
   pendingEvents?: PendingEvents | null;
   // Historical AUM as-of the selected date
@@ -299,13 +300,13 @@ export function YieldInputForm({
             <p
               className={cn(
                 "text-xs",
-                toNum(yieldAmount) < 0 ? "text-red-500" : "text-muted-foreground"
+                parseFinancial(yieldAmount).isNegative() ? "text-red-500" : "text-muted-foreground"
               )}
             >
-              Yield: {toNum(yieldAmount) >= 0 ? "+" : ""}
-              {selectedFund && formatValue(toNum(yieldAmount) || 0, selectedFund.asset)}{" "}
+              Yield: {parseFinancial(yieldAmount).isNegative() ? "" : "+"}
+              {selectedFund && formatValue(yieldAmount || 0, selectedFund.asset)}{" "}
               {selectedFund?.asset}
-              {toNum(yieldAmount) < 0 && " (loss month - fees waived)"}
+              {parseFinancial(yieldAmount).isNegative() && " (loss month - fees waived)"}
             </p>
           )}
         </div>

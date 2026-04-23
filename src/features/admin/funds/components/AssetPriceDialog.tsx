@@ -27,7 +27,7 @@ import type { Asset, AssetPrice, AssetPriceFormData } from "@/types/asset";
 import { format } from "date-fns";
 import { TrendingUp, DollarSign } from "lucide-react";
 import { invalidateAfterAssetOp } from "@/utils/cacheInvalidation";
-import { toNum } from "@/utils/numeric";
+import { formatFinancialDisplay } from "@/utils/financial";
 
 interface AssetPriceDialogProps {
   asset: Asset;
@@ -87,17 +87,17 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">${latestPrice.price_usd.toLocaleString()}</div>
+                <div className="text-3xl font-bold">${formatFinancialDisplay(String(latestPrice.price_usd), 2)}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   As of {format(new Date(latestPrice.as_of), "MMM d, yyyy h:mm a")}
                 </p>
                 {latestPrice.high_24h && latestPrice.low_24h && (
                   <div className="flex items-center gap-4 mt-2 text-sm">
                     <span className="text-muted-foreground">
-                      24h High: ${latestPrice.high_24h.toLocaleString()}
+                      24h High: ${formatFinancialDisplay(String(latestPrice.high_24h), 2)}
                     </span>
                     <span className="text-muted-foreground">
-                      24h Low: ${latestPrice.low_24h.toLocaleString()}
+                      24h Low: ${formatFinancialDisplay(String(latestPrice.low_24h), 2)}
                     </span>
                   </div>
                 )}
@@ -128,7 +128,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                         onChange={(e) =>
                           setPriceData({
                             ...priceData,
-                            price_usd: toNum(e.target.value),
+                            price_usd: e.target.value,
                           })
                         }
                         required
@@ -156,7 +156,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                         onChange={(e) =>
                           setPriceData({
                             ...priceData,
-                            high_24h: e.target.value ? toNum(e.target.value) : undefined,
+                            high_24h: e.target.value || undefined,
                           })
                         }
                       />
@@ -172,7 +172,7 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                         onChange={(e) =>
                           setPriceData({
                             ...priceData,
-                            low_24h: e.target.value ? toNum(e.target.value) : undefined,
+                            low_24h: e.target.value || undefined,
                           })
                         }
                       />
@@ -227,13 +227,13 @@ export function AssetPriceDialog({ asset, open, onOpenChange }: AssetPriceDialog
                             {format(new Date(price.as_of), "MMM d, yyyy h:mm a")}
                           </TableCell>
                           <TableCell className="font-semibold">
-                            ${price.price_usd.toLocaleString()}
+                            ${formatFinancialDisplay(String(price.price_usd), 2)}
                           </TableCell>
                           <TableCell>
-                            {price.high_24h ? `$${price.high_24h.toLocaleString()}` : "—"}
+                            {price.high_24h ? `$${formatFinancialDisplay(String(price.high_24h), 2)}` : "—"}
                           </TableCell>
                           <TableCell>
-                            {price.low_24h ? `$${price.low_24h.toLocaleString()}` : "—"}
+                            {price.low_24h ? `$${formatFinancialDisplay(String(price.low_24h), 2)}` : "—"}
                           </TableCell>
                           <TableCell>{price.source}</TableCell>
                         </TableRow>

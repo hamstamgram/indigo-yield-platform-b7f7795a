@@ -23,10 +23,11 @@ import {
 } from "@/components/ui";
 import { Calculator, TrendingUp, ArrowRight, Zap } from "lucide-react";
 import { toast } from "sonner";
+import Decimal from "decimal.js";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import { useFundsWithAUM } from "@/features/admin/dashboard/hooks/useDashboardQueries";
 import { useFunds } from "@/hooks/data/shared/useFunds";
-import { toNum } from "@/utils/numeric";
+import { parseFinancial, formatFinancialDisplay } from "@/utils/financial";
 
 export function QuickYieldEntry() {
   const navigate = useNavigate();
@@ -45,14 +46,15 @@ export function QuickYieldEntry() {
 
   const calculateYield = () => {
     if (!selectedFundData || !newAUM) return null;
-    const newAUMNum = toNum(newAUM);
-    if (isNaN(newAUMNum) || newAUMNum === 0) return null;
+    const newAUMDec = parseFinancial(newAUM);
+    if (newAUMDec.isZero()) return null;
 
-    // Convert currentAUM from string to number for arithmetic
-    const currentAUMNum = toNum(selectedFundData.currentAUM || 0);
+    const currentAUMDec = parseFinancial(selectedFundData.currentAUM || 0);
 
-    const yieldAmount = newAUMNum - currentAUMNum;
-    const yieldPct = currentAUMNum > 0 ? (yieldAmount / currentAUMNum) * 100 : 0;
+    const yieldAmount = newAUMDec.minus(currentAUMDec);
+    const yieldPct = currentAUMDec.isZero()
+      ? 0
+      : yieldAmount.dividedBy(currentAUMDec).times(100).toNumber();
 
     return {
       amount: yieldAmount,
@@ -72,12 +74,8 @@ export function QuickYieldEntry() {
     navigate(`/admin/yield-history?fund=${selectedFund}&aum=${newAUM}`);
   };
 
-  const formatCrypto = (value: string | number, decimals: number = 4) => {
-    const numValue = toNum(value);
-    return new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    }).format(numValue);
+  const formatCrypto = (value: string | number | Decimal, decimals: number = 4) => {
+    return formatFinancialDisplay(String(value), decimals);
   };
 
   return (
@@ -165,10 +163,10 @@ export function QuickYieldEntry() {
                     <p className="text-xs text-muted-foreground">Amount</p>
                     <p
                       className={`text-lg font-mono font-bold ${
-                        yieldCalc.amount >= 0 ? "text-yield" : "text-rose-400"
+                        !yieldCalc.amount.isNegative() ? "text-yield" : "text-rose-400"
                       }`}
                     >
-                      {yieldCalc.amount >= 0 ? "+" : ""}
+                      {!yieldCalc.amount.isNegative() ? "+" : ""}
                       {formatCrypto(yieldCalc.amount)}
                     </p>
                   </div>

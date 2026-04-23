@@ -5,7 +5,7 @@
 
 import { format } from "date-fns";
 import { logError } from "@/lib/logger";
-import { parseFinancial } from "@/utils/financial";
+import { parseFinancial, formatFinancialDisplay } from "@/utils/financial";
 import Decimal from "decimal.js";
 
 /**
@@ -13,11 +13,11 @@ import Decimal from "decimal.js";
  * Accepts string or number for NUMERIC precision compatibility
  */
 export function formatFeeAmount(amount: string | number | Decimal, asset: string): string {
-  const num = (amount instanceof Decimal ? amount : parseFinancial(amount)).toNumber();
-  if (asset === "BTC") {
-    return num.toLocaleString("en-US", { minimumFractionDigits: 6, maximumFractionDigits: 8 });
-  }
-  return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+  const decimals = asset === "BTC" ? 8 : 6;
+  return formatFinancialDisplay(
+    amount instanceof Decimal ? amount.toString() : String(amount),
+    decimals
+  );
 }
 
 /**

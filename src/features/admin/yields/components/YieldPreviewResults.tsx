@@ -25,14 +25,14 @@ import { CheckCircle, Building2, AlertTriangle, Layers, ChevronRight } from "luc
 import { cn } from "@/lib/utils";
 import { type YieldCalculationResult, type YieldDistribution } from "@/features/admin/yields/services/yields";
 import { isSystemAccount as checkSystemAccount } from "@/utils/accountUtils";
-import { toNum } from "@/utils/numeric";
+import { parseFinancial } from "@/utils/financial";
 import Decimal from "decimal.js";
 import React from "react";
 
 interface YieldPreviewResultsProps {
   yieldPreview: YieldCalculationResult;
   selectedFund: { asset: string } | null;
-  formatValue: (value: number, asset: string) => string;
+  formatValue: (value: string | number, asset: string) => string;
   showSystemAccounts: boolean;
   setShowSystemAccounts: (show: boolean) => void;
   showOnlyChanged: boolean;
@@ -66,10 +66,10 @@ export function YieldPreviewResults({
     yieldPreview.calculationMethod === "unified_v6";
 
   // The true Total Gross Yield is the sum of ALL allocations (including system fee accounts) + any dust
-  const trueTotalGrossDecimal = yieldPreview.distributions
+  const trueTotalGross = yieldPreview.distributions
     .reduce((acc, inv) => acc.plus(new Decimal(inv.grossYield || 0)), new Decimal(0))
-    .plus(new Decimal((yieldPreview as any).dustAmount || 0));
-  const trueTotalGross = trueTotalGrossDecimal.toNumber();
+    .plus(new Decimal((yieldPreview as any).dustAmount || 0))
+    .toString();
 
   return (
     <div className="p-4 border rounded-lg bg-muted/20 space-y-4">
@@ -109,12 +109,12 @@ export function YieldPreviewResults({
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {/* Opening AUM */}
-        {yieldPreview.openingAum && toNum(yieldPreview.openingAum) > 0 && (
+        {yieldPreview.openingAum && parseFinancial(yieldPreview.openingAum).gt(0) && (
           <Card className="border-slate-200 bg-slate-950/20">
             <CardContent className="p-3 text-center">
               <p className="text-xs text-muted-foreground">Opening AUM</p>
               <p className="text-lg font-mono font-semibold">
-                {formatValue(toNum(yieldPreview.openingAum), asset)}
+                {formatValue(yieldPreview.openingAum, asset)}
               </p>
             </CardContent>
           </Card>
@@ -125,7 +125,7 @@ export function YieldPreviewResults({
             <p
               className={cn(
                 "text-lg font-mono font-bold",
-                toNum(yieldPreview.grossYield) >= 0 ? "text-yield" : "text-rose-400"
+                !parseFinancial(yieldPreview.grossYield).isNegative() ? "text-yield" : "text-rose-400"
               )}
             >
               {trueTotalGross >= 0 ? "+" : ""}
@@ -137,7 +137,7 @@ export function YieldPreviewResults({
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">INDIGO Fees Credit</p>
             <p className="text-lg font-mono font-semibold text-indigo-400">
-              {formatValue(toNum(yieldPreview.totalFees), asset)}
+              {formatValue(yieldPreview.totalFees, asset)}
             </p>
           </CardContent>
         </Card>
@@ -145,7 +145,7 @@ export function YieldPreviewResults({
           <CardContent className="p-3 text-center">
             <p className="text-xs text-muted-foreground">IB Fees</p>
             <p className="text-lg font-mono font-semibold text-purple-600">
-              {formatValue(toNum(yieldPreview.totalIbFees ?? 0), asset)}
+              {formatValue(yieldPreview.totalIbFees ?? 0, asset)}
             </p>
           </CardContent>
         </Card>
@@ -155,11 +155,11 @@ export function YieldPreviewResults({
             <p
               className={cn(
                 "text-lg font-mono font-bold",
-                toNum(yieldPreview.netYield) >= 0 ? "text-primary" : "text-rose-400"
+                !parseFinancial(yieldPreview.netYield).isNegative() ? "text-primary" : "text-rose-400"
               )}
             >
-              {toNum(yieldPreview.netYield) >= 0 ? "+" : ""}
-              {formatValue(toNum(yieldPreview.netYield), asset)}
+              {!parseFinancial(yieldPreview.netYield).isNegative() ? "+" : ""}
+              {formatValue(yieldPreview.netYield, asset)}
             </p>
           </CardContent>
         </Card>
@@ -256,21 +256,21 @@ export function YieldPreviewResults({
                       <div>
                         <span
                           className={cn(
-                            toNum(inv.grossYield) >= 0 ? "text-yield/80" : "text-rose-500/80"
+                            !parseFinancial(inv.grossYield).isNegative() ? "text-yield/80" : "text-rose-500/80"
                           )}
                         >
-                          {toNum(inv.grossYield) >= 0 ? "+" : ""}
-                          {formatValue(toNum(inv.grossYield), asset)} {asset}
+                          {!parseFinancial(inv.grossYield).isNegative() ? "+" : ""}
+                          {formatValue(inv.grossYield, asset)} {asset}
                         </span>
                         {inv.mtdGross !== undefined && (
                           <div
                             className={cn(
                               "font-bold mt-0.5",
-                              toNum(inv.mtdGross) >= 0 ? "text-yield" : "text-rose-400"
+                              !parseFinancial(inv.mtdGross).isNegative() ? "text-yield" : "text-rose-400"
                             )}
                           >
-                            {toNum(inv.mtdGross) >= 0 ? "+" : ""}
-                            {formatValue(toNum(inv.mtdGross), asset)} MTD
+                            {!parseFinancial(inv.mtdGross).isNegative() ? "+" : ""}
+                            {formatValue(inv.mtdGross, asset)} MTD
                           </div>
                         )}
                       </div>
@@ -280,56 +280,56 @@ export function YieldPreviewResults({
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">
                       <div className="text-muted-foreground/80">
-                        {toNum(inv.feeAmount) > 0
-                          ? `-${formatValue(toNum(inv.feeAmount), asset)}`
+                        {parseFinancial(inv.feeAmount).gt(0)
+                          ? `-${formatValue(inv.feeAmount, asset)}`
                           : "\u2014"}
                       </div>
-                      {inv.mtdFee !== undefined && toNum(inv.mtdFee) > 0 && (
+                      {inv.mtdFee !== undefined && parseFinancial(inv.mtdFee).gt(0) && (
                         <div className="font-bold text-muted-foreground mt-0.5">
-                          -{formatValue(toNum(inv.mtdFee), asset)} MTD
+                          -{formatValue(inv.mtdFee, asset)} MTD
                         </div>
                       )}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">
                       <div
                         className={cn(
-                          toNum(inv.netYield) >= 0 ? "text-foreground/80" : "text-rose-400/80"
+                          !parseFinancial(inv.netYield).isNegative() ? "text-foreground/80" : "text-rose-400/80"
                         )}
                       >
-                        {toNum(inv.netYield) >= 0 ? "+" : ""}
-                        {formatValue(toNum(inv.netYield), asset)}
+                        {!parseFinancial(inv.netYield).isNegative() ? "+" : ""}
+                        {formatValue(inv.netYield, asset)}
                       </div>
                       {inv.mtdNet !== undefined && (
                         <div
                           className={cn(
                             "font-bold mt-0.5",
-                            toNum(inv.mtdNet) >= 0 ? "text-foreground" : "text-rose-400"
+                            !parseFinancial(inv.mtdNet).isNegative() ? "text-foreground" : "text-rose-400"
                           )}
                         >
-                          {toNum(inv.mtdNet) >= 0 ? "+" : ""}
-                          {formatValue(toNum(inv.mtdNet), asset)} MTD
+                          {!parseFinancial(inv.mtdNet).isNegative() ? "+" : ""}
+                          {formatValue(inv.mtdNet, asset)} MTD
                         </div>
                       )}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">
-                      {inv.ibPercentage && toNum(inv.ibPercentage) > 0
+                      {inv.ibPercentage && parseFinancial(inv.ibPercentage).gt(0)
                         ? `${inv.ibPercentage}%`
                         : "\u2014"}
                     </TableCell>
                     <TableCell className="text-right font-mono text-xs">
                       <div className="text-purple-600/80">
-                        {toNum(inv.ibAmount) > 0
-                          ? `-${formatValue(toNum(inv.ibAmount), asset)}`
+                        {parseFinancial(inv.ibAmount).gt(0)
+                          ? `-${formatValue(inv.ibAmount, asset)}`
                           : "\u2014"}
                       </div>
-                      {inv.mtdIb !== undefined && toNum(inv.mtdIb) > 0 && (
+                      {inv.mtdIb !== undefined && parseFinancial(inv.mtdIb).gt(0) && (
                         <div className="font-bold text-purple-600 mt-0.5">
-                          -{formatValue(toNum(inv.mtdIb), asset)} MTD
+                          -{formatValue(inv.mtdIb, asset)} MTD
                         </div>
                       )}
                     </TableCell>
                     <TableCell className="text-right font-mono font-bold text-sm bg-muted/30">
-                      {formatValue(Number(new Decimal(inv.openingBalance || 0).plus(new Decimal(inv.netYield || 0)).toString()), asset)}
+                      {formatValue(new Decimal(inv.openingBalance || 0).plus(new Decimal(inv.netYield || 0)).toString(), asset)}
                     </TableCell>
                   </TableRow>
                 </React.Fragment>

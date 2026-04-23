@@ -54,12 +54,12 @@ export async function applyYieldDistribution(
   const parsedOpeningAum = baseAUM ? parseFinancial(baseAUM) : null;
   const openingAumValue =
     parsedOpeningAum && !parsedOpeningAum.isNaN() && parsedOpeningAum.gt(0)
-      ? parsedOpeningAum.toNumber()
+      ? parsedOpeningAum.toString()
       : undefined;
   const { data, error } = await callRPC("apply_segmented_yield_distribution_v5", {
     p_fund_id: fundId,
     p_period_end: formatDateForDB(periodEndDate),
-    p_recorded_aum: parsedAum.toNumber(),
+    p_recorded_aum: parsedAum.toString(),
     p_admin_id: adminId,
     p_purpose: purpose,
     p_distribution_date: formatDateForDB(effectiveDistDate),

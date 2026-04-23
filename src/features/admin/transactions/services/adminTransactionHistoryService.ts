@@ -285,7 +285,7 @@ async function voidAndReissueTransaction(
   // Use the canonical 7-parameter signature exactly
   const { data, error } = await rpc.call("void_and_reissue_transaction", {
     p_original_tx_id: params.transactionId,
-    p_new_amount: parseFinancial(params.newValues.amount).toNumber(),
+    p_new_amount: parseFinancial(params.newValues.amount).toString(),
     p_new_date: params.newValues.tx_date,
     p_reason: params.reason,
     p_admin_id: user.id,
@@ -585,7 +585,7 @@ async function voidAndReissueFullExit(params: {
 
   const { data, error } = await rpc.call("void_and_reissue_full_exit", {
     p_transaction_id: params.transactionId,
-    p_new_amount: parseFinancial(params.newAmount).toNumber(),
+    p_new_amount: parseFinancial(params.newAmount).toString(),
     p_admin_id: user.id,
     p_reason: params.reason,
     p_new_date: params.newDate || undefined,

@@ -109,19 +109,19 @@ export function YieldConfirmDialog({
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Gross Yield:</span>
                   <span className="font-mono font-medium text-yield">
-                    +{formatValue(toNum(yieldPreview?.grossYield ?? 0), asset)} {asset}
+                    +{formatValue(yieldPreview?.grossYield ?? 0, asset)} {asset}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">INDIGO Fees Credit:</span>
                   <span className="font-mono">
-                    {formatValue(toNum(yieldPreview?.totalFees ?? 0), asset)} {asset}
+                    {formatValue(yieldPreview?.totalFees ?? 0, asset)} {asset}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">IB Fees:</span>
                   <span className="font-mono text-purple-600">
-                    {formatValue(toNum(yieldPreview?.totalIbFees ?? 0), asset)} {asset}
+                    {formatValue(yieldPreview?.totalIbFees ?? 0, asset)} {asset}
                   </span>
                 </div>
                 <div className="flex justify-between">

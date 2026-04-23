@@ -7,8 +7,8 @@ export interface FundWithAUM {
   id: string;
   name: string;
   asset: string;
-  /** Current AUM - may come as number from DB */
-  currentAUM: string | number;
+  /** Current AUM - always string for NUMERIC(38,18) precision */
+  currentAUM: string;
 }
 
 export interface ActivityItem {

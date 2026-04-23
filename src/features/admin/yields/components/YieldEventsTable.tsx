@@ -5,7 +5,6 @@
 
 import { useState, useMemo } from "react";
 import { parseFinancial } from "@/utils/financial";
-import { toNum } from "@/utils/numeric";
 import { CryptoIcon } from "@/components/CryptoIcons";
 import {
   Card,
@@ -89,7 +88,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
     const visible = filteredEvents.length;
     const totalYield = filteredEvents
       .reduce((sum, e) => sum.plus(parseFinancial(e.net_yield_amount || 0)), parseFinancial(0))
-      .toNumber();
+      .toString();
     return { pending, visible, total: filteredEvents.length, totalYield };
   }, [filteredEvents]);
 
@@ -324,7 +323,7 @@ export function YieldEventsTable({ initialFundId, className }: YieldEventsTableP
                     </TableCell>
                     <TableCell className="text-right text-muted-foreground tabular-nums py-1.5">
                       <FormattedNumber
-                        value={-toNum(event.fee_amount)}
+                        value={parseFinancial(event.fee_amount).negated().toString()}
                         type="number"
                       />
                     </TableCell>

@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { toNum } from "@/utils/numeric";
 import { useYieldOperationsState } from "@/features/admin/yields/hooks/useYieldOperationsState";
 import { YieldInputForm } from "@/features/admin/yields/components/YieldInputForm";
 import { YieldPreviewResults } from "@/features/admin/yields/components/YieldPreviewResults";

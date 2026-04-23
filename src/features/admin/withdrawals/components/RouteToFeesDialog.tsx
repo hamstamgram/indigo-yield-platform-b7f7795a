@@ -15,6 +15,7 @@ import {
 import { Loader2, ArrowRightLeft } from "lucide-react";
 import { useWithdrawalMutations } from "@/features/admin/withdrawals/hooks/useWithdrawalMutations";
 import { useAuth } from "@/services/auth";
+import { formatAssetAmount } from "@/utils/assets";
 
 interface RouteToFeesDialogProps {
   open: boolean;
@@ -81,7 +82,7 @@ export function RouteToFeesDialog({
               <p>
                 <span className="text-muted-foreground">Amount:</span>{" "}
                 <span className="font-medium">
-                  {amount.toLocaleString()} {asset.toUpperCase()}
+                  {formatAssetAmount(amount, asset)} {asset.toUpperCase()}
                 </span>
               </p>
               <p>

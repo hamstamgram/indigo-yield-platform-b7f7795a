@@ -255,7 +255,7 @@ export function useYieldOperationsState() {
     reconResult,
     reconLoading,
     getFilteredDistributions,
-    formatValue: (value: number, asset: string) => formatAUM(value, asset),
+    formatValue: (value: string | number, asset: string) => formatAUM(value, asset),
     refetchFunds,
 
     // Exposed actions

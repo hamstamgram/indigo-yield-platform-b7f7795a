@@ -47,8 +47,8 @@ export function EditYieldDialog({
   };
 
   const parsedNewAumDec = getParsedAum();
-  const parsedNewAum = parsedNewAumDec.toNumber();
-  
+  const parsedNewAum = parsedNewAumDec.toString();
+
   const isValidAum = parsedNewAumDec.gt(0);
   const isValidReason = reason.trim().length >= 5;
   const hasChanged = record && !parsedNewAumDec.equals(new Decimal(record.total_aum));
@@ -56,7 +56,7 @@ export function EditYieldDialog({
 
   const handleSave = async () => {
     if (!isValid) return;
-    // We pass the string to maintain max precision in the mutation
+    // Pass the string to maintain max precision in the mutation
     await onSave(parsedNewAum, reason.trim());
   };
 

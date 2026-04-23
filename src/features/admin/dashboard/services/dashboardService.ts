@@ -6,7 +6,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 import { format } from "date-fns";
-import { toNum } from "@/utils/numeric";
+import { formatFinancialDisplay } from "@/utils/financial";
 import type { FundWithAUM, ActivityItem, PendingItem } from "@/types/domains";
 
 /**
@@ -30,7 +30,7 @@ export async function fetchFundsWithAUM(fundIds: string[]): Promise<FundWithAUM[
       id: f.fund_id,
       name: f.fund_name,
       asset: f.asset,
-      currentAUM: toNum(f.total_aum),
+      currentAUM: String(f.total_aum),
     }));
 }
 
@@ -175,7 +175,7 @@ export async function fetchPendingItems(): Promise<PendingItem[]> {
       type: "withdrawal",
       title: `Withdrawal Request`,
       subtitle: `${investorName} - ${w.fund?.name || "Unknown Fund"}`,
-      amount: `${w.requested_amount?.toFixed(4)} ${w.fund?.asset || ""}`,
+      amount: `${formatFinancialDisplay(String(w.requested_amount || 0), 4)} ${w.fund?.asset || ""}`,
       timestamp: new Date(w.request_date),
       priority: "high",
     });

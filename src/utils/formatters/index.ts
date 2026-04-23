@@ -136,25 +136,33 @@ function getAUMDecimals(asset: string): AUMDecimalConfig {
 /**
  * Format AUM value with consistent decimals based on asset type
  */
-export function formatAUM(value: number, asset: string, options: FormatOptions = {}): string {
-  if (!value && value !== 0) return "0";
+export function formatAUM(value: string | number, asset: string, options: FormatOptions = {}): string {
+  const dec = parseFinancial(value);
+  if (dec.isZero()) return "0";
 
   // Safety check for missing asset
   if (!asset) {
-    return new Intl.NumberFormat("en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
+    const formatted = dec.toFixed(2);
+    const parts = formatted.split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.join(".");
   }
 
   const { min, max } = getAUMDecimals(asset);
   const effectiveMax = options.maxDecimals !== undefined ? options.maxDecimals : max;
   const effectiveMin = Math.min(min, effectiveMax);
 
-  const formatted = new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: effectiveMin,
-    maximumFractionDigits: effectiveMax,
-  }).format(value);
+  const fixed = dec.toFixed(effectiveMax);
+  const parts = fixed.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  let formatted = parts.join(".");
+
+  // Pad to minimum decimals if needed
+  const currentDecimals = parts[1]?.length || 0;
+  if (currentDecimals < effectiveMin) {
+    const pad = effectiveMin - currentDecimals;
+    formatted = formatted + "0".repeat(pad);
+  }
 
   if (options.showSymbol) {
     return `${formatted} ${asset}`;

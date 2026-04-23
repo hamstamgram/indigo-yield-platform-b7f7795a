@@ -12,7 +12,7 @@ import { invalidateAfterIBOperation } from "@/utils/cacheInvalidation";
 import { toast } from "sonner";
 
 export interface EarningsByAsset {
-  [assetSymbol: string]: number;
+  [assetSymbol: string]: string;
 }
 
 export interface IBProfile {
@@ -72,7 +72,7 @@ export function useIBProfiles() {
           const asset = t.asset || (t.fund_id ? fundToAsset.get(t.fund_id) : null) || "UNKNOWN";
           earningsByAsset[asset] = new Decimal(earningsByAsset[asset] || 0)
             .plus(new Decimal(String(t.amount || 0)))
-            .toNumber();
+            .toString();
         });
 
         if (Object.keys(earningsByAsset).length === 0) {
@@ -82,7 +82,7 @@ export function useIBProfiles() {
               const asset = fundToAsset.get(a.fund_id) || "UNKNOWN";
               earningsByAsset[asset] = new Decimal(earningsByAsset[asset] || 0)
                 .plus(new Decimal(String(a.ib_fee_amount || 0)))
-                .toNumber();
+                .toString();
               activeFundIds.add(a.fund_id);
             }
           });

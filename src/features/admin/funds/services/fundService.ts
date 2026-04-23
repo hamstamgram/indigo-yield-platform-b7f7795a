@@ -16,13 +16,13 @@ import { parseFinancial } from "@/utils/financial";
 export interface DailyNav {
   fund_id: string;
   nav_date: string;
-  aum: number;
+  aum: string;
   nav_per_share?: number;
   shares_outstanding?: number;
   gross_return_pct?: number;
   net_return_pct?: number;
   fees_accrued: number;
-  high_water_mark?: number;
+  high_water_mark?: string;
   total_inflows: number;
   total_outflows: number;
   investor_count: number;
@@ -39,7 +39,7 @@ export interface FundKPI {
   qtd_return: number;
   ytd_return: number;
   itd_return?: number;
-  current_aum?: number;
+  current_aum?: string;
   active_investors: number;
 }
 
@@ -153,7 +153,7 @@ export async function getFundKPIs(): Promise<FundKPI[]> {
     code: f.code,
     name: f.name,
     asset: f.asset,
-    current_aum: parseFinancial(f.total_aum || 0).toNumber(),
+    current_aum: parseFinancial(f.total_aum || 0).toString(),
     day_return_pct: 0,
     mtd_return: 0,
     qtd_return: 0,
@@ -182,7 +182,7 @@ export async function getLatestNav(fundId: string) {
   return {
     fund_id: fundId,
     nav_date: new Date().toISOString(),
-    aum: parseFinancial(result.aum_value || 0).toNumber(),
+    aum: parseFinancial(result.aum_value || 0).toString(),
     fees_accrued: 0,
     total_inflows: 0,
     total_outflows: 0,
@@ -211,7 +211,7 @@ export async function getFundPerformance(fundId: string) {
     code: result.fund_code || "Unknown",
     name: result.fund_name || "Unknown",
     asset: result.asset || "Unknown",
-    current_aum: parseFinancial(result.aum_value || 0).toNumber(),
+    current_aum: parseFinancial(result.aum_value || 0).toString(),
     day_return_pct: 0,
     mtd_return: 0,
     qtd_return: 0,
