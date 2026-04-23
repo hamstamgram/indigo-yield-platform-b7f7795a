@@ -11,6 +11,12 @@
 npx tsc --noEmit
 ```
 
+## Health Stack
+
+- typecheck: tsc --noEmit
+- lint: eslint .
+- test: vitest run
+
 ## Skill routing
 
 When the user's request matches an available skill, ALWAYS invoke it using the Skill
