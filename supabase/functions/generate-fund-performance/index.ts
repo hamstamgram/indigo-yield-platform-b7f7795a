@@ -78,9 +78,9 @@ function getAssetDecimals(asset: string): number {
   }
 }
 
-/** Round a Decimal to N decimal places using ROUND_HALF_UP */
-function roundToDecimals(value: Decimal, decimals: number): number {
-  return value.toDecimalPlaces(decimals, Decimal.ROUND_HALF_UP).toNumber();
+/** Round a Decimal to N decimal places using ROUND_HALF_UP, returning a string to preserve precision */
+function roundToDecimals(value: Decimal, decimals: number): string {
+  return value.toDecimalPlaces(decimals, Decimal.ROUND_HALF_UP).toString();
 }
 
 Deno.serve(async (req) => {

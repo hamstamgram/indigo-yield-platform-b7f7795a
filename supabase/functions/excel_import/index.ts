@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
+import Decimal from "https://esm.sh/decimal.js@10.4.3";
 
 // Initialize Supabase client with service role
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -203,7 +204,7 @@ serve(async (req) => {
             const amountVal = row[mapping.transactions.mappings.amount];
             const amountStr = (amountVal === null || amountVal === undefined) ? "0" : amountVal.toString();
 
-            if (!email || !asset || parseFloat(amountStr) <= 0) continue;
+            if (!email || !asset || new Decimal(amountStr).lte(0)) continue;
 
             // Get investor ID
             const { data: investor } = await supabase

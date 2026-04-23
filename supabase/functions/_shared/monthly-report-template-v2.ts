@@ -58,42 +58,52 @@ export function getAssetDecimals(asset: string): number {
   }
 }
 
-// Format token value with appropriate decimals and thousands separators
-export function formatTokenValue(value: number | null | undefined, asset: string): string {
-  if (value === null || value === undefined) {
-    return "0.00";
+/** Check if a numeric string/number represents zero */
+function isZeroValue(value: string | number | null | undefined): boolean {
+  if (value === null || value === undefined) return true;
+  return /^-?0+\.?0*$/.test(String(value).trim());
+}
+
+/** Format a numeric string/number with commas and fixed decimal places (no toLocaleString) */
+function formatDecimalString(value: string | number | null | undefined, decimals: number): string {
+  if (value === null || value === undefined || isZeroValue(value)) {
+    return `0.${"0".repeat(decimals)}`;
   }
-  const decimals = getAssetDecimals(asset);
-  const formatted = Math.abs(value).toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-  return value < 0 ? `-${formatted}` : formatted;
+  const str = String(value).trim();
+  const isNegative = str.startsWith("-");
+  const absStr = isNegative ? str.slice(1) : str;
+  const [rawInt, rawDec = ""] = absStr.split(".");
+  const dec = (rawDec + "0".repeat(decimals)).slice(0, decimals);
+  const int = rawInt.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return isNegative ? `-${int}.${dec}` : `${int}.${dec}`;
+}
+
+// Format token value with appropriate decimals and thousands separators
+export function formatTokenValue(value: string | number | null | undefined, asset: string): string {
+  return formatDecimalString(value, getAssetDecimals(asset));
 }
 
 // Format value for additions/redemptions (show "-" for zero/null)
-export function formatAdditionRedemption(value: number | null | undefined, asset: string): string {
-  if (value === null || value === undefined || value === 0) {
+export function formatAdditionRedemption(value: string | number | null | undefined, asset: string): string {
+  if (value === null || value === undefined || isZeroValue(value)) {
     return "-";
   }
   return formatTokenValue(value, asset);
 }
 
 // Format net income with sign and color styling
-export function formatNetIncomeWithStyle(value: number | null | undefined, asset: string): string {
+export function formatNetIncomeWithStyle(value: string | number | null | undefined, asset: string): string {
   const decimals = getAssetDecimals(asset);
-  if (value === null || value === undefined || value === 0) {
-    return `<span style="color:#1e293b">${(0).toFixed(decimals)}</span>`;
+  if (value === null || value === undefined || isZeroValue(value)) {
+    return `<span style="color:#1e293b">${formatDecimalString("0", decimals)}</span>`;
   }
-  const absValue = Math.abs(value).toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
-  if (value > 0) {
-    return `<span style="color:#16a34a">+${absValue}</span>`;
-  } else {
-    return `<span style="color:#dc2626">-${absValue}</span>`;
+  const str = String(value).trim();
+  const isNegative = str.startsWith("-");
+  const absFormatted = formatDecimalString(str.replace(/^-/, ""), decimals);
+  if (isNegative) {
+    return `<span style="color:#dc2626">-${absFormatted}</span>`;
   }
+  return `<span style="color:#16a34a">+${absFormatted}</span>`;
 }
 
 // Format rate of return with sign and color styling
@@ -138,26 +148,26 @@ export const FUND_BLOCK_SPACER = `<!-- SPACER -->
 export function generateFundBlockHtml(data: {
   fundName: string;
   asset: string;
-  mtdBeginning: number | null;
-  qtdBeginning: number | null;
-  ytdBeginning: number | null;
-  itdBeginning: number | null;
-  mtdAdditions: number | null;
-  qtdAdditions: number | null;
-  ytdAdditions: number | null;
-  itdAdditions: number | null;
-  mtdRedemptions: number | null;
-  qtdRedemptions: number | null;
-  ytdRedemptions: number | null;
-  itdRedemptions: number | null;
-  mtdNetIncome: number | null;
-  qtdNetIncome: number | null;
-  ytdNetIncome: number | null;
-  itdNetIncome: number | null;
-  mtdEnding: number | null;
-  qtdEnding: number | null;
-  ytdEnding: number | null;
-  itdEnding: number | null;
+  mtdBeginning: string | number | null;
+  qtdBeginning: string | number | null;
+  ytdBeginning: string | number | null;
+  itdBeginning: string | number | null;
+  mtdAdditions: string | number | null;
+  qtdAdditions: string | number | null;
+  ytdAdditions: string | number | null;
+  itdAdditions: string | number | null;
+  mtdRedemptions: string | number | null;
+  qtdRedemptions: string | number | null;
+  ytdRedemptions: string | number | null;
+  itdRedemptions: string | number | null;
+  mtdNetIncome: string | number | null;
+  qtdNetIncome: string | number | null;
+  ytdNetIncome: string | number | null;
+  itdNetIncome: string | number | null;
+  mtdEnding: string | number | null;
+  qtdEnding: string | number | null;
+  ytdEnding: string | number | null;
+  itdEnding: string | number | null;
   mtdRor: number | null;
   qtdRor: number | null;
   ytdRor: number | null;
