@@ -154,9 +154,11 @@ export function CreateWithdrawalDialog({
   const prevWithdrawalTypeRef = useRef(withdrawalType);
   useEffect(() => {
     if (withdrawalType === "full" && prevWithdrawalTypeRef.current !== "full" && selectedFundId) {
-      // Prefer the ledger-based availableBalance; fall back to the position's
-      // current_value (already ledger-overridden by fetchPositionsForWithdrawal).
-      const maxAmount = availableBalanceData?.availableBalance ?? selectedPosition?.current_value;
+      // Use selectedPosition.current_value so the auto-filled amount matches
+      // the "Maximum withdrawal" text and dropdown (both from fetchPositionsForWithdrawal).
+      // fetchPositionsForWithdrawal already reconciles against the ledger
+      // and overrides current_value when drift > 0.0001.
+      const maxAmount = selectedPosition?.current_value ?? availableBalanceData?.availableBalance;
       if (maxAmount != null) {
         setValue("amount", parseFinancial(maxAmount).toFixed(), { shouldValidate: true });
       }
