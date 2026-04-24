@@ -40,9 +40,18 @@ export function GlobalYieldFlow({ fundId, onSuccess, onCancel }: GlobalYieldFlow
     }
   }, [ops.showYieldDialog]);
 
-  // Detect success: showYieldDialog transitions from true to false after initialization
+  // Reset on unmount to prevent stale state in Strict Mode or rapid reopen
   useEffect(() => {
-    if (hasInitialized.current && !ops.showYieldDialog && !ops.applyLoading) {
+    return () => {
+      hasInitialized.current = false;
+    };
+  }, []);
+
+  // Detect success: showYieldDialog transitions from true to false after initialization
+  const onSuccessCalled = useRef(false);
+  useEffect(() => {
+    if (hasInitialized.current && !ops.showYieldDialog && !ops.applyLoading && !onSuccessCalled.current) {
+      onSuccessCalled.current = true;
       onSuccess();
     }
   }, [ops.showYieldDialog, ops.applyLoading, onSuccess]);

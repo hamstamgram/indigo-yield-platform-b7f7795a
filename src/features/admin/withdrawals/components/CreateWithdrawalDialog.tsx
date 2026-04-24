@@ -152,7 +152,14 @@ export function CreateWithdrawalDialog({
   // Auto-fill amount when "full" withdrawal is selected
   // Use a ref to track transition so admins can override the amount
   const prevWithdrawalTypeRef = useRef(withdrawalType);
+  const lastFundIdRef = useRef<string | null>(null);
   useEffect(() => {
+    // Reset type transition guard when fund changes so auto-fill re-runs
+    if (selectedFundId !== lastFundIdRef.current) {
+      lastFundIdRef.current = selectedFundId;
+      prevWithdrawalTypeRef.current = "partial";
+    }
+
     if (withdrawalType === "full" && prevWithdrawalTypeRef.current !== "full" && selectedFundId) {
       // Use selectedPosition.current_value so the auto-filled amount matches
       // the "Maximum withdrawal" text and dropdown (both from fetchPositionsForWithdrawal).

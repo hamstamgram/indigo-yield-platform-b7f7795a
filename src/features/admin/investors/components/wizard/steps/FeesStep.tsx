@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -34,6 +34,8 @@ const FeesStep: React.FC = () => {
   const ibEnabled = data.ib.enabled;
   const linkFees = form.watch("link_fees");
   const investorFeePct = form.watch("investor_fee_pct");
+  const hasUserEditedIbCommission = useRef(false);
+  const prevLinkFees = useRef(linkFees);
 
   useEffect(() => {
     setCanProceed(isValid);
@@ -42,8 +44,16 @@ const FeesStep: React.FC = () => {
   // Sync IB commission with investor fee when linked
   useEffect(() => {
     if (linkFees && ibEnabled) {
-      form.setValue("ib_commission_pct", investorFeePct);
+      if (!prevLinkFees.current && linkFees) {
+        // Toggled ON: sync and reset manual-edit flag
+        hasUserEditedIbCommission.current = false;
+        form.setValue("ib_commission_pct", investorFeePct);
+      } else if (!hasUserEditedIbCommission.current) {
+        // Already linked, no manual edit: sync
+        form.setValue("ib_commission_pct", investorFeePct);
+      }
     }
+    prevLinkFees.current = linkFees;
   }, [linkFees, investorFeePct, ibEnabled, form]);
 
   useEffect(() => {
@@ -140,7 +150,10 @@ const FeesStep: React.FC = () => {
                           className="pr-8"
                           disabled={linkFees}
                           {...field}
-                          onChange={(e) => field.onChange(toNum(e.target.value) || 0)}
+                          onChange={(e) => {
+                            hasUserEditedIbCommission.current = true;
+                            field.onChange(toNum(e.target.value) || 0);
+                          }}
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                           %

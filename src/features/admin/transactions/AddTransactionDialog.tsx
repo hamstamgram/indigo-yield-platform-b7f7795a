@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { FormProvider, Controller } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -92,18 +92,24 @@ export function AddTransactionDialog({
       currentBalance,
     });
 
-  // Reset state when dialog opens
+  // Reset state when dialog opens — gate with ref to prevent re-runs
+  const hasResetForOpen = useRef(false);
   useEffect(() => {
     if (open) {
-      if (investorId) {
-        setSelectedInvestorId(investorId);
-      } else {
-        setSelectedInvestorId("");
+      if (!hasResetForOpen.current) {
+        hasResetForOpen.current = true;
+        if (investorId) {
+          setSelectedInvestorId(investorId);
+        } else {
+          setSelectedInvestorId("");
+        }
+        setInvestorError(null);
+        if (defaultType) {
+          setValue("txn_type", defaultType);
+        }
       }
-      setInvestorError(null);
-      if (defaultType) {
-        setValue("txn_type", defaultType);
-      }
+    } else {
+      hasResetForOpen.current = false;
     }
   }, [open, investorId, defaultType, setValue]);
 
@@ -133,20 +139,27 @@ export function AddTransactionDialog({
   }, [dustPreview, asset]);
 
   // Set initial fund and asset when dialog opens or fundId prop changes
+  const initialFundSet = useRef(false);
   useEffect(() => {
-    if (fundId && funds) {
+    if (open && fundId && !initialFundSet.current) {
+      initialFundSet.current = true;
       setValue("fund_id", fundId);
-      const fund = funds.find((f) => f.id === fundId);
+      const fund = funds?.find((f) => f.id === fundId);
       if (fund) {
         setValue("asset", fund.asset);
       }
     }
-  }, [fundId, funds, setValue]);
+    if (!open) {
+      initialFundSet.current = false;
+    }
+  }, [open, fundId, funds, setValue]);
 
-  // Update asset when fund selection changes
+  // Update asset when fund selection changes — do NOT depend on funds array ref
+  const lastSyncedFundId = useRef<string | null>(null);
   useEffect(() => {
-    if (selectedFundId && funds) {
-      const fund = funds.find((f) => f.id === selectedFundId);
+    if (selectedFundId && selectedFundId !== lastSyncedFundId.current) {
+      lastSyncedFundId.current = selectedFundId;
+      const fund = funds?.find((f) => f.id === selectedFundId);
       if (fund) {
         setValue("asset", fund.asset);
       }
