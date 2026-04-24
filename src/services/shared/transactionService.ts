@@ -5,6 +5,7 @@
  * Uses types from @/types/domains/transaction
  */
 
+import Decimal from "decimal.js";
 import { supabase } from "@/integrations/supabase/client";
 import { getTodayString } from "@/utils/dateUtils";
 import type {
@@ -169,10 +170,19 @@ export async function calculateTransactionSummary(): Promise<UserTransactionSumm
   }
 }
 
-// Map FIRST_INVESTMENT to DEPOSIT for database
+// Map frontend transaction types to database tx_type enum values
 const mapTypeForDb = (type: string): string => {
-  if (type === "FIRST_INVESTMENT") return "DEPOSIT";
-  return type;
+  const mapping: Record<string, string> = {
+    FIRST_INVESTMENT: "DEPOSIT",
+    DEPOSIT: "DEPOSIT",
+    WITHDRAWAL: "WITHDRAWAL",
+    ADJUSTMENT: "ADJUSTMENT",
+  };
+  const mapped = mapping[type];
+  if (!mapped) {
+    throw new Error(`Unsupported transaction type: ${type}`);
+  }
+  return mapped;
 };
 
 /**
@@ -199,7 +209,7 @@ export async function createInvestorTransaction(
       const result = await rpc.call("adjust_investor_position", {
         p_fund_id: params.fund_id,
         p_investor_id: params.investor_id,
-        p_amount: String(params.amount) as unknown as number,
+        p_amount: parseFinancial(String(params.amount)).toNumber(),
         p_tx_date: params.tx_date,
         p_reason: params.notes || "Manual adjustment",
         p_admin_id: user.id,
@@ -212,9 +222,13 @@ export async function createInvestorTransaction(
         throw new Error(errMsg);
       }
 
-      const data = result.data as { success?: boolean; error?: string } | null;
-      if (!data?.success) {
-        throw new Error(data?.error || "Failed to create adjustment");
+      if (!result.data || typeof result.data !== 'object' || result.data === null) {
+        throw new Error("Invalid RPC response");
+      }
+      const response = result.data;
+      if (!('success' in response) || response.success !== true) {
+        const errorMsg = 'error' in response ? String(response.error) : "Failed to create adjustment";
+        throw new Error(errorMsg);
       }
 
       return { success: true };
@@ -232,7 +246,7 @@ export async function createInvestorTransaction(
         p_fund_id: params.fund_id,
         p_investor_id: params.investor_id,
         p_tx_type: dbType,
-        p_amount: String(params.amount) as unknown as number,
+        p_amount: parseFinancial(String(params.amount)).toNumber(),
         p_tx_date: params.tx_date,
         p_reference_id: triggerReference,
         p_admin_id: user.id,
@@ -250,19 +264,16 @@ export async function createInvestorTransaction(
         throw new Error(errMsg);
       }
 
-      const data = result.data as {
-        success?: boolean;
-        message?: string;
-        error?: string;
-        error_code?: string;
-      } | null;
-      if (!data?.success) {
-        const message =
-          data?.message ||
-          data?.error ||
-          (data?.error_code ? `RPC error: ${data.error_code}` : null) ||
+      if (!result.data || typeof result.data !== 'object' || result.data === null) {
+        throw new Error("Invalid RPC response");
+      }
+      const response = result.data;
+      if (!('success' in response) || response.success !== true) {
+        const errorMsg =
+          'error' in response ? String(response.error) :
+          'error_code' in response ? `RPC error: ${String(response.error_code)}` :
           "Failed to create transaction";
-        throw new Error(message);
+        throw new Error(errorMsg);
       }
 
       return { success: true };
@@ -307,7 +318,7 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
     p_fund_id: params.fundId,
     p_investor_id: params.investorId,
     p_tx_type: params.type,
-    p_amount: String(params.amount) as unknown as number,
+    p_amount: new Decimal(String(params.amount)).toNumber(),
     p_tx_date: today,
     p_reference_id: triggerReference,
     p_admin_id: user.id,
@@ -319,8 +330,11 @@ export async function createQuickTransaction(params: QuickTransactionParams): Pr
     throw new Error(result.error.message || result.error.userMessage);
   }
 
-  const data = result.data as unknown as { success?: boolean } | null;
-  if (!data?.success) {
+  if (!result.data || typeof result.data !== 'object' || result.data === null) {
+    throw new Error("Invalid RPC response");
+  }
+  const response = result.data;
+  if (!('success' in response) || response.success !== true) {
     throw new Error(`Failed to create ${params.type}`);
   }
 }

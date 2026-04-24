@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import Decimal from "decimal.js";
 import { getTodayString } from "@/utils/dateUtils";
 import { useInvestorBalance, useTransactionHistory } from "@/features/shared/hooks/useInvestorBalance";
 
@@ -17,10 +18,24 @@ export const transactionSchema = z
       .string()
       .trim()
       .min(1, "Amount is required")
-      .refine((val) => isFinite(Number(val)) && !isNaN(Number(val)) && Number(val) !== 0, {
+      .refine((val) => {
+        try {
+          const d = new Decimal(val);
+          return d.isFinite() && !d.isNaN() && !d.eq(0);
+        } catch {
+          return false;
+        }
+      }, {
         message: "Amount must be a non-zero number",
       })
-      .refine((val) => Math.abs(Number(val)) <= 1000000000, {
+      .refine((val) => {
+        try {
+          const d = new Decimal(val);
+          return d.abs().lte(1_000_000_000);
+        } catch {
+          return false;
+        }
+      }, {
         message: "Amount must be less than 1 billion",
       }),
     tx_date: z
@@ -45,12 +60,19 @@ export const transactionSchema = z
   })
   .superRefine((data, ctx) => {
     // ADJUSTMENT allows negative amounts (balance reductions); all other types require positive
-    if (data.txn_type !== "ADJUSTMENT" && Number(data.amount) < 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Amount must be a positive number",
-        path: ["amount"],
-      });
+    if (data.txn_type !== "ADJUSTMENT") {
+      try {
+        const d = new Decimal(data.amount);
+        if (d.lt(0)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Amount must be a positive number",
+            path: ["amount"],
+          });
+        }
+      } catch {
+        // Invalid amount caught by earlier refine
+      }
     }
   });
 

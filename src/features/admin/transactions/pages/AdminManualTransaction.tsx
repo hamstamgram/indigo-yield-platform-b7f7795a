@@ -132,14 +132,14 @@ export default function AdminManualTransaction() {
           .insert({
             investor_id: data.investorId,
             fund_id: data.fundId,
-            requested_amount: amountStr,
+            requested_amount: new Decimal(amountStr).toNumber(),
             withdrawal_type: "partial",
             status: "pending",
             is_full_exit: false,
             request_date: data.txDate,
             settlement_date: data.txDate,
             notes: data.description || `Manual withdrawal via Admin Manual Transaction`,
-          } as any)
+          })
           .select("id")
           .single();
 
@@ -147,7 +147,7 @@ export default function AdminManualTransaction() {
           throw new Error(insertError?.message || "Failed to create withdrawal request");
         }
 
-        const requestId = (insertedRow as any).id as string;
+        const requestId = insertedRow.id;
 
         // Step 2: Approve and complete atomically via battle-tested RPC
         await withdrawalService.approveAndComplete(

@@ -90,14 +90,14 @@ export function useTransactionSubmit({
           .insert({
             investor_id: currentInvestorId,
             fund_id: data.fund_id,
-            requested_amount: amountStr,
+            requested_amount: parseFinancial(amountStr).toNumber(),
             withdrawal_type: isFullExit ? "full" : "partial",
             status: "pending",
             is_full_exit: isFullExit,
             request_date: data.tx_date,
             settlement_date: data.tx_date,
             notes: data.notes || `Manual withdrawal via Add Transaction`,
-          } as any)
+          })
           .select("id")
           .single();
 
@@ -105,7 +105,7 @@ export function useTransactionSubmit({
           throw new Error(insertError?.message || "Failed to create withdrawal request");
         }
 
-        const requestId = (insertedRow as any).id as string;
+        const requestId = insertedRow.id;
 
         // Step 2: Approve and complete atomically via battle-tested RPC
         // This handles: ledger entry, dust sweep (for full exit), position update
