@@ -199,7 +199,7 @@ serve(async (req: Request) => {
       results.processed++;
 
       try {
-        console.log(`Processing delivery ${delivery.id} for ${delivery.recipient_email}`);
+        console.log(`Processing delivery ${delivery.id}`);
 
         // Fetch statement HTML
         const { data: statement, error: stmtError } = await serviceClient

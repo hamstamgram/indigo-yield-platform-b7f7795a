@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -75,6 +75,9 @@ export function useTransactionForm({ fundId, selectedInvestorId }: UseTransactio
   const txnType = watch("txn_type");
   const selectedFundId = watch("fund_id");
 
+  // Guard: prevent auto-select from overwriting user-edited type
+  const hasUserEditedType = useRef(false);
+
   // Use React Query hooks for balance and transaction history
   const { data: currentBalance, isLoading: isCheckingBalance } = useInvestorBalance(
     selectedInvestorId || undefined,
@@ -90,17 +93,19 @@ export function useTransactionForm({ fundId, selectedInvestorId }: UseTransactio
   useEffect(() => {
     if (currentBalance === null || currentBalance === undefined || isCheckingBalance) return;
 
-    // Only auto-select if no type is selected yet
-    if (!txnType) {
-      if (currentBalance === 0 && !hasTransactionHistory) {
-        setValue("txn_type", "FIRST_INVESTMENT");
-      } else if (currentBalance > 0 || hasTransactionHistory) {
+    // Only auto-select if user has not manually edited the type
+    if (!hasUserEditedType.current) {
+      if (!txnType) {
+        if (currentBalance === 0 && !hasTransactionHistory) {
+          setValue("txn_type", "FIRST_INVESTMENT");
+        } else if (currentBalance > 0 || hasTransactionHistory) {
+          setValue("txn_type", "DEPOSIT");
+        }
+      }
+      // Only auto-switch from FIRST_INVESTMENT to DEPOSIT if position exists (not vice versa)
+      else if (currentBalance > 0 && txnType === "FIRST_INVESTMENT") {
         setValue("txn_type", "DEPOSIT");
       }
-    }
-    // Only auto-switch from FIRST_INVESTMENT to DEPOSIT if position exists (not vice versa)
-    else if (currentBalance > 0 && txnType === "FIRST_INVESTMENT") {
-      setValue("txn_type", "DEPOSIT");
     }
   }, [currentBalance, isCheckingBalance, hasTransactionHistory, txnType, setValue]);
 
@@ -124,5 +129,6 @@ export function useTransactionForm({ fundId, selectedInvestorId }: UseTransactio
     hasExistingPosition,
     isCheckingBalance,
     currentBalance,
+    hasUserEditedType,
   };
 }

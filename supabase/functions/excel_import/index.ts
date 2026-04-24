@@ -183,7 +183,7 @@ serve(async (req) => {
                 results.errors.push({
                   type: "investor",
                   email,
-                  error: error.message,
+                  error: "Database operation failed",
                 });
               } else {
                 results.inserted.investors++;
@@ -306,7 +306,7 @@ serve(async (req) => {
                 results.errors.push({
                   type: "transaction",
                   email,
-                  error: error.message,
+                  error: "Database operation failed",
                 });
               } else {
                 results.inserted.transactions++;
@@ -379,7 +379,7 @@ serve(async (req) => {
                   type: "daily_nav",
                   fund: fundCode,
                   date: navDate,
-                  error: error.message,
+                  error: "Database operation failed",
                 });
               } else {
                 results.inserted.daily_nav++;
@@ -429,7 +429,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: String(error),
+        error: "Import processing failed",
       }),
       {
         status: 500,

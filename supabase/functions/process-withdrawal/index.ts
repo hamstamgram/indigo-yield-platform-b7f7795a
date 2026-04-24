@@ -397,7 +397,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: "Failed to process withdrawal request",
       }),
       { headers: { ...headers, "Content-Type": "application/json" }, status: 400 }
     );

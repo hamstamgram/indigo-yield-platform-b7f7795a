@@ -59,7 +59,7 @@ export function AddTransactionDialog({
   const { data: funds, isLoading: fundsLoading } = useFunds({ status: "active" });
   const { data: investors = [], isLoading: isLoadingInvestors } = useInvestorsForTransaction(open);
 
-  const { form, isFirstInvestment, hasExistingPosition, isCheckingBalance, currentBalance } =
+  const { form, isFirstInvestment, hasExistingPosition, isCheckingBalance, currentBalance, hasUserEditedType } =
     useTransactionForm({
       fundId,
       selectedInvestorId,
@@ -173,7 +173,10 @@ export function AddTransactionDialog({
             {/* Transaction Type - Always visible */}
             <TransactionTypeSelect
               value={txnType}
-              onChange={(val) => setValue("txn_type", val)}
+              onChange={(val) => {
+                hasUserEditedType.current = true;
+                setValue("txn_type", val);
+              }}
               hasExistingPosition={Boolean(hasExistingPosition)}
               isFirstInvestment={Boolean(isFirstInvestment)}
               error={errors.txn_type?.message}

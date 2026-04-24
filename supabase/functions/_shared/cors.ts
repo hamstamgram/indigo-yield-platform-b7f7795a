@@ -19,8 +19,9 @@ function matchOrigin(origin: string): boolean {
 }
 
 // Static CORS headers (used when origin is not dynamic)
+// NEVER use wildcard "*" — always default to the primary allowed origin
 export const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": ALLOWED_ORIGINS[0],
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-csrf-token",
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",

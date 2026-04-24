@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,6 +28,8 @@ import {
 } from "@/components/ui";
 import { useToast } from "@/hooks";
 import { createInvestorTransaction, createQuickTransaction } from "@/services/shared";
+import { withdrawalService } from "@/features/shared/services";
+import { supabase } from "@/integrations/supabase/client";
 import type { CreateTransactionUIParams as CreateTransactionParams } from "@/types/domains/transaction";
 import { Loader2, ArrowRightLeft, Info, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
@@ -44,16 +46,16 @@ import Decimal from "decimal.js";
 const transactionSchema = z.object({
   investorId: z.string().min(1, "Investor is required"),
   fundId: z.string().min(1, "Fund is required"),
-  type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL"]),
+  type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL", "ADJUSTMENT"]),
   amount: z.string().refine((val) => {
     try {
       const d = new Decimal(val || "0");
-      return d.gt(0);
+      return !d.eq(0);
     } catch {
       return false;
     }
   }, {
-    message: "Amount must be a positive number",
+    message: "Amount must be a non-zero number",
   }),
   txDate: z.string().min(1, "Transaction date is required"),
   description: z.string().optional(),
@@ -97,13 +99,8 @@ export default function AdminManualTransaction() {
   const currentBalance = balanceCheck?.currentBalance ?? null;
   const hasTransactionHistory = balanceCheck?.hasTransactionHistory ?? false;
 
-  // Auto-correct transaction type based on balance
-  useEffect(() => {
-    if (currentBalance === null || isCheckingBalance) return;
-    if (currentBalance > 0 && txnType === "FIRST_INVESTMENT") {
-      form.setValue("type", "DEPOSIT");
-    }
-  }, [currentBalance, isCheckingBalance, txnType, form]);
+  // Guard: prevent auto-populate from overwriting user-edited type
+  const hasUserEditedType = useRef(false);
 
   const isFirstInvestment =
     currentBalance !== null && currentBalance === 0 && !hasTransactionHistory;
@@ -125,21 +122,59 @@ export default function AdminManualTransaction() {
         );
       }
 
-      const result = await createInvestorTransaction({
-        investor_id: data.investorId,
-        fund_id: data.fundId,
-        type: data.type as CreateTransactionParams["type"],
-        asset: selectedFund.asset,
-        amount: data.amount,
-        tx_date: data.txDate,
-        event_ts: `${data.txDate}T00:00:00.000Z`,
-        reference_id: undefined,
-        tx_hash: undefined,
-        notes: data.description || undefined,
-      });
+      // WITHDRAWAL path: route through withdrawal_requests for full audit trail
+      if (data.type === "WITHDRAWAL") {
+        const amountStr = data.amount;
 
-      if (!result.success) {
-        throw new Error(result.error || "Failed to create transaction");
+        // Step 1: Insert withdrawal_requests record (status: pending)
+        const { data: insertedRow, error: insertError } = await supabase
+          .from("withdrawal_requests")
+          .insert({
+            investor_id: data.investorId,
+            fund_id: data.fundId,
+            requested_amount: amountStr,
+            withdrawal_type: "partial",
+            status: "pending",
+            is_full_exit: false,
+            request_date: data.txDate,
+            settlement_date: data.txDate,
+            notes: data.description || `Manual withdrawal via Admin Manual Transaction`,
+          } as any)
+          .select("id")
+          .single();
+
+        if (insertError || !insertedRow) {
+          throw new Error(insertError?.message || "Failed to create withdrawal request");
+        }
+
+        const requestId = (insertedRow as any).id as string;
+
+        // Step 2: Approve and complete atomically via battle-tested RPC
+        await withdrawalService.approveAndComplete(
+          requestId,
+          amountStr,
+          undefined,
+          data.description || "Manual withdrawal via Admin Manual Transaction",
+          false
+        );
+      } else {
+        // Non-withdrawal path: DEPOSIT, FIRST_INVESTMENT, ADJUSTMENT
+        const result = await createInvestorTransaction({
+          investor_id: data.investorId,
+          fund_id: data.fundId,
+          type: data.type as CreateTransactionParams["type"],
+          asset: selectedFund.asset,
+          amount: data.amount,
+          tx_date: data.txDate,
+          event_ts: `${data.txDate}T00:00:00.000Z`,
+          reference_id: undefined,
+          tx_hash: undefined,
+          notes: data.description || undefined,
+        });
+
+        if (!result.success) {
+          throw new Error(result.error || "Failed to create transaction");
+        }
       }
 
       invalidateAfterTransaction(queryClient, data.investorId, data.fundId);
@@ -157,6 +192,7 @@ export default function AdminManualTransaction() {
         investorId: "",
         fundId: "",
       });
+      hasUserEditedType.current = false;
     } catch (error: unknown) {
       logError("AdminManualTransaction.onSubmit", error);
       toast({
@@ -286,9 +322,10 @@ export default function AdminManualTransaction() {
                 <Label>Type</Label>
                 <Select
                   value={form.watch("type") || ""}
-                  onValueChange={(val: "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL") =>
-                    form.setValue("type", val)
-                  }
+                  onValueChange={(val: "FIRST_INVESTMENT" | "DEPOSIT" | "WITHDRAWAL" | "ADJUSTMENT") => {
+                    hasUserEditedType.current = true;
+                    form.setValue("type", val);
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -309,6 +346,7 @@ export default function AdminManualTransaction() {
                     >
                       Withdrawal {isFirstInvestment && "(no position)"}
                     </SelectItem>
+                    <SelectItem value="ADJUSTMENT">Adjustment</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

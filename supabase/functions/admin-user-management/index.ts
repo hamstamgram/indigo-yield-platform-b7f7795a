@@ -143,7 +143,7 @@ async function createUser(params: CreateUserRequest): Promise<any> {
     status,
   } = params;
 
-  console.log(`Creating user account for ${email} with role ${role}`);
+  console.log("Creating user account");
 
   // Create user via Supabase Admin API (secure server-side)
   const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
@@ -166,7 +166,7 @@ async function createUser(params: CreateUserRequest): Promise<any> {
     throw new Error("User creation failed - no user returned");
   }
 
-  console.log(`Created user with ID: ${newUser.user.id}`);
+  console.log("Created user");
 
   // Create profile record directly using admin client (bypasses RLS)
   // Use UPSERT to merge with trigger-created row (on_auth_user_created)
@@ -230,7 +230,7 @@ async function createUser(params: CreateUserRequest): Promise<any> {
     }
   }
 
-  console.log(`Successfully created investor account for ${email}`);
+  console.log("Successfully created investor account");
 
   return {
     success: true,
@@ -246,7 +246,7 @@ async function createIB(params: {
   lastName: string;
 }): Promise<any> {
   const { email, firstName, lastName } = params;
-  console.log(`Creating IB account for ${email}`);
+  console.log("Creating IB account");
 
   // Create user via Supabase Admin API
   const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
@@ -302,7 +302,7 @@ async function createIB(params: {
     throw new Error(`Failed to assign IB role: ${roleError.message}`);
   }
 
-  console.log(`Successfully created IB account for ${email} with ID ${newUser.user.id}`);
+  console.log("Successfully created IB account");
 
   return {
     success: true,
@@ -315,7 +315,7 @@ async function createIB(params: {
 async function updateUser(params: UpdateUserRequest): Promise<any> {
   const { userId, fundPreferences } = params;
 
-  console.log(`Updating user ${userId} fund preferences`);
+  console.log("Updating user fund preferences");
 
   // Get current user metadata
   const { data: userData, error: getUserError } =
@@ -344,7 +344,7 @@ async function updateUser(params: UpdateUserRequest): Promise<any> {
 }
 
 async function deleteUser(userId: string, adminUserId: string): Promise<any> {
-  console.log(`Deleting user ${userId} by admin ${adminUserId}`);
+  console.log("Deleting user");
 
   // Prevent self-deletion
   if (userId === adminUserId) {
@@ -385,7 +385,7 @@ async function deleteUser(userId: string, adminUserId: string): Promise<any> {
       console.warn(`Failed to delete auth user: ${deleteError.message}`);
     }
   } else {
-    console.log(`No auth user found for ${userId}, cleaning up profile only`);
+    console.log("No auth user found, cleaning up profile only");
   }
 
   // Manually delete profile if cascade didn't handle it
@@ -398,7 +398,7 @@ async function deleteUser(userId: string, adminUserId: string): Promise<any> {
     throw new Error(`Failed to delete profile: ${profileDeleteError.message}`);
   }
 
-  console.log(`Successfully deleted user ${userId}`);
+  console.log("Successfully deleted user");
 
   return {
     success: true,
@@ -408,7 +408,7 @@ async function deleteUser(userId: string, adminUserId: string): Promise<any> {
 }
 
 async function forceDeleteUser(userId: string, adminUserId: string): Promise<any> {
-  console.log(`Force deleting user ${userId} by admin ${adminUserId}`);
+  console.log("Force deleting user");
 
   // Prevent self-deletion
   if (userId === adminUserId) {
@@ -435,7 +435,7 @@ async function forceDeleteUser(userId: string, adminUserId: string): Promise<any
     }
   }
 
-  console.log(`Successfully force deleted user ${userId}`);
+  console.log("Successfully force deleted user");
 
   return {
     success: true,
@@ -447,7 +447,7 @@ async function forceDeleteUser(userId: string, adminUserId: string): Promise<any
 async function updateInvestorProfile(params: UpdateInvestorProfileRequest): Promise<any> {
   const { investorId, firstName, lastName, phone, status } = params;
 
-  console.log(`Updating investor profile for ${investorId}`);
+  console.log("Updating investor profile");
 
   // Validate required fields
   if (!firstName?.trim() || !lastName?.trim()) {
@@ -484,7 +484,7 @@ async function updateInvestorProfile(params: UpdateInvestorProfileRequest): Prom
     throw new Error(`Failed to update profile: ${updateError.message}`);
   }
 
-  console.log(`Successfully updated profile for ${investorId}`);
+  console.log("Successfully updated profile");
 
   return {
     success: true,
@@ -496,7 +496,7 @@ async function updateInvestorProfile(params: UpdateInvestorProfileRequest): Prom
 async function updateReportRecipients(params: UpdateReportRecipientsRequest): Promise<any> {
   const { investorId, emails } = params;
 
-  console.log(`Updating report recipients for investor ${investorId}`);
+  console.log("Updating report recipients");
 
   // Validate emails
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -544,7 +544,7 @@ async function updateReportRecipients(params: UpdateReportRecipientsRequest): Pr
     }
   }
 
-  console.log(`Successfully updated ${validEmails.length} report recipients for ${investorId}`);
+  console.log("Successfully updated report recipients");
 
   return {
     success: true,
