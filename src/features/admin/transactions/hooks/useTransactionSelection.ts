@@ -55,6 +55,10 @@ export function useTransactionSelection(
     setSelectedIds(new Set());
   }, [page]);
 
+  const selectableRows = useMemo(() => getSelectableRows(data, showVoided), [data, showVoided]);
+
+  const selectableIds = useMemo(() => new Set(selectableRows.map((tx) => tx.id)), [selectableRows]);
+
   // Intersect selection with new selectable set when showVoided toggles
   const prevShowVoided = useRef(showVoided);
   useEffect(() => {
@@ -70,10 +74,6 @@ export function useTransactionSelection(
       return next;
     });
   }, [showVoided, selectableIds]);
-
-  const selectableRows = useMemo(() => getSelectableRows(data, showVoided), [data, showVoided]);
-
-  const selectableIds = useMemo(() => new Set(selectableRows.map((tx) => tx.id)), [selectableRows]);
 
   const toggleOne = useCallback((id: string) => {
     setSelectedIds((prev) => {
