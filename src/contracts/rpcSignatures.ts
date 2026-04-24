@@ -572,7 +572,7 @@ export const RPC_SIGNATURES = {
     returnsSet: false,
     securityDefiner: false,
     requiredParams: ["p_as_of_date", "p_fund_id"] as const,
-    optionalParams: ["p_tolerance_pct"] as const,
+    optionalParams: ["p_tolerance"] as const,
   },
   check_duplicate_ib_allocations: {
     name: "check_duplicate_ib_allocations" as const,

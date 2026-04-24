@@ -32,7 +32,7 @@ export async function checkAUMReconciliation(
 ): Promise<AUMReconciliationResult> {
   const params = {
     p_fund_id: fundId,
-    p_tolerance_pct: tolerancePct,
+    p_tolerance: tolerancePct,
     p_as_of_date: asOfDate || new Date().toISOString().split("T")[0],
   };
   const { data, error } = await rpc.call("check_aum_reconciliation", params);
