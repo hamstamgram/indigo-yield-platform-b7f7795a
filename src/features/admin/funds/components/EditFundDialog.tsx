@@ -3,7 +3,7 @@
  * Modal for editing fund metadata with ticker change safeguards
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -78,6 +78,7 @@ export function EditFundDialog({
   const [isResettingFee, setIsResettingFee] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState("");
+  const lastResetId = useRef<string | null>(null);
   const { user } = useAuth();
 
   const {
@@ -95,22 +96,24 @@ export function EditFundDialog({
   const originalTicker = fund?.asset;
   const currentStatus = watch("status");
 
-  // Check if fund has positions/transactions
+  // Check if fund has positions/transactions — gate on ID to prevent object-ref re-runs
   useEffect(() => {
-    if (fund && open) {
-      checkFundUsageData(fund.id);
-      reset({
-        name: fund.name,
-        asset: fund.asset,
-        inception_date: fund.inception_date ? fund.inception_date.split("T")[0] : getTodayUTC(),
-        status: fund.status as "active" | "deprecated",
-        perf_fee_bps: Number(fund.perf_fee_bps) || 0,
-      });
-      setLogoUrl(fund.logo_url || null);
-      setConfirmTickerChange("");
-      setConfirmDelete("");
-    }
-  }, [fund, open, reset]);
+    const fundId = fund?.id;
+    if (!fundId || !open || lastResetId.current === fundId) return;
+    lastResetId.current = fundId;
+
+    checkFundUsageData(fundId);
+    reset({
+      name: fund.name,
+      asset: fund.asset,
+      inception_date: fund.inception_date ? fund.inception_date.split("T")[0] : getTodayUTC(),
+      status: fund.status as "active" | "deprecated",
+      perf_fee_bps: Number(fund.perf_fee_bps) || 0,
+    });
+    setLogoUrl(fund.logo_url || null);
+    setConfirmTickerChange("");
+    setConfirmDelete("");
+  }, [fund?.id, open, fund?.name, fund?.asset, fund?.inception_date, fund?.status, fund?.perf_fee_bps, fund?.logo_url, reset]);
 
   const checkFundUsageData = async (fundId: string) => {
     try {

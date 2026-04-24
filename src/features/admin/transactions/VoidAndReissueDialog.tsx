@@ -10,7 +10,7 @@
  * This replaces EditTransactionDialog per CFO policy.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -121,6 +121,7 @@ export function VoidAndReissueDialog({
   const [activeTab, setActiveTab] = useState<"changes" | "review">("changes");
   const [txContext, setTxContext] = useState<TransactionContext | null>(null);
   const [loadingContext, setLoadingContext] = useState(false);
+  const lastResetId = useRef<string | null>(null);
   const { voidAndReissueMutation, voidAndReissueFullExitMutation } = useTransactionMutations();
   const { handleError, error: platformError, clearError } = usePlatformError();
 
@@ -153,27 +154,29 @@ export function VoidAndReissueDialog({
     }
   }, [transaction?.id, open]);
 
-  // Reset form when transaction changes
+  // Reset form when transaction changes — gate on ID to prevent object-ref re-runs
   useEffect(() => {
-    if (transaction) {
-      // Use absolute amount for the form — ledger stores negatives for
-      // withdrawals/fees but the user should work with positive values.
-      // The RPC handles sign based on transaction type.
-      const absAmount = transaction.amount.startsWith("-")
-        ? transaction.amount.slice(1)
-        : transaction.amount;
-      reset({
-        tx_date: transaction.txDate,
-        amount: absAmount,
-        notes: transaction.notes || "",
-        reason: "",
-        originalType: transaction.type,
-      });
-      setConfirmText("");
-      setActiveTab("changes");
-      clearError();
-    }
-  }, [transaction, reset, clearError]);
+    const txId = transaction?.id;
+    if (!txId || lastResetId.current === txId) return;
+    lastResetId.current = txId;
+
+    // Use absolute amount for the form — ledger stores negatives for
+    // withdrawals/fees but the user should work with positive values.
+    // The RPC handles sign based on transaction type.
+    const absAmount = transaction.amount.startsWith("-")
+      ? transaction.amount.slice(1)
+      : transaction.amount;
+    reset({
+      tx_date: transaction.txDate,
+      amount: absAmount,
+      notes: transaction.notes || "",
+      reason: "",
+      originalType: transaction.type,
+    });
+    setConfirmText("");
+    setActiveTab("changes");
+    clearError();
+  }, [transaction?.id, transaction?.amount, transaction?.txDate, transaction?.notes, transaction?.type, reset, clearError]);
 
   // Compute what changed
   const getChanges = () => {
