@@ -4,7 +4,7 @@
  */
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 import type { Database } from "@/integrations/supabase/types";
@@ -46,6 +46,9 @@ async function fetchFundsWithAUM(): Promise<FundAUMData[]> {
 
 export function useFundAUM() {
   const queryClient = useQueryClient();
+  // Unique channel name per hook instance to avoid subscribe-after-subscribe races
+  // in React StrictMode and fast re-mounts.
+  const channelNameRef = useRef(`fund-aum-realtime-${Math.random().toString(36).slice(2)}`);
 
   const query = useQuery({
     queryKey: QUERY_KEY,
@@ -61,7 +64,7 @@ export function useFundAUM() {
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const channel = supabase
-      .channel("fund-aum-realtime")
+      .channel(channelNameRef.current)
       .on(
         "postgres_changes",
         {
@@ -81,6 +84,7 @@ export function useFundAUM() {
 
     return () => {
       clearTimeout(timeoutId);
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
