@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+let realtimeNotificationsChannelCounter = 0;
 
 interface RealtimeNotification {
   id: string;
@@ -13,10 +15,14 @@ interface RealtimeNotification {
 export function useRealtimeNotifications() {
   const [notifications, setNotifications] = useState<RealtimeNotification[]>([]);
 
+  const channelIdRef = useRef(++realtimeNotificationsChannelCounter);
+
   useEffect(() => {
+    const baseName = `rtn-${channelIdRef.current}`;
+
     // Subscribe to withdrawal requests updates
     const withdrawalChannel = supabase
-      .channel("withdrawal-notifications")
+      .channel(`${baseName}-withdrawal`)
       .on(
         "postgres_changes",
         {
@@ -47,7 +53,7 @@ export function useRealtimeNotifications() {
 
     // Subscribe to yield applications
     const yieldChannel = supabase
-      .channel("yield-notifications")
+      .channel(`${baseName}-yield`)
       .on(
         "postgres_changes",
         {
@@ -76,7 +82,7 @@ export function useRealtimeNotifications() {
 
     // Subscribe to investor updates
     const investorChannel = supabase
-      .channel("investor-notifications")
+      .channel(`${baseName}-investor`)
       .on(
         "postgres_changes",
         {
@@ -107,8 +113,11 @@ export function useRealtimeNotifications() {
 
     // Cleanup
     return () => {
+      withdrawalChannel.unsubscribe();
       supabase.removeChannel(withdrawalChannel);
+      yieldChannel.unsubscribe();
       supabase.removeChannel(yieldChannel);
+      investorChannel.unsubscribe();
       supabase.removeChannel(investorChannel);
     };
   }, []);

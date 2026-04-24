@@ -3,11 +3,13 @@
  * Provides live push notifications for integrity violations and system alerts
  */
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+
+let realtimeAlertsChannelCounter = 0;
 
 interface AlertPayload {
   new: {
@@ -27,6 +29,7 @@ interface AlertPayload {
  */
 export function useRealtimeAlerts() {
   const queryClient = useQueryClient();
+  const channelIdRef = useRef(++realtimeAlertsChannelCounter);
 
   const showAlertToast = useCallback((payload: AlertPayload) => {
     const { title, message, severity } = payload.new;
@@ -49,8 +52,9 @@ export function useRealtimeAlerts() {
   }, []);
 
   useEffect(() => {
+    const channelName = `admin-alerts-realtime-${channelIdRef.current}`;
     const channel = supabase
-      .channel("admin-alerts-realtime")
+      .channel(channelName)
       .on(
         "postgres_changes" as unknown as "system",
         {
@@ -76,6 +80,7 @@ export function useRealtimeAlerts() {
       .subscribe();
 
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [queryClient, showAlertToast]);
@@ -87,10 +92,12 @@ export function useRealtimeAlerts() {
  */
 export function useRealtimeConnectionStatus() {
   const [isConnected, setIsConnected] = useState(false);
+  const statusChannelIdRef = useRef(++realtimeAlertsChannelCounter);
 
   useEffect(() => {
+    const channelName = `realtime-status-check-${statusChannelIdRef.current}`;
     const channel = supabase
-      .channel("realtime-status-check")
+      .channel(channelName)
       .on("presence", { event: "sync" }, () => {
         setIsConnected(true);
       })
@@ -99,6 +106,7 @@ export function useRealtimeConnectionStatus() {
       });
 
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, []);

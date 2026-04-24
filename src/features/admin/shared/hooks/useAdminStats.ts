@@ -5,11 +5,13 @@
  * REFACTORED: Uses React Query for caching + realtime invalidation
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchAdminStats, AdminStats } from "@/features/admin/dashboard/services/adminStatsService";
 import { QUERY_KEYS } from "@/constants/queryKeys";
+
+let adminStatsChannelCounter = 0;
 
 // Re-export the type for consumers
 export type { AdminStats };
@@ -35,10 +37,13 @@ export function useAdminStats() {
     },
   });
 
+  const channelIdRef = useRef(++adminStatsChannelCounter);
+
   // Realtime subscription invalidates the cache instead of fetching directly
   useEffect(() => {
+    const channelName = `admin-stats-withdrawals-${channelIdRef.current}`;
     const withdrawalChannel = supabase
-      .channel("admin-stats-withdrawals")
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
@@ -53,6 +58,7 @@ export function useAdminStats() {
       .subscribe();
 
     return () => {
+      withdrawalChannel.unsubscribe();
       supabase.removeChannel(withdrawalChannel);
     };
   }, [queryClient]);
