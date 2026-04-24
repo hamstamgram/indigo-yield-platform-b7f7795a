@@ -58,6 +58,8 @@ export function useFundAUM() {
 
   // Real-time subscription to investor_positions changes
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+
     const channel = supabase
       .channel("fund-aum-realtime")
       .on(
@@ -68,13 +70,17 @@ export function useFundAUM() {
           table: "investor_positions",
         },
         () => {
-          // Debounce refetch to avoid excessive queries
-          queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+          // Debounce refetch to avoid excessive queries on every position change
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => {
+            queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+          }, 5000);
         }
       )
       .subscribe();
 
     return () => {
+      clearTimeout(timeoutId);
       supabase.removeChannel(channel);
     };
   }, [queryClient]);

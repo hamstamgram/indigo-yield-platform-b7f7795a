@@ -32,7 +32,7 @@ function buildCSPPolicy() {
     "img-src": "'self' data: https:",
     "connect-src": `'self'${
       supabaseHost
-        ? supabaseHost.includes("localhost") || supabaseHost.includes("127.0.0.1")
+        ? (supabaseHost.includes("localhost") || supabaseHost.includes("127.0.0.1")) && import.meta.env.DEV
           ? ` http://${supabaseHost} ws://${supabaseHost}`
           : ` https://${supabaseHost} wss://${supabaseHost}`
         : ""

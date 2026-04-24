@@ -128,52 +128,43 @@ async function runIntegrityChecks(supabase: any): Promise<CheckResult[]> {
 
   for (const check of INTEGRITY_CHECKS) {
     try {
-      const { data, error } = (await supabase.rpc("exec_sql", { sql: check.query })) as {
-        data: any[] | null;
-        error: any;
-      };
-
-      if (error) {
-        // Fallback: try direct query for views
-        const viewName = check.query.match(/FROM\s+(\w+)/i)?.[1];
-        if (viewName) {
-          const { data: viewData, error: viewError } = await supabase
-            .from(viewName)
-            .select("*")
-            .limit(5);
-
-          if (!viewError && viewData) {
-            results.push({
-              name: check.name,
-              status: viewData.length === 0 ? "pass" : "fail",
-              severity: check.severity,
-              count: viewData.length,
-              description: check.description,
-              sample: viewData.length > 0 ? viewData : undefined,
-            });
-            continue;
-          }
-        }
-
+      // Direct view query — exec_sql RPC is not available and would enable arbitrary SQL
+      const viewName = check.query.match(/FROM\s+(\w+)/i)?.[1];
+      if (!viewName) {
         results.push({
           name: check.name,
           status: "fail",
           severity: check.severity,
           count: -1,
-          description: `Error: ${error.message}`,
+          description: "Could not extract view name from query",
         });
         continue;
       }
 
-      const dataArray = data as any[] | null;
-      const count = Array.isArray(dataArray) ? dataArray.length : 0;
+      const { data: viewData, error: viewError } = await supabase
+        .from(viewName)
+        .select("*")
+        .limit(5);
+
+      if (viewError) {
+        results.push({
+          name: check.name,
+          status: "fail",
+          severity: check.severity,
+          count: -1,
+          description: `Error: ${viewError.message}`,
+        });
+        continue;
+      }
+
+      const count = Array.isArray(viewData) ? viewData.length : 0;
       results.push({
         name: check.name,
         status: count === 0 ? "pass" : "fail",
         severity: check.severity,
         count,
         description: check.description,
-        sample: count > 0 && dataArray ? dataArray.slice(0, 3) : undefined,
+        sample: count > 0 ? viewData : undefined,
       });
     } catch (err) {
       results.push({

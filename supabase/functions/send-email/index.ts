@@ -71,6 +71,20 @@ serve(async (req) => {
     const { to, subject, html, from, reply_to, email_type } = validation.data;
 
     // ========================================
+    // SECURITY FIX: Basic HTML sanitization (defense-in-depth)
+    // Strips script tags, event handlers, and javascript: URLs.
+    // For full sanitization, migrate to DOMPurify or template-based emails.
+    // ========================================
+    function sanitizeEmailHtml(input: string): string {
+      return input
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+        .replace(/<(iframe|object|embed|form)\b[^<]*(?:(?!<\/\1>)<[^<]*)*<\/\1>/gi, "")
+        .replace(/\s(on\w+)\s*=\s*["'][^"']*["']/gi, "")
+        .replace(/(href|src|action)\s*=\s*["']javascript:[^"']*["']/gi, '$1=""');
+    }
+    const sanitizedHtml = sanitizeEmailHtml(html);
+
+    // ========================================
     // SECURITY FIX: Validate sender domain
     // ========================================
     const sender = from || "Indigo Yield Platform <noreply@indigo.fund>";
@@ -103,7 +117,7 @@ serve(async (req) => {
         from: sender,
         to,
         subject,
-        html,
+        html: sanitizedHtml,
         reply_to,
       }),
     });

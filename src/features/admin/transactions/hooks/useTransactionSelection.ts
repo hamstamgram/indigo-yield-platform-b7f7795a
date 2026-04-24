@@ -3,7 +3,7 @@
  * Manages checkbox state, computes selection summary
  */
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import Decimal from "decimal.js";
 import type { TransactionViewModel } from "@/types/domains/transaction";
 
@@ -50,10 +50,26 @@ export function useTransactionSelection(
 ): UseTransactionSelectionReturn {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Clear selection on page change or showVoided toggle
+  // Clear selection on page change
   useEffect(() => {
     setSelectedIds(new Set());
-  }, [page, showVoided]);
+  }, [page]);
+
+  // Intersect selection with new selectable set when showVoided toggles
+  const prevShowVoided = useRef(showVoided);
+  useEffect(() => {
+    if (prevShowVoided.current === showVoided) return;
+    prevShowVoided.current = showVoided;
+    setSelectedIds((prev) => {
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (selectableIds.has(id)) {
+          next.add(id);
+        }
+      }
+      return next;
+    });
+  }, [showVoided, selectableIds]);
 
   const selectableRows = useMemo(() => getSelectableRows(data, showVoided), [data, showVoided]);
 
