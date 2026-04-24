@@ -104,13 +104,8 @@ export function useTransactionForm({ fundId, selectedInvestorId }: UseTransactio
     }
   }, [currentBalance, isCheckingBalance, hasTransactionHistory, txnType, setValue]);
 
-  // Clear transaction type when fund changes (balance may differ)
-  useEffect(() => {
-    if (selectedFundId && !fundId) {
-      // Only clear if fund wasn't pre-selected
-      setValue("txn_type", undefined as unknown as TransactionFormData["txn_type"]);
-    }
-  }, [selectedFundId, fundId, setValue]);
+  // Note: do NOT clear txn_type on fund change — user may have manually selected it.
+  // The auto-select effect above only fires when txn_type is empty (initial load).
 
   const isFirstInvestment =
     currentBalance !== null &&
