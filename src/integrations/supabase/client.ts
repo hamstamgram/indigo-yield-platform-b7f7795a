@@ -6,11 +6,15 @@ const SUPABASE_URL =
 
 const SUPABASE_ANON_KEY =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  "";
 
 if (!SUPABASE_ANON_KEY) {
-  throw new Error(
-    "Missing Supabase anon key. Set VITE_SUPABASE_ANON_KEY or VITE_SUPABASE_PUBLISHABLE_KEY."
+  // Log a clear warning instead of throwing — a missing key should surface
+  // as failed Supabase calls (visible in the UI) rather than a blank screen.
+  console.error(
+    "[supabase] Missing VITE_SUPABASE_ANON_KEY or VITE_SUPABASE_PUBLISHABLE_KEY. " +
+      "Add it to your .env file or hosting provider environment variables."
   );
 }
 
