@@ -13,11 +13,9 @@ const InvestorsTableHeader: React.FC<InvestorsTableHeaderProps> = ({ assets }) =
       <TableRow>
         <TableHead>Investor</TableHead>
         {assets.map((asset) => (
-          <TableHead key={asset.id}>
-            <div className="flex items-center">
-              <CryptoIcon symbol={asset.symbol} className="h-5 w-5 mr-2" />
-              {asset.symbol}
-            </div>
+          <TableHead key={asset.id} className="flex items-center gap-2">
+            <CryptoIcon symbol={asset.symbol} className="h-5 w-5" />
+            {asset.symbol}
           </TableHead>
         ))}
         <TableHead className="text-right">Actions</TableHead>
