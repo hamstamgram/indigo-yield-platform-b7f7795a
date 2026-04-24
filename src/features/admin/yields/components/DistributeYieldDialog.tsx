@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import Decimal from "decimal.js";
 import { toNum } from "@/utils/numeric";
+import { parseFinancial } from "@/utils/financial";
 
 interface ReconciliationData {
   has_warning: boolean;
