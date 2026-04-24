@@ -8,7 +8,7 @@ const buildVersion = Date.now().toString();
 
 export default defineConfig(({ mode }) => ({
   test: {
-    exclude: ["tests/e2e/**", "node_modules/**", ".opencode/**"],
+    exclude: ["tests/e2e/**", "node_modules/**", ".opencode/**", ".claude/worktrees/**"],
   },
   server: {
     host: "::",
@@ -77,39 +77,25 @@ export default defineConfig(({ mode }) => ({
     sourcemap: process.env.NODE_ENV !== "production",
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router-dom"],
-          supabase: ["@supabase/supabase-js"],
-          ui: [
-            "@radix-ui/react-accordion",
-            "@radix-ui/react-alert-dialog",
-            "@radix-ui/react-avatar",
-            "@radix-ui/react-checkbox",
-            "@radix-ui/react-collapsible",
-            "@radix-ui/react-dialog",
-            "@radix-ui/react-dropdown-menu",
-            "@radix-ui/react-hover-card",
-            "@radix-ui/react-label",
-            "@radix-ui/react-popover",
-            "@radix-ui/react-progress",
-            "@radix-ui/react-radio-group",
-            "@radix-ui/react-scroll-area",
-            "@radix-ui/react-select",
-            "@radix-ui/react-separator",
-            "@radix-ui/react-slider",
-            "@radix-ui/react-slot",
-            "@radix-ui/react-switch",
-            "@radix-ui/react-tabs",
-            "@radix-ui/react-toast",
-            "@radix-ui/react-toggle",
-            "@radix-ui/react-toggle-group",
-            "@radix-ui/react-tooltip",
-            "class-variance-authority",
-            "clsx",
-            "tailwind-merge",
-          ],
-          charts: ["recharts"],
-          pdf: ["jspdf", "html2canvas", "jspdf-autotable"],
+        manualChunks(id: string) {
+          if (id.includes("node_modules")) {
+            if (/@radix-ui\/react-/.test(id) || /class-variance-authority|clsx|tailwind-merge/.test(id)) {
+              return "ui";
+            }
+            if (/react|react-dom|react-router-dom/.test(id)) {
+              return "vendor";
+            }
+            if (/@supabase\/supabase-js/.test(id)) {
+              return "supabase";
+            }
+            if (/recharts/.test(id)) {
+              return "charts";
+            }
+            if (/jspdf|html2canvas|jspdf-autotable/.test(id)) {
+              return "pdf";
+            }
+          }
+          return null;
         },
       },
     },
