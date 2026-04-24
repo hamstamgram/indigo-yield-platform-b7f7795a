@@ -17,7 +17,7 @@ export const transactionSchema = z
       .string()
       .trim()
       .min(1, "Amount is required")
-      .refine((val) => !isNaN(Number(val)) && Number(val) !== 0, {
+      .refine((val) => isFinite(Number(val)) && !isNaN(Number(val)) && Number(val) !== 0, {
         message: "Amount must be a non-zero number",
       })
       .refine((val) => Math.abs(Number(val)) <= 1000000000, {

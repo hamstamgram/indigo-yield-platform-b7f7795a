@@ -1,18 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
-// Secure CORS configuration
-const allowedOrigins = Deno.env.get("ALLOWED_ORIGINS")?.split(",") || [];
-const corsHeaders = (origin: string | null) => ({
-  "Access-Control-Allow-Origin":
-    origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0] || "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-csrf-token",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-});
 
 interface EmailRequest {
   to: string;
@@ -30,16 +22,13 @@ interface EmailRequest {
 import { generateUnifiedEmailHtml } from "../_shared/email-layout.ts";
 
 const handler = async (req: Request): Promise<Response> => {
-  const origin = req.headers.get("origin");
-  const headers = corsHeaders(origin);
+  const headers = getCorsHeaders(req.headers.get("origin"));
 
   if (req.method === "OPTIONS") {
     return new Response(null, { headers });
   }
 
   try {
-    // CSRF defense: JWT bearer token + CORS origin validation.
-    // No separate CSRF token needed for API-only endpoints with Authorization headers.
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -48,7 +37,10 @@ const handler = async (req: Request): Promise<Response> => {
     // Verify authentication
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("Missing authorization header");
+      return new Response(JSON.stringify({ error: "Missing authorization header" }), {
+        status: 401,
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
     }
 
     const {
@@ -57,7 +49,16 @@ const handler = async (req: Request): Promise<Response> => {
     } = await supabaseClient.auth.getUser(authHeader.replace("Bearer ", ""));
 
     if (authError || !user) {
-      throw new Error("Unauthorized");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
+    }
+
+    // Verify admin access
+    const adminCheck = await checkAdminAccess(supabaseClient, user.id);
+    if (!adminCheck.isAdmin) {
+      return createAdminDeniedResponse(headers, "Sending notification emails requires admin access");
     }
 
     const { to, subject, template, data }: EmailRequest = await req.json();
@@ -102,9 +103,9 @@ const handler = async (req: Request): Promise<Response> => {
         title: "Withdrawal Update",
         subject: subject || "Withdrawal Request Update",
         html: `
-            <p style="color: #4F46E5; font-size: 18px; font-weight: 600; margin-top: 0;">Withdrawal Request ${data.status}</p>
+            <p style="color: #4F46E5; font-size: 18px; font-weight: 600; margin-top: 0;">Withdrawal Request ${data.status || ""}</p>
             <p>Dear ${data.name},</p>
-            <p>Your withdrawal request for ${data.amount} has been ${data.status.toLowerCase()}.</p>
+            <p>Your withdrawal request for ${data.amount} has been ${(data.status || "").toLowerCase()}.</p>
             ${data.reason ? `<p><strong>Reason:</strong> ${data.reason}</p>` : ""}
             ${data.reference ? `<p><strong>Reference:</strong> ${data.reference}</p>` : ""}
             <p>Best regards,<br/>The Indigo Yield Team</p>

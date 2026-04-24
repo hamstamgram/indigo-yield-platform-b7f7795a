@@ -31,7 +31,7 @@ export const withdrawalCreationDbSchema = z
   .object({
     investorId: strictUuidSchema,
     fundId: strictUuidSchema,
-    amount: z.number().positive("Amount must be positive"),
+    amount: z.number().positive("Amount must be positive").finite("Amount must be finite"),
     type: z.enum(["partial", "full"]),
     notes: z.string().max(500).optional(),
   })
@@ -146,7 +146,7 @@ export const withdrawalRequestSchema = z.object({
   amount: z
     .string()
     .min(1, "Amount is required")
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+    .refine((val) => isFinite(Number(val)) && !isNaN(Number(val)) && Number(val) > 0, {
       message: "Amount must be a positive number",
     }),
   assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"]),
@@ -178,7 +178,7 @@ export const adminWithdrawalSchema = z.object({
   assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"]),
   txHash: z.string().min(1, "Transaction hash is required").max(100, "Transaction hash too long"),
   destinationAddress: z.string().min(1, "Destination address is required"),
-  fee: z.number().min(0, "Fee cannot be negative").optional(),
+  fee: z.number().min(0, "Fee cannot be negative").finite("Fee must be finite").optional(),
   notes: z.string().max(1000, "Notes too long").optional(),
 });
 
@@ -413,7 +413,7 @@ export const aumRecordDbSchema = z
   .object({
     fundId: strictUuidSchema,
     aumDate: z.string().or(z.date()),
-    totalAum: z.number().positive("AUM must be positive"),
+    totalAum: z.number().positive("AUM must be positive").finite("AUM must be finite"),
     purpose: z.enum(["reporting", "transaction"]),
   })
   .transform((data) => ({

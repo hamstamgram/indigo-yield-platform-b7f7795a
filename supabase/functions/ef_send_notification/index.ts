@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { checkAdminAccess, createAdminDeniedResponse } from "../_shared/admin-check.ts";
 
 interface NotificationRequest {
   user_id: string;
@@ -45,12 +46,11 @@ serve(async (req) => {
       throw new Error("Invalid authorization token");
     }
 
-    // Check if user is admin (for system notifications)
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_admin")
-      .eq("id", user.id)
-      .single();
+    // Verify admin access — only admins may send notifications to other users
+    const adminCheck = await checkAdminAccess(supabase, user.id);
+    if (!adminCheck.isAdmin) {
+      return createAdminDeniedResponse(corsHeaders, "Sending notifications requires admin access");
+    }
 
     const request: NotificationRequest = await req.json();
 

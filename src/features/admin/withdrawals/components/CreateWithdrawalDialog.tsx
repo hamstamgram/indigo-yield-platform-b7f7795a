@@ -50,7 +50,7 @@ const withdrawalSchema = z.object({
     .string()
     .trim()
     .min(1, "Amount is required")
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+    .refine((val) => isFinite(Number(val)) && !isNaN(Number(val)) && Number(val) > 0, {
       message: "Amount must be a positive number",
     }),
   settlement_date: z

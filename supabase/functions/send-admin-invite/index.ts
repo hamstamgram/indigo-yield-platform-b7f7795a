@@ -131,12 +131,21 @@ serve(async (req) => {
       });
     }
 
+    // Validate email format before using in queries
+    const normalizedEmail = invite.email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return new Response(JSON.stringify({ error: "Invalid email format" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
     // Check if user already exists via profiles table (more reliable than listUsers)
-    console.log("Checking if user exists in profiles table:", invite.email);
+    console.log("Checking if user exists in profiles table");
     const { data: existingProfile, error: profileError } = await supabaseAdmin
       .from("profiles")
       .select("id, email, is_admin")
-      .ilike("email", invite.email)
+      .eq("email", normalizedEmail)
       .maybeSingle();
 
     if (profileError) {

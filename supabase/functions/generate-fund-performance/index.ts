@@ -149,11 +149,24 @@ Deno.serve(async (req) => {
 
     const { periodYear, periodMonth, investorId }: RequestBody = await req.json();
 
-    if (!periodYear || !periodMonth) {
-      return new Response(JSON.stringify({ error: "periodYear and periodMonth are required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // Validate period parameters
+    const yearNum = Number(periodYear);
+    const monthNum = Number(periodMonth);
+    if (
+      !Number.isFinite(yearNum) ||
+      !Number.isFinite(monthNum) ||
+      yearNum < 2000 ||
+      yearNum > 2100 ||
+      monthNum < 1 ||
+      monthNum > 12
+    ) {
+      return new Response(
+        JSON.stringify({ error: "periodYear must be 2000-2100 and periodMonth must be 1-12" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     console.log(`Generating performance for ${periodYear}-${periodMonth}`);

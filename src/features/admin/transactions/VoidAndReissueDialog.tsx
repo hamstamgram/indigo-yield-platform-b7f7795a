@@ -62,7 +62,7 @@ const reissueSchema = z
     amount: z
       .string()
       .min(1, "Amount is required")
-      .refine((val) => !isNaN(Number(val)) && Number(val) !== 0, {
+      .refine((val) => isFinite(Number(val)) && !isNaN(Number(val)) && Number(val) !== 0, {
         message: "Amount must be a non-zero number",
       }),
     notes: z.string().optional(),

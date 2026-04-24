@@ -11,6 +11,17 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+/**
+ * Safely parse a date value from Excel.
+ * Returns null if the value is invalid instead of throwing.
+ */
+function safeParseDate(val: unknown): Date | null {
+  if (val == null) return null;
+  if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+  const d = new Date(String(val));
+  return isNaN(d.getTime()) ? null : d;
+}
+
 // Load mapping configuration
 async function getMapping() {
   try {
@@ -257,15 +268,22 @@ serve(async (req) => {
             }
 
             // Generate deterministic reference_id for idempotency
-            const txDateStr = new Date(row[mapping.transactions.mappings.tx_date])
-              .toISOString()
-              .split("T")[0];
+            const parsedTxDate = safeParseDate(row[mapping.transactions.mappings.tx_date]);
+            if (!parsedTxDate) {
+              results.errors.push({
+                type: "transaction",
+                email,
+                error: `Invalid date value: ${row[mapping.transactions.mappings.tx_date]}`,
+              });
+              continue;
+            }
+            const txDateStr = parsedTxDate.toISOString().split("T")[0];
             const referenceId = `import:${txDateStr}:${investor.id}:${fund.id}:${amountStr}`;
 
             const transactionData = {
               investor_id: investor.id,
               fund_id: fund.id,
-              tx_date: new Date(row[mapping.transactions.mappings.tx_date]),
+              tx_date: parsedTxDate,
               asset,
               amount: amountStr, // High precision
               type: "DEPOSIT",
@@ -323,8 +341,18 @@ serve(async (req) => {
           const rows = XLSX.utils.sheet_to_json<any>(sheet, { defval: null });
 
           for (const row of rows) {
-            const navDate = row[mapping.daily_nav.columns.nav_date];
-            if (!navDate) continue;
+            const navDateRaw = row[mapping.daily_nav.columns.nav_date];
+            if (!navDateRaw) continue;
+
+            const navDate = safeParseDate(navDateRaw);
+            if (!navDate) {
+              results.errors.push({
+                type: "daily_nav",
+                sheet: sheetName,
+                error: `Invalid nav_date value: ${navDateRaw}`,
+              });
+              continue;
+            }
 
             const aumVal = row[mapping.daily_nav.columns.aum];
             const grossVal = row[mapping.daily_nav.columns.gross_return_pct];
@@ -333,7 +361,7 @@ serve(async (req) => {
 
             const navData = {
               fund_id: fund.id,
-              nav_date: new Date(navDate),
+              nav_date: navDate,
               aum: (aumVal === null || aumVal === undefined) ? "0" : aumVal.toString(),
               gross_return_pct: grossVal == null ? null : grossVal.toString(),
               net_return_pct: netVal == null ? null : netVal.toString(),

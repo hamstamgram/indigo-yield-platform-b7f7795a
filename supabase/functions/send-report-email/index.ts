@@ -307,7 +307,7 @@ serve(async (req: Request): Promise<Response> => {
     const { data: secondaryEmails } = await supabase
       .from("investor_emails")
       .select("email")
-      .eq("investor_id", investor_id)
+      .eq("investor_id", investorData.id)
       .eq("verified", true);
 
     const recipientList = [
@@ -319,9 +319,18 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("No verified recipients found for this investor");
     }
 
-    // ... (rest of period/subject building)
-
-    // Prepare Resend API payload for MULTIPLE recipients
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
+    ];
+    const periodName = `${monthNames[periodData.month - 1]} ${periodData.year}`;
+    const investorName =
+      [investorData.first_name, investorData.last_name].filter(Boolean).join(" ") ||
+      investorData.email ||
+      "Investor";
+    const subject = `${investorName} – Your Account Statement – ${periodName}`;
+    const plainText = `Your monthly investment report for ${periodName} is ready. View it at: ${Deno.env.get("PUBLIC_REPORT_BASE_URL") || "https://app.indigoyield.com/reports/view"}/${statementData.id}`;
+    const recipientEmail = investorData.email;
     const emailPayload: Record<string, unknown> = {
       from: `${RESEND_FROM_NAME} <${RESEND_FROM_EMAIL}>`,
       to: recipientList, // Now an array of all authorized emails
