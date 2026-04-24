@@ -46,20 +46,24 @@ export function useCorrelatedMutation<
 } {
   const { operationType, mutationFn, getMetadata, ...mutationOptions } = options;
   const correlationIdRef = useRef<string | null>(null);
+  const mutationFnRef = useRef(mutationFn);
+  mutationFnRef.current = mutationFn;
+  const getMetadataRef = useRef(getMetadata);
+  getMetadataRef.current = getMetadata;
 
   const wrappedMutationFn = useCallback(async (variables: TVariables): Promise<TData> => {
     // Start correlation
-    const metadata = getMetadata?.(variables) ?? {};
+    const metadata = getMetadataRef.current?.(variables) ?? {};
     const correlationId = startOperation(operationType, metadata);
     correlationIdRef.current = correlationId;
-    
+
     const log = createCorrelatedLogger(correlationId);
-    
+
     try {
       log.info(`Starting ${operationType}`, metadata);
-      
-      const result = await mutationFn(variables, { correlationId, log });
-      
+
+      const result = await mutationFnRef.current(variables, { correlationId, log });
+
       log.info(`Completed ${operationType}`);
       return result;
     } catch (error) {
@@ -68,7 +72,7 @@ export function useCorrelatedMutation<
     } finally {
       endOperation(correlationId);
     }
-  }, [operationType, mutationFn, getMetadata]);
+  }, [operationType]);
 
   const mutation = useMutation<TData, TError, TVariables, TContext>({
     ...mutationOptions,
