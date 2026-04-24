@@ -55,6 +55,7 @@ export type {
   UserSettings,
   InvestorProfile,
   MonthlyStatement,
+  InvestorTransactionsPage,
 } from "./investorPortalService";
 
 export {

@@ -280,37 +280,70 @@ serve(async (req) => {
             const txDateStr = parsedTxDate.toISOString().split("T")[0];
             const referenceId = `import:${txDateStr}:${investor.id}:${fund.id}:${amountStr}`;
 
-            const transactionData = {
-              investor_id: investor.id,
-              fund_id: fund.id,
-              tx_date: parsedTxDate,
-              asset,
-              amount: amountStr, // High precision
-              type: "DEPOSIT",
-              tx_hash: row["Transaction Hash"] || null,
-              notes: row["Notes"] || `Excel import - ${new Date().toISOString()}`,
-              created_by: user.id,
-              // CRITICAL: reference_id ensures idempotency (UNIQUE constraint)
-              reference_id: referenceId,
-              // Mark as migration source for audit trail
-              tx_source: "migration",
-              // Historical imports are admin-visible only until verified
-              visibility_scope: "admin_only",
-            };
+            const txNotes = row["Notes"] || `Excel import - ${new Date().toISOString()}`;
 
             if (!validateOnly) {
-              // WARNING: Direct insert bypasses crystallization flow.
-              const { error } = await supabase.from("transactions_v2").insert(transactionData);
+              // Route through canonical RPC to ensure crystallization,
+              // position updates, and AUM consistency.
+              const { data: rpcResult, error: rpcError } = await supabase.rpc(
+                "apply_transaction_with_crystallization",
+                {
+                  p_fund_id: fund.id,
+                  p_investor_id: investor.id,
+                  p_tx_type: "DEPOSIT",
+                  p_amount: new Decimal(amountStr).toNumber(),
+                  p_tx_date: txDateStr,
+                  p_reference_id: referenceId,
+                  p_admin_id: user.id,
+                  p_notes: txNotes,
+                  p_purpose: "transaction",
+                },
+              );
 
-              if (error) {
+              if (rpcError) {
                 results.errors.push({
                   type: "transaction",
                   email,
-                  error: "Database operation failed",
+                  error: rpcError.message || "Canonical RPC failed",
                 });
-              } else {
-                results.inserted.transactions++;
+                continue;
               }
+
+              const txId = rpcResult?.tx_id;
+
+              // Update visibility_scope which the canonical RPC does not set.
+              // visibility_scope is explicitly excluded from immutability checks.
+              if (txId) {
+                const { error: updateError } = await supabase
+                  .from("transactions_v2")
+                  .update({ visibility_scope: "admin_only" })
+                  .eq("id", txId);
+
+                if (updateError) {
+                  console.warn(
+                    `[excel_import] Failed to update visibility_scope for tx ${txId}:`
+,
+                    updateError.message,
+                  );
+                }
+
+                // Audit log each imported transaction
+                await supabase.from("audit_log").insert({
+                  actor_user: user.id,
+                  action: "excel_import_transaction",
+                  entity: "transactions_v2",
+                  entity_id: txId,
+                  meta: {
+                    reference_id: referenceId,
+                    investor_email: email,
+                    fund_id: fund.id,
+                    amount: amountStr,
+                    tx_date: txDateStr,
+                  },
+                });
+              }
+
+              results.inserted.transactions++;
             }
           }
         }
@@ -409,6 +442,21 @@ serve(async (req) => {
         errors: results.errors.length > 0 ? results.errors : null,
       })
       .eq("id", importLog.id);
+
+    // Batch audit log for the overall import operation
+    await supabase.from("audit_log").insert({
+      actor_user: user.id,
+      action: "excel_import_complete",
+      entity: "excel_import_log",
+      entity_id: importLog.id,
+      meta: {
+        validate_only: validateOnly,
+        investors: results.inserted.investors,
+        transactions: results.inserted.transactions,
+        daily_nav: results.inserted.daily_nav,
+        errors: results.errors.length,
+      },
+    });
 
     return new Response(
       JSON.stringify({

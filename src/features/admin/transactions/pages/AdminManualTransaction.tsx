@@ -42,24 +42,35 @@ import { getTodayString } from "@/utils/dateUtils";
 import { PageShell } from "@/components/layout/PageShell";
 
 import Decimal from "decimal.js";
+import { transactionAmountSchema } from "@/lib/validation/schemas";
+
 // Form Schema — clean transaction form, no AUM/yield fields
-const transactionSchema = z.object({
-  investorId: z.string().min(1, "Investor is required"),
-  fundId: z.string().min(1, "Fund is required"),
-  type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL", "ADJUSTMENT"]),
-  amount: z.string().refine((val) => {
-    try {
-      const d = new Decimal(val || "0");
-      return !d.eq(0);
-    } catch {
-      return false;
+const transactionSchema = z
+  .object({
+    investorId: z.string().min(1, "Investor is required"),
+    fundId: z.string().min(1, "Fund is required"),
+    type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL", "ADJUSTMENT"]),
+    amount: transactionAmountSchema,
+    txDate: z.string().min(1, "Transaction date is required"),
+    description: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    // ADJUSTMENT allows negative amounts; all other types require positive
+    if (data.type !== "ADJUSTMENT") {
+      try {
+        const d = new Decimal(data.amount);
+        if (d.lt(0)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Amount must be a positive number",
+            path: ["amount"],
+          });
+        }
+      } catch {
+        // Invalid amount caught by earlier refine
+      }
     }
-  }, {
-    message: "Amount must be a non-zero number",
-  }),
-  txDate: z.string().min(1, "Transaction date is required"),
-  description: z.string().optional(),
-});
+  });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   Input,
@@ -12,6 +12,11 @@ import {
   ResponsiveTable,
   EmptyState,
   SortableTableHead,
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
 } from "@/components/ui";
 import { Search, Receipt, Filter, Download } from "lucide-react";
 import { formatAssetAmount } from "@/utils/assets";
@@ -31,19 +36,33 @@ const TRANSACTION_TYPES = [
   { value: "ADJUSTMENT", label: "Adjustment" },
 ];
 
+const PAGE_SIZE = 25;
+
 export default function InvestorTransactionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [assetFilter, setAssetFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [page, setPage] = useState(0);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [searchTerm, assetFilter, typeFilter]);
 
   const { data: assets } = useInvestorTransactionAssets();
-  const { data: items, isLoading } = useInvestorTransactionsList(
+  const { data: pageData, isLoading } = useInvestorTransactionsList(
     searchTerm,
     assetFilter,
-    typeFilter
+    typeFilter,
+    page,
+    PAGE_SIZE,
   );
 
-  const { sortConfig, requestSort, sortedData } = useSortableColumns(items || [], {
+  const items = pageData?.items || [];
+  const totalCount = pageData?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  const { sortConfig, requestSort, sortedData } = useSortableColumns(items, {
     column: "tx_date",
     direction: "desc",
   });
@@ -257,6 +276,42 @@ export default function InvestorTransactionsPage() {
             </div>
           )}
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-slate-400">
+              Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, totalCount)} of{" "}
+              {totalCount}
+            </span>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    className={cn(
+                      page === 0 && "pointer-events-none opacity-50",
+                      "cursor-pointer",
+                    )}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <span className="text-sm text-slate-300 px-3">
+                    Page {page + 1} of {totalPages}
+                  </span>
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                    className={cn(
+                      page >= totalPages - 1 && "pointer-events-none opacity-50",
+                      "cursor-pointer",
+                    )}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </div>
     </PageShell>
   );

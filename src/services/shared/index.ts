@@ -17,17 +17,12 @@ export * from "./performanceService";
 
 // Transaction service
 export {
-  fetchUserTransactions,
-  calculateTransactionSummary,
   createInvestorTransaction,
   createQuickTransaction,
   transactionService,
 } from "./transactionService";
 // Note: CreateTransactionParams should be imported from @/types/domains/transaction
 export type {
-  UserTransaction,
-  UserTransactionSummary,
-  UserTransactionSummary as TransactionSummary,
   QuickTransactionParams,
 } from "./transactionService";
 // For canonical transaction types, import directly from @/types/domains/transaction

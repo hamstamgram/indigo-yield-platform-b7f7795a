@@ -1,82 +1,16 @@
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import Decimal from "decimal.js";
 import { getTodayString } from "@/utils/dateUtils";
 import { useInvestorBalance, useTransactionHistory } from "@/features/shared/hooks/useInvestorBalance";
+import {
+  createTransactionFormSchema,
+  type CreateTransactionFormData,
+} from "@/lib/validation/schemas";
 
-// Transaction validation schema
-export const transactionSchema = z
-  .object({
-    txn_type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL", "ADJUSTMENT"], {
-      required_error: "Transaction type is required",
-    }),
-    fund_id: z.string().uuid("Please select a valid fund"),
-    asset: z.string().min(1, "Asset is required"),
-    amount: z
-      .string()
-      .trim()
-      .min(1, "Amount is required")
-      .refine((val) => {
-        try {
-          const d = new Decimal(val);
-          return d.isFinite() && !d.isNaN() && !d.eq(0);
-        } catch {
-          return false;
-        }
-      }, {
-        message: "Amount must be a non-zero number",
-      })
-      .refine((val) => {
-        try {
-          const d = new Decimal(val);
-          return d.abs().lte(1_000_000_000);
-        } catch {
-          return false;
-        }
-      }, {
-        message: "Amount must be less than 1 billion",
-      }),
-    tx_date: z
-      .string()
-      .min(1, "Transaction date is required")
-      .refine((val) => !isNaN(Date.parse(val)), {
-        message: "Invalid date format",
-      }),
-
-    reference_id: z
-      .string()
-      .trim()
-      .max(100, "Reference ID must be less than 100 characters")
-      .optional(),
-    tx_hash: z
-      .string()
-      .trim()
-      .max(255, "Transaction hash must be less than 255 characters")
-      .optional(),
-    notes: z.string().trim().max(1000, "Notes must be less than 1000 characters").optional(),
-    full_withdrawal: z.boolean().default(false),
-  })
-  .superRefine((data, ctx) => {
-    // ADJUSTMENT allows negative amounts (balance reductions); all other types require positive
-    if (data.txn_type !== "ADJUSTMENT") {
-      try {
-        const d = new Decimal(data.amount);
-        if (d.lt(0)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Amount must be a positive number",
-            path: ["amount"],
-          });
-        }
-      } catch {
-        // Invalid amount caught by earlier refine
-      }
-    }
-  });
-
-export type TransactionFormData = z.infer<typeof transactionSchema>;
+// Re-export for backward compatibility with existing components
+export const transactionSchema = createTransactionFormSchema;
+export type TransactionFormData = CreateTransactionFormData;
 
 interface UseTransactionFormParams {
   fundId?: string;
@@ -85,7 +19,7 @@ interface UseTransactionFormParams {
 
 export function useTransactionForm({ fundId, selectedInvestorId }: UseTransactionFormParams) {
   const form = useForm<TransactionFormData>({
-    resolver: zodResolver(transactionSchema),
+    resolver: zodResolver(createTransactionFormSchema),
     defaultValues: {
       tx_date: getTodayString(),
       fund_id: fundId || "",

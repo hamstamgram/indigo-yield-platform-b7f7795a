@@ -46,13 +46,15 @@ export function useInvestorTransactionAssets() {
 export function useInvestorTransactionsList(
   _unused?: string,
   assetFilter?: string,
-  typeFilter?: string
+  typeFilter?: string,
+  page: number = 0,
+  pageSize: number = 25,
 ) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: QUERY_KEYS.investorTransactions(user?.id || "", 0, assetFilter, typeFilter),
-    queryFn: () => getInvestorTransactionsList(user?.id || "", undefined, assetFilter, typeFilter),
+    queryKey: QUERY_KEYS.investorTransactions(user?.id || "", page, assetFilter, typeFilter),
+    queryFn: () => getInvestorTransactionsList(user?.id || "", undefined, assetFilter, typeFilter, page, pageSize),
     enabled: !!user,
   });
 }

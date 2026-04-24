@@ -4,6 +4,7 @@
  */
 
 import { z } from "zod";
+import Decimal from "decimal.js";
 import { formatDateForDB } from "@/utils/dateUtils";
 
 // ============================================================================
@@ -152,6 +153,87 @@ export const withdrawalRequestSchema = z.object({
   assetCode: z.enum(["BTC", "ETH", "SOL", "USDT", "EURC", "xAUT", "XRP"]),
   notes: z.string().max(500, "Notes too long").optional(),
 });
+
+// ===============================
+// Unified Transaction Schema
+// ===============================
+
+/**
+ * Reusable amount validation for financial transactions.
+ * Uses Decimal.js for precision — never Number() for money.
+ */
+export const transactionAmountSchema = z
+  .string()
+  .trim()
+  .min(1, "Amount is required")
+  .refine((val) => {
+    try {
+      const d = new Decimal(val);
+      return d.isFinite() && !d.isNaN() && !d.eq(0);
+    } catch {
+      return false;
+    }
+  }, { message: "Amount must be a non-zero number" })
+  .refine((val) => {
+    try {
+      const d = new Decimal(val);
+      return d.abs().lte(1_000_000_000);
+    } catch {
+      return false;
+    }
+  }, { message: "Amount must be less than 1 billion" });
+
+/**
+ * Canonical transaction form schema — single source of truth.
+ * Matches CreateTransactionUIParams shape (snake_case).
+ * Used by useTransactionForm, AddTransactionDialog, and related components.
+ */
+export const createTransactionFormSchema = z
+  .object({
+    txn_type: z.enum(["FIRST_INVESTMENT", "DEPOSIT", "WITHDRAWAL", "ADJUSTMENT"], {
+      required_error: "Transaction type is required",
+    }),
+    fund_id: z.string().uuid("Please select a valid fund"),
+    asset: z.string().min(1, "Asset is required"),
+    amount: transactionAmountSchema,
+    tx_date: z
+      .string()
+      .min(1, "Transaction date is required")
+      .refine((val) => !isNaN(Date.parse(val)), {
+        message: "Invalid date format",
+      }),
+    reference_id: z
+      .string()
+      .trim()
+      .max(100, "Reference ID must be less than 100 characters")
+      .optional(),
+    tx_hash: z
+      .string()
+      .trim()
+      .max(255, "Transaction hash must be less than 255 characters")
+      .optional(),
+    notes: z.string().trim().max(1000, "Notes must be less than 1000 characters").optional(),
+    full_withdrawal: z.boolean().default(false),
+  })
+  .superRefine((data, ctx) => {
+    // ADJUSTMENT allows negative amounts; all other types require positive
+    if (data.txn_type !== "ADJUSTMENT") {
+      try {
+        const d = new Decimal(data.amount);
+        if (d.lt(0)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Amount must be a positive number",
+            path: ["amount"],
+          });
+        }
+      } catch {
+        // Invalid amount caught by earlier refine
+      }
+    }
+  });
+
+export type CreateTransactionFormData = z.infer<typeof createTransactionFormSchema>;
 
 // ===============================
 // Admin Operation Schemas

@@ -229,6 +229,13 @@ export async function getInvestorTransactionAssets(userId: string): Promise<stri
   return assets as string[];
 }
 
+export interface InvestorTransactionsPage {
+  items: any[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
+
 /**
  * Get list of transactions for investor portal
  */
@@ -236,30 +243,41 @@ export async function getInvestorTransactionsList(
   userId: string,
   searchTerm?: string,
   assetFilter?: string,
-  typeFilter?: string
-): Promise<any[]> {
+  typeFilter?: string,
+  page: number = 0,
+  pageSize: number = 25,
+): Promise<InvestorTransactionsPage> {
   let query = supabase
     .from("investor_transactions_view" as any)
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("investor_id", userId)
     .order("transaction_date", { ascending: false });
 
-  if (assetFilter) {
+  if (assetFilter && assetFilter !== "all") {
     query = (query as any).eq("asset_code", assetFilter);
   }
 
-  if (typeFilter) {
+  if (typeFilter && typeFilter !== "all") {
     query = (query as any).eq("transaction_type", typeFilter);
   }
 
-  const { data, error } = await (query as any);
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+  query = (query as any).range(from, to);
+
+  const { data, error, count } = await (query as any);
 
   if (error) {
     logError("getInvestorTransactionsList", error, { userId, searchTerm, assetFilter, typeFilter });
     throw error;
   }
 
-  return (data as any[]) || [];
+  return {
+    items: (data as any[]) || [],
+    totalCount: count || 0,
+    page,
+    pageSize,
+  };
 }
 
 /**
