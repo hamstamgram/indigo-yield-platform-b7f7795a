@@ -1,1 +1,0 @@
-Position Sync Invariants and Truth Table documentation

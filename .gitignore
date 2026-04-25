@@ -95,3 +95,11 @@ ios/
 **/create-test-users*
 coverage/
 .gstack/
+
+# AI tool state — never commit
+.lovable/
+.mex/
+.opencode/
+.playwright-mcp/
+playwright-report/
+validation-report.*
