@@ -111,6 +111,7 @@ export function CreateWithdrawalDialog({
     formState: { errors },
     setValue,
     watch,
+    getValues,
     reset,
   } = useForm<WithdrawalFormData>({
     resolver: zodResolver(withdrawalSchema),
@@ -149,29 +150,28 @@ export function CreateWithdrawalDialog({
   const selectedInvestor = investors.find((i) => i.id === selectedInvestorId);
   const selectedPosition = positions.find((p) => p.fund_id === selectedFundId);
 
-  // Auto-fill amount when "full" withdrawal is selected
-  // Use a ref to track transition so admins can override the amount
+  // Auto-fill amount when "full" withdrawal is selected, but only if the field is empty.
+  // Preserves admin's typed value so toggling type doesn't silently overwrite a deliberate amount.
   const prevWithdrawalTypeRef = useRef(withdrawalType);
   const lastFundIdRef = useRef<string | null>(null);
   useEffect(() => {
-    // Reset type transition guard when fund changes so auto-fill re-runs
     if (selectedFundId !== lastFundIdRef.current) {
       lastFundIdRef.current = selectedFundId;
       prevWithdrawalTypeRef.current = "partial";
     }
 
     if (withdrawalType === "full" && prevWithdrawalTypeRef.current !== "full" && selectedFundId) {
-      // Use selectedPosition.current_value so the auto-filled amount matches
-      // the "Maximum withdrawal" text and dropdown (both from fetchPositionsForWithdrawal).
-      // fetchPositionsForWithdrawal already reconciles against the ledger
-      // and overrides current_value when drift > 0.0001.
-      const maxAmount = selectedPosition?.current_value ?? availableBalanceData?.availableBalance;
-      if (maxAmount != null) {
-        setValue("amount", String(maxAmount), { shouldValidate: true });
+      const currentAmount = getValues("amount");
+      const isEmpty = !currentAmount || parseFinancial(currentAmount).isZero();
+      if (isEmpty) {
+        const maxAmount = selectedPosition?.current_value ?? availableBalanceData?.availableBalance;
+        if (maxAmount != null) {
+          setValue("amount", String(maxAmount), { shouldValidate: true });
+        }
       }
     }
     prevWithdrawalTypeRef.current = withdrawalType;
-  }, [withdrawalType, selectedFundId, availableBalanceData, selectedPosition, setValue]);
+  }, [withdrawalType, selectedFundId, availableBalanceData, selectedPosition, setValue, getValues]);
 
   const onSubmit = async (data: WithdrawalFormData) => {
     // Double-submission guard - check ref immediately (before React re-renders)
