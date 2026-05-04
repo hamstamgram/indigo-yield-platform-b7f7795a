@@ -11,7 +11,6 @@ import {
   Briefcase,
   Wallet,
   Coins,
-  HeartPulse,
 } from "lucide-react";
 import { NavItem } from "@/types/navigation";
 
@@ -105,19 +104,13 @@ export const adminNavGroups: NavGroup[] = [
     icon: Settings,
     items: [
       {
-        title: "Operations",
-        href: "/admin/operations",
-        icon: <HeartPulse className="h-4 w-4" />,
-        adminOnly: true,
-      },
-      {
         title: "Settings",
         href: "/admin/settings",
         icon: <Settings className="h-4 w-4" />,
         adminOnly: true,
-      },
-    ],
-  },
+       },
+     ],
+   },
 ];
 
 // Flat admin navigation for backward compatibility

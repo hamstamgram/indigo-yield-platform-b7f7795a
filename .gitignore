@@ -103,3 +103,6 @@ coverage/
 .playwright-mcp/
 playwright-report/
 validation-report.*
+
+# Claude Code local config — machine-specific, may contain credentials
+.claude/settings.local.json
