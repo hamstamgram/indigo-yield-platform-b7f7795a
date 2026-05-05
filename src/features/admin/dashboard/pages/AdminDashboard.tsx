@@ -130,7 +130,7 @@ function AdminDashboardContent() {
   };
 
   const handleAlertClick = () => {
-    navigate("/admin/operations");
+    navigate("/admin/settings");
   };
 
   if (loading) {
@@ -180,7 +180,7 @@ function AdminDashboardContent() {
             size="icon"
             className="relative h-10 w-10 md:h-12 md:w-12 rounded-xl glass-panel hover:bg-white/10 border-white/10"
             onClick={handleAlertClick}
-            title="View integrity alerts"
+            title="Settings"
           >
             <Bell className={cn("h-5 w-5", alertCount > 0 ? "text-white" : "text-slate-400")} />
             {alertCount > 0 && (
