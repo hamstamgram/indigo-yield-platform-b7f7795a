@@ -169,49 +169,64 @@ function applyDeposit(state: FundState, event: DepositEvent): FundState {
 
 function applyYieldRecord(state: FundState, event: YieldRecordEvent): FundState {
   const dist = previewDistribution(state, event);
+  const grossYield = parseFinancial(dist.totals.grossYield);
 
-  // Apply distributions to investor balances
-  const newBalances = cloneState(state).investors;
+  // Only apply distributions and accumulate credits when gross yield is positive
+  if (grossYield.gt(0)) {
+    // Apply distributions to investor balances
+    const newBalances = cloneState(state).investors;
 
-  for (const d of dist.distributions) {
-    if (newBalances.has(d.investorId)) {
-      const inv = newBalances.get(d.investorId)!;
-      inv.balance = d.newBalance;
-    } else {
-      // New investor (from fees/IB accumulation)
-      newBalances.set(d.investorId, {
-        investorId: d.investorId,
-        investorName: d.investorName,
-        balance: d.newBalance,
-        feePct: d.feePct,
-        ibPct: d.ibPct,
-        accountType: d.accountType,
-      });
+    for (const d of dist.distributions) {
+      if (newBalances.has(d.investorId)) {
+        const inv = newBalances.get(d.investorId)!;
+        inv.balance = d.newBalance;
+      } else {
+        // New investor (from fees/IB accumulation)
+        newBalances.set(d.investorId, {
+          investorId: d.investorId,
+          investorName: d.investorName,
+          balance: d.newBalance,
+          feePct: d.feePct,
+          ibPct: d.ibPct,
+          accountType: d.accountType,
+        });
+      }
     }
-  }
 
-  // For reporting: INDIGO FEES and IB balances become investors
-  if (event.purpose === "reporting") {
-    // INDIGO FEES gets its fee credits as investable balance
-    const feesInv = getOrCreateInvestorFromMap(newBalances, INDIGO_FEES_ID, "INDIGO Fees", "indigo_fees");
-    feesInv.balance = parseFinancial(feesInv.balance)
-      .plus(parseFinancial(dist.indigoFeesCredit))
-      .toFixed(18);
-    feesInv.feePct = "0";
-    feesInv.ibPct = "0";
-
-    // Each IB gets their IB credit as investable balance
-    for (const ibCredit of dist.ibCredits) {
-      const ibInv = getOrCreateInvestorFromMap(newBalances, ibCredit.ibId, ibCredit.ibName, "ib");
-      ibInv.balance = parseFinancial(ibInv.balance)
-        .plus(parseFinancial(ibCredit.amount))
+    // Only accumulate positive credits — skip when yield is negative
+    if (parseFinancial(dist.indigoFeesCredit).gt(0)) {
+      const feesInv = getOrCreateInvestorFromMap(newBalances, INDIGO_FEES_ID, "INDIGO Fees", "indigo_fees");
+      feesInv.balance = parseFinancial(feesInv.balance)
+        .plus(parseFinancial(dist.indigoFeesCredit))
         .toFixed(18);
-      ibInv.feePct = "0";
-      ibInv.ibPct = "0";
+      feesInv.feePct = "0";
+      feesInv.ibPct = "0";
+      feesInv.accountType = "indigo_fees";
     }
+
+    // Only accumulate positive IB credits
+    for (const ibCredit of dist.ibCredits) {
+      if (parseFinancial(ibCredit.amount).gt(0)) {
+        const ibInv = getOrCreateInvestorFromMap(newBalances, ibCredit.ibId, ibCredit.ibName, "ib");
+        ibInv.balance = parseFinancial(ibInv.balance)
+          .plus(parseFinancial(ibCredit.amount))
+          .toFixed(18);
+        ibInv.feePct = "0";
+        ibInv.ibPct = "0";
+        ibInv.accountType = "ib";
+      }
+    }
+
+    return buildNewState(state, newBalances, dist.recordedAUM);
   }
 
-  return buildNewState(state, newBalances, dist.recordedAUM);
+  // Negative or zero yield: preserve state, only update AUM
+  return {
+    ...state,
+    totalAUM: dist.recordedAUM,
+    lastSequence: event.sequence,
+    lastDate: event.date,
+  };
 }
 
 function getOrCreateInvestorFromMap(
