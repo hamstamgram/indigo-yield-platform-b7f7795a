@@ -54,6 +54,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Track profile fetch state to avoid double-fetching
   const profileFetchedRef = useRef<string | null>(null);
+  const timeoutWarnedRef = useRef(false);
 
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -71,12 +72,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // SECURITY: Add a safety timeout to force loading to false if auth hangs
     const safetyTimeout = setTimeout(() => {
       if (loading) {
-        logWarn("auth.initialization_timeout", {
-          message: "Auth initialization timed out after 5s, forcing loading to false",
-        });
+        if (!timeoutWarnedRef.current) {
+          logWarn("auth.initialization_timeout", {
+            message: "Auth initialization timed out, forcing loading to false",
+          });
+          timeoutWarnedRef.current = true;
+        }
         setLoading(false);
       }
-    }, 5000);
+    }, 15000);
 
     // Set up auth state listener FIRST
     const {
