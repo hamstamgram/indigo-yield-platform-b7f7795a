@@ -195,75 +195,73 @@ export function useYieldOperationsState() {
   );
 
   return {
-    // Selection state
-    selectedFund: selection.selectedFund,
-    showYieldDialog: selection.showYieldDialog,
-    showOpenPeriodDialog: selection.showOpenPeriodDialog,
-    showSystemAccounts: selection.showSystemAccounts,
-    showOnlyChanged: selection.showOnlyChanged,
-    searchInvestor: selection.searchInvestor,
-    setSelectedFund: selection.setSelectedFund,
-    setShowYieldDialog: selection.setShowYieldDialog,
-    setShowOpenPeriodDialog: selection.setShowOpenPeriodDialog,
-    setShowSystemAccounts: selection.setShowSystemAccounts,
-    setShowOnlyChanged: selection.setShowOnlyChanged,
-    setSearchInvestor: selection.setSearchInvestor,
+    // === ACTION API (preferred — encapsulates multi-state changes) ===
+    /** Open yield dialog for a fund (sets period defaults, fetches AUM) */
+    openYieldDialog,
+    /** Preview yield calculation without applying */
+    handlePreviewYield: onPreview,
+    /** Apply yield distribution to selected fund */
+    handleApplyYield: onApply,
+    /** Refetch all fund AUM data */
+    refetchFunds,
 
-    // Period state
+    // === SELECTION — which fund is active ===
+    selectedFund: selection.selectedFund,
+    setSelectedFund: selection.setSelectedFund,
+    showYieldDialog: selection.showYieldDialog,
+    setShowYieldDialog: selection.setShowYieldDialog,
+    showOpenPeriodDialog: selection.showOpenPeriodDialog,
+    setShowOpenPeriodDialog: selection.setShowOpenPeriodDialog,
+
+    // === PERIOD — yield effective date + purpose ===
     yieldPurpose: period.yieldPurpose,
-    aumDate: period.aumDate,
-    datePickerOpen: period.datePickerOpen,
-    reportingMonth: period.reportingMonth,
-    asOfDateIso: period.asOfDateIso,
-    aumTime: period.aumTime,
-    distributionDate: period.distributionDate,
     setYieldPurpose: handleSetYieldPurpose,
+    aumDate: period.aumDate,
     setAumDate,
-    setDatePickerOpen: period.setDatePickerOpen,
-    setReportingMonth: period.setReportingMonth,
-    setAumTime: period.setAumTime,
-    setDistributionDate: period.setDistributionDate,
+    reportingMonth: period.reportingMonth,
+    handleReportingMonthChange,
     getAvailableMonths: period.getAvailableMonths,
     validateEffectiveDate: () =>
       period.validateEffectiveDate(period.aumDate, period.yieldPurpose, period.reportingMonth),
 
-    // Calculation state
+    // === YIELD INPUT + PREVIEW ===
     newAUM: calculation.newAUM,
+    setNewAUM: calculation.setNewAUM,
     yieldPreview: calculation.yieldPreview,
     previewLoading: calculation.previewLoading,
-    existingDistributionDate: calculation.existingDistributionDate,
-    existingDistributionId: calculation.existingDistributionId,
-    setNewAUM: calculation.setNewAUM,
-    handlePreviewYield: onPreview,
-
-    // Submission state
     applyLoading: submission.applyLoading,
-    showConfirmDialog: submission.showConfirmDialog,
-    confirmationText: submission.confirmationText,
-    setShowConfirmDialog: submission.setShowConfirmDialog,
-    setConfirmationText: submission.setConfirmationText,
-    handleApplyYield: onApply,
-    handleConfirmApply: () => submission.setShowConfirmDialog(true),
 
-    // Global
+    // === FUNDS ===
     funds,
     loading,
     user,
+    formatValue: (value: string | number, asset: string) => formatAUM(value, asset),
+
+    // === INTERNAL (used by child components) ===
+    showSystemAccounts: selection.showSystemAccounts,
+    setShowSystemAccounts: selection.setShowSystemAccounts,
+    showOnlyChanged: selection.showOnlyChanged,
+    setShowOnlyChanged: selection.setShowOnlyChanged,
+    searchInvestor: selection.searchInvestor,
+    setSearchInvestor: selection.setSearchInvestor,
+    getFilteredDistributions,
+    datePickerOpen: period.datePickerOpen,
+    asOfDateIso: period.asOfDateIso,
+    aumTime: period.aumTime,
+    setAumTime: period.setAumTime,
+    showConfirmDialog: submission.showConfirmDialog,
+    setShowConfirmDialog: submission.setShowConfirmDialog,
+    confirmationText: submission.confirmationText,
+    setConfirmationText: submission.setConfirmationText,
+    existingDistributionDate: calculation.existingDistributionDate,
+    existingDistributionId: calculation.existingDistributionId,
     asOfAum: asOfAum ?? null,
     asOfAumLoading,
     asOfAumError: asOfAumError ?? null,
     reconResult,
     reconLoading,
-    getFilteredDistributions,
-    formatValue: (value: string | number, asset: string) => formatAUM(value, asset),
-    refetchFunds,
-
-    // Exposed actions
-    openYieldDialog,
-    handleReportingMonthChange,
-
-    // Reconciliation
     acknowledgeDiscrepancy: calculation.acknowledgeDiscrepancy,
     setAcknowledgeDiscrepancy: calculation.setAcknowledgeDiscrepancy,
+    handleConfirmApply: () => submission.setShowConfirmDialog(true),
   };
 }
