@@ -298,7 +298,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, isAdmin = false }: SidebarProps)
                   return (
                     <div key={group.title || `nav-group-${groupIndex}`} className="mb-3 px-2">
                       {group.title && (
-                        <h4 className="flex items-center gap-1.5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-sidebar-foreground/35 font-display">
+                        <h4 className="flex items-center gap-1.5 px-3 py-1 text-[12px] font-black uppercase tracking-widest text-sidebar-foreground/35 font-display">
                           {group.icon && <group.icon className="h-3 w-3" />}
                           {group.title}
                         </h4>
