@@ -1,0 +1,1 @@
+-- Placeholder: applied remotely via Supabase dashboard
