@@ -78,7 +78,11 @@ function App() {
         <SecurityProvider>
           <AuthProvider>
             <TooltipProvider delayDuration={200}>
-              <Router>
+              <Router
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true,
+                }}>
                 <AppContent />
               </Router>
             </TooltipProvider>
