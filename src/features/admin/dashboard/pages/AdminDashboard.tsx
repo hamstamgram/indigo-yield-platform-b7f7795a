@@ -157,7 +157,7 @@ function AdminDashboardContent() {
     <PageShell maxWidth="wide">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight text-white">
+          <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tight text-white">
             Command Center
           </h1>
           <p className="text-sm text-slate-400 mt-1">Operational overview and risk monitoring</p>
