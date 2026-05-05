@@ -7,7 +7,6 @@ export { CoreAdminRoutes } from "./core";
 export { InvestorRoutes } from "./investors";
 export { DepositRoutes } from "./deposits";
 export { WithdrawalRoutes } from "./withdrawals";
-export { OperationsRoutes } from "./operations";
 export { ReportsRoutes } from "./reports";
 export { SystemRoutes } from "./system";
 export { TransactionRoutes } from "./transactions";

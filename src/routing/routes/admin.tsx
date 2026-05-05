@@ -8,7 +8,6 @@ import {
   InvestorRoutes,
   DepositRoutes,
   WithdrawalRoutes,
-  OperationsRoutes,
   ReportsRoutes,
   SystemRoutes,
   TransactionRoutes,
@@ -30,7 +29,6 @@ export function AdminRoutes() {
       {DepositRoutes()}
       {LedgerRoutes()}
       {RevenueRoutes()}
-      {OperationsRoutes()}
       {ReportsRoutes()}
       {SystemRoutes()}
       {/* Legacy route modules (empty, redirects handled by consolidated routes) */}

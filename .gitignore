@@ -95,3 +95,14 @@ ios/
 **/create-test-users*
 coverage/
 .gstack/
+
+# AI tool state — never commit
+.lovable/
+.mex/
+.opencode/
+.playwright-mcp/
+playwright-report/
+validation-report.*
+
+# Claude Code local config — machine-specific, may contain credentials
+.claude/settings.local.json
