@@ -15,6 +15,7 @@ import {
   FeesRoutes,
   LedgerRoutes,
   RevenueRoutes,
+  YieldsRoutes,
 } from "./admin/index";
 
 /**
@@ -29,6 +30,7 @@ export function AdminRoutes() {
       {DepositRoutes()}
       {LedgerRoutes()}
       {RevenueRoutes()}
+      {YieldsRoutes()}
       {ReportsRoutes()}
       {SystemRoutes()}
       {/* Legacy route modules (empty, redirects handled by consolidated routes) */}

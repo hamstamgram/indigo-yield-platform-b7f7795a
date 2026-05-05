@@ -13,4 +13,5 @@ export { TransactionRoutes } from "./transactions";
 export { IBRoutes } from "./ib";
 export { FeesRoutes } from "./fees";
 export { LedgerRoutes } from "./ledger";
+export { YieldsRoutes } from "./yields";
 export { RevenueRoutes } from "./revenue";
