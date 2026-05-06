@@ -3,17 +3,13 @@
  * Handles internal routing of funds to INDIGO FEES account
  */
 
-import { supabase } from "@/integrations/supabase/client";
 import { rpc } from "@/lib/rpc/index";
 
 export interface InvestorPositionForRoute {
   fund_id: string;
   current_value: number;
-  funds: {
-    id: string;
-    name: string;
-    asset: string;
-  } | null;
+  fund_name: string;
+  fund_asset: string;
 }
 
 export interface InternalRouteParams {
@@ -38,20 +34,12 @@ export interface InternalRouteResult {
 export async function fetchInvestorPositionsForRoute(
   investorId: string
 ): Promise<InvestorPositionForRoute[]> {
-  const { data, error } = await supabase
-    .from("investor_positions")
-    .select(
-      `
-      fund_id,
-      current_value,
-      funds!fk_investor_positions_fund_id ( id, name, asset )
-    `
-    )
-    .eq("investor_id", investorId)
-    .gt("current_value", 0);
+  const { data, error } = await rpc.call("get_investor_positions_for_route", {
+    p_investor_id: investorId,
+  });
 
   if (error) throw error;
-  return (data as unknown as InvestorPositionForRoute[]) || [];
+  return (data || []) as InvestorPositionForRoute[];
 }
 
 /**

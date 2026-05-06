@@ -218,10 +218,10 @@ export const ExpertPositionsTable = ({
                   >
                     <TableCell className="py-1.5 pl-6">
                       <div className="font-semibold text-sm text-white/90">
-                        {position.funds?.name || "Unknown Fund"}
+                        {position.fund_name || "Unknown Fund"}
                       </div>
                       <div className="text-[10px] font-mono text-muted-foreground uppercase">
-                        {position.funds?.code}
+                        {position.fund_asset}
                       </div>
                     </TableCell>
 
