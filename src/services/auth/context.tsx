@@ -50,7 +50,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  // Public routes: skip session recovery + profile fetch (no auth needed)
+  const isPublicRoute = ["/", "/login", "/forgot-password", "/reset-password",
+    "/admin-invite", "/admin-invite-callback", "/investor-invite",
+    "/terms", "/privacy", "/health", "/status"
+  ].includes(window.location.pathname);
+
+  const [loading, setLoading] = useState(!isPublicRoute);
+
+  if (isPublicRoute) {
+    // Public pages: don't block render on auth
+    return (
+      <AuthContext.Provider
+        value={{
+          user: null, session: null, profile: null, loading: false,
+          isAdmin: false, signIn: async () => ({}), signOut: async () => {},
+          signUp: async () => ({}), resetPassword: async () => ({}),
+          updatePassword: async () => ({}),
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
+    );
+  }
 
   // Track profile fetch state to avoid double-fetching
   const profileFetchedRef = useRef<string | null>(null);
