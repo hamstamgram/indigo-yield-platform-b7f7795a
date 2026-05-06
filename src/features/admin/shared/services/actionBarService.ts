@@ -1,9 +1,10 @@
 /**
  * Action Bar Service
- * Handles fetching pending counts for the admin action bar
+ * Uses gateway RPC get_admin_pending_counts instead of direct supabase.from() calls
  */
 
 import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/rpc";
 
 export interface PendingCounts {
   withdrawals: number;
@@ -12,51 +13,18 @@ export interface PendingCounts {
 
 /**
  * Fetch pending counts for the action bar
+ * Single RPC call replaces 4 direct supabase.from() queries
  */
 export async function fetchPendingCounts(): Promise<PendingCounts> {
-  // Fetch pending withdrawals
-  const { count: withdrawalCount } = await supabase
-    .from("withdrawal_requests")
-    .select("*", { count: "exact", head: true })
-    .eq("status", "pending");
+  const { data, error } = await rpc.callNoArgs("get_admin_pending_counts");
 
-  // Fetch investors with active positions who need reports for current month
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
-  const currentMonthNum = currentDate.getMonth() + 1;
-
-  // Count investors with active positions (value > 0)
-  // These are the only investors who need monthly reports
-  const { data: activeInvestors } = await supabase
-    .from("investor_positions")
-    .select("investor_id")
-    .eq("is_active", true)
-    .gt("current_value", 0);
-
-  const uniqueActiveInvestors = [...new Set(activeInvestors?.map((p) => p.investor_id) || [])];
-  const investorCount = uniqueActiveInvestors.length;
-
-  // First lookup the period_id UUID from statement_periods
-  const { data: periodData } = await supabase
-    .from("statement_periods")
-    .select("id")
-    .eq("year", currentYear)
-    .eq("month", currentMonthNum)
-    .maybeSingle();
-
-  let reportCount = 0;
-  if (periodData?.id && uniqueActiveInvestors.length > 0) {
-    const { count } = await supabase
-      .from("investor_fund_performance")
-      .select("investor_id", { count: "exact", head: true })
-      .eq("period_id", periodData.id)
-      .in("investor_id", uniqueActiveInvestors);
-    reportCount = count || 0;
+  if (error || !data || data.length === 0) {
+    return { withdrawals: 0, reportsNeeded: 0 };
   }
 
   return {
-    withdrawals: withdrawalCount || 0,
-    reportsNeeded: Math.max(0, investorCount - reportCount),
+    withdrawals: Number(data[0].withdrawal_count) || 0,
+    reportsNeeded: Number(data[0].reports_needed) || 0,
   };
 }
 
