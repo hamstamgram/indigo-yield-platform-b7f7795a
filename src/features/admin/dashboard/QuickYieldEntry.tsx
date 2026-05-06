@@ -25,8 +25,7 @@ import { Calculator, TrendingUp, ArrowRight, Zap } from "lucide-react";
 import { toast } from "sonner";
 import Decimal from "decimal.js";
 import { CryptoIcon } from "@/components/CryptoIcons";
-import { useFundsWithAUM } from "@/features/admin/dashboard/hooks/useDashboardQueries";
-import { useFunds } from "@/hooks/data/shared/useFunds";
+import { useActiveFundsWithAUM } from "@/features/admin/yields/hooks/useYieldOperations";
 import { parseFinancial, formatFinancialDisplay } from "@/utils/financial";
 
 export function QuickYieldEntry() {
@@ -34,13 +33,8 @@ export function QuickYieldEntry() {
   const [selectedFund, setSelectedFund] = useState<string>("");
   const [newAUM, setNewAUM] = useState<string>("");
 
-  // Use the data hook for funds
-  const { data: baseFunds, isLoading: fundsLoading } = useFunds({ status: 'active' });
-
-  // Use the dashboard hook for AUM data
-  const { data: funds = [], isLoading: aumLoading } = useFundsWithAUM(baseFunds);
-
-  const loading = fundsLoading || aumLoading;
+  // Single consolidated hook instead of useFunds + useFundsWithAUM
+  const { data: funds = [], isLoading: loading } = useActiveFundsWithAUM();
 
   const selectedFundData = funds.find((f) => f.id === selectedFund);
 
@@ -49,7 +43,7 @@ export function QuickYieldEntry() {
     const newAUMDec = parseFinancial(newAUM);
     if (newAUMDec.isZero()) return null;
 
-    const currentAUMDec = parseFinancial(selectedFundData.currentAUM || 0);
+    const currentAUMDec = parseFinancial(selectedFundData.total_aum || 0);
 
     const yieldAmount = newAUMDec.minus(currentAUMDec);
     const yieldPct = currentAUMDec.isZero()
@@ -125,7 +119,7 @@ export function QuickYieldEntry() {
                   <CryptoIcon symbol={selectedFundData.asset} className="h-4 w-4" />
                 </div>
                 <div className="text-xl font-mono font-bold mt-1">
-                  {formatCrypto(selectedFundData.currentAUM)}{" "}
+                  {formatCrypto(selectedFundData.total_aum || 0)}" "}
                   <span className="text-sm text-muted-foreground font-normal">
                     {selectedFundData.asset}
                   </span>
